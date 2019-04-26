@@ -1,32 +1,44 @@
-#Analyze pairwise distances for immunity assay analysis
-#Use Actino1321 data, in which escape mutants have been added and Che12 sequence has been corrected.
+# R script to perform misc. data analyses for Mavrich & Hatfull, mBio, 2017.
+# Travis Mavrich.
+# Note: this code merges and analyzes various datasets generated from 
+# input data sets prepared by other tools including Python and Excel.
+# Distinct analyses and code blocks separated by "###".
 
-#setwd("~/Desktop/Project_stoperator/immunity_bfx/")
 
 
 
 
-#The melt function of reshape2 package is needed to convert matrix to unique-pair table
-#install.packages("reshape2")
-#TODO: update R and RStudio to most appropriate version for reshape2
+### Install dependencies
+
+# TODO check if reshape2 is still needed
+# The melt function of reshape2 package is needed to convert matrix
+# to unique-pair table.
+# install.packages("reshape2")
+# TODO: update R and RStudio to most appropriate version for reshape2
 library(reshape2)
 
-#Stringdist is needed to compute hamming distance between strings
-#install.packages("stringdist")
+# Stringdist is needed to compute hamming distance between strings
+# install.packages("stringdist")
 library(stringdist)
 
 
-#Pysch is needed to produce 2d error bar plots
-#install.packages("psych")
-library(psych)
+
+### Set working directory
+# The current code assumes a specific working directory structure.
 
 setwd("~/scratch/immunity_analysis/input/")
 
 
 
-#Functions
 
-#Compute comparison fields
+
+
+
+
+
+###Define functions
+
+# Compute comparison fields
 compute_comparisons <- function(table){
 
   
@@ -86,82 +98,112 @@ compute_comparisons <- function(table){
 
 
 
-
-plot_scored_infection_strength <- function(table){
+convert_immunity_scores_to_numeric <- function(table){
   
-  par(mar=c(4,8,4,4))
-  plot(table$modified_mash_distance,
-       as.numeric(as.character(table$scored_infection_strength)),
-       xlim=c(0,0.4),ylim=c(0,3),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+  table$scored_infection_strength <- as.numeric(as.character(table$scored_infection_strength))
+  table$scored_turbidity <- as.numeric(as.character(table$scored_turbidity))
+  table$scored_plaque_size <- as.numeric(as.character(table$scored_plaque_size))
+  table$scored_plaques <- as.numeric(as.character(table$scored_plaques))
+  table$scored_four_factors <- as.numeric(as.character(table$scored_four_factors))
+  table$rank6 <- as.numeric(as.character(table$rank6))
+  return(table)
+}
+
+convert_immunity_scores_to_factor <- function(table){
+  
+  table$scored_infection_strength <- factor(as.character(table$scored_infection_strength))
+  table$scored_turbidity <- factor(as.character(table$scored_turbidity))
+  table$scored_plaque_size <- factor(as.character(table$scored_plaque_size))
+  table$scored_plaques <- factor(as.character(table$scored_plaques))
+  table$scored_four_factors <- factor(as.character(table$scored_four_factors))
+  table$rank6 <- factor(as.character(table$rank6))
+  return(table)
 }
 
 
 
-plot_scored_four_factors_mash <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$modified_mash_distance,
-       as.numeric(as.character(table$scored_four_factors)),
-       xlim=c(0,0.4),ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
-
-plot_scored_four_factors_gcd <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$pham_pham_dissimilarity,
-       as.numeric(as.character(table$scored_four_factors)),
-       ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
-
-plot_scored_four_factors_repressor <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$repressor_muscle_bionj_distances,
-       as.numeric(as.character(table$scored_four_factors)),
-       ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
-
-plot_scored_four_factors_repressor_phyml <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$repressor_prank_phyml_distances,
-       as.numeric(as.character(table$scored_four_factors)),
-       ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
 
 
-plot_scored_four_factors_recb <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$recb_muscle_bionj_distances,
-       as.numeric(as.character(table$scored_four_factors)),
-       ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
-
-plot_scored_four_factors_portal <- function(table){
-  
-  par(mar=c(4,8,4,4))
-  plot(table$portal_muscle_bionj_distances,
-       as.numeric(as.character(table$scored_four_factors)),
-       ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-}
 
 
-plot_reduce_data1 <- function(table,source1,source2,lys1,lys2){
-  
-  table <- subset(table,
-                  table$defending_source == source1
-                  & table$challenging_source == source2
-                  & table$defending_lysogen_type == lys1
-                  & table$challenging_lysogen_type == lys2
-  )
-  
-  plot_scored_four_factors(table)
-  plot_name <- paste(source1,"_",source2,"_",lys1,"_",lys2,'.pdf',sep='')
-  dev.copy(pdf,plot_name)
-  dev.off()
-  
-}
+
+# TODO I can probably delete these functions:
+# 
+# plot_scored_infection_strength <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$modified_mash_distance,
+#        as.numeric(as.character(table$scored_infection_strength)),
+#        xlim=c(0,0.4),ylim=c(0,3),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# 
+# 
+# plot_scored_four_factors_mash <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$modified_mash_distance,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        xlim=c(0,0.4),ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# plot_scored_four_factors_gcd <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$pham_pham_dissimilarity,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# plot_scored_four_factors_repressor <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$repressor_muscle_bionj_distances,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# plot_scored_four_factors_repressor_phyml <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$repressor_prank_phyml_distances,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# 
+# plot_scored_four_factors_recb <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$recb_muscle_bionj_distances,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# plot_scored_four_factors_portal <- function(table){
+#   
+#   par(mar=c(4,8,4,4))
+#   plot(table$portal_muscle_bionj_distances,
+#        as.numeric(as.character(table$scored_four_factors)),
+#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
+# }
+# 
+# 
+# plot_reduce_data1 <- function(table,source1,source2,lys1,lys2){
+#   
+#   table <- subset(table,
+#                   table$defending_source == source1
+#                   & table$challenging_source == source2
+#                   & table$defending_lysogen_type == lys1
+#                   & table$challenging_lysogen_type == lys2
+#   )
+#   
+#   plot_scored_four_factors(table)
+#   plot_name <- paste(source1,"_",source2,"_",lys1,"_",lys2,'.pdf',sep='')
+#   dev.copy(pdf,plot_name)
+#   dev.off()
+#   
+# }
 
 
 
@@ -189,9 +231,11 @@ plot_reduce_data1 <- function(table,source1,source2,lys1,lys2){
 
 
 
-###Import datasets
+### Import datasets
 
-#immunity data
+
+
+# Expected structure of immunity data:
 # "immunity_assay_id"
 # "immunity_set"
 # "date"
@@ -234,13 +278,13 @@ immunity_data$scored_plaques <- as.factor(immunity_data$scored_plaques)
 immunity_data$scored_four_factors <- as.factor(immunity_data$scored_four_factors)
 immunity_data$rank6 <- as.factor(immunity_data$rank6)
 
-#Several fields contain 'unspecified' which can be converted to NA
-#Afterwards, re-factor
-#prophage
-#repressor_clone
-#tested_titer
-#phage_reliability
-#scored_infection_strength
+# Several fields contain 'unspecified' which can be converted to NA
+# Afterwards, re-factor
+# prophage
+# repressor_clone
+# tested_titer
+# phage_reliability
+# scored_infection_strength
 immunity_data[immunity_data == "Unspecified"] <- NA
 immunity_data[immunity_data == "unspecified"] <- NA
 immunity_data$prophage <- factor(immunity_data$prophage)
@@ -287,6 +331,7 @@ immunity_data$strain_defending_challenging <- as.factor(immunity_data$strain_def
 
 
 
+# TODO confirm how this data was re-generated.
 #mash genomic distance data
 #all actino1321 phages 
 #reciprocal data and self-comparison data
@@ -298,6 +343,8 @@ genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRU
 
 
 
+#TODO remove unneeded data fields
+#Use Actino1321 data, in which escape mutants have been added
 #actino1321 phage metadata
 # "phageid"
 # "host"
@@ -362,7 +409,7 @@ phage_metadata$genome_center_alignment_reference <- as.numeric(as.character(phag
 
 
 
-
+# TODO I can probably delete this dataset.
 #actino1321 repressor protein distance data
 #reciprocal data and self-comparison data
 #only Cluster A parent phages used in immunity assays
@@ -382,7 +429,7 @@ repressor_distance_data <- read.csv("repressor_distance_data.csv",sep=",",header
 
 
 
-
+# TODO I can probably delete this dataset.
 #actino1321 portal protein distance data
 #reciprocal data and self-comparison data
 #only Cluster A parent phages used in immunity assays
@@ -393,6 +440,7 @@ repressor_distance_data <- read.csv("repressor_distance_data.csv",sep=",",header
 portal_distance_data <- read.csv("portal_distance_data.csv",sep=",",header=TRUE)
 
 
+# TODO I can probably delete this dataset.
 #actino1321 recb protein distance data
 #reciprocal data and self-comparison data
 #only Cluster A parent phages used in immunity assays
@@ -519,7 +567,7 @@ stoperator_pwm_data <- subset(stoperator_pwm_data,
 
 
 #stoperator327 site prediction
-#contains list of prediction stopeator sites in all 327 Cluster A genomes from actino1321, for each of the 327 stoperaotr PWMs
+#contains list of prediction stoperator sites in all 327 Cluster A genomes from actino1321, for each of the 327 stoperaotr PWMs
 #An 88% relative score cutoff was used
 # "tfbs88_stop_site_id"
 # "tfbs88_motif_target"
@@ -626,20 +674,14 @@ setwd("~/scratch/immunity_analysis/output/")
 
 
 
+#Fig. S1e
 par(mar=c(4,8,4,4))
 hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
 dev.copy(pdf,'clade2_env_self_sites_near_pleft2.pdf')
 dev.off()
 
 
-
-
-# par(mar=c(4,8,4,4))
-# hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=1000,xlim=c(-10000,500))
-# abline(v=-1500)
-# 
-
-#FinalFig
+#Fig. 3d
 par(mar=c(4,8,8,4))
 hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2500,xlim=c(-2000,500),ylim=c(0,100))
 dev.copy(pdf,'clade2_env_self_sites_near_pleft.pdf')
@@ -654,65 +696,18 @@ nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_pleft_dist > -100
 
 
 
-#Distance from right end of genome
-hist(stop88_clade2_env_self$site_right_end_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-hist(stop88_clade2_env_self$site_right_end_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=1000,xlim=c(-2500,0))
-abline(v=-2000)
-
-
-#FinalFig
-par(mar=c(4,8,4,4))
-hist(stop88_clade2_env_self$site_right_end_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-dev.copy(pdf,'clade2_env_self_sites_right_termini.pdf')
-dev.off()
-
-
-
-nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_right_end_dist > -2000))/nrow(stop88_clade2_env_self)
-#22% of all sites are within 2kb of the right end of the genome
-
-
 
 
 
 
 #Distance from repressor
-# par(mar=c(4,8,8,4))
-# hist(stop88_clade2_env_self$site_rep_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-# 
-# par(mar=c(4,8,8,4))
-# hist(stop88_clade2_env_self$site_rep_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2000,xlim=c(-1000,1000),ylim=c(0,50))
-# dev.copy(pdf,'clade2_env_self_sites_near_repressor.pdf')
-# dev.off()
 
+
+#Fig. 3b
 par(mar=c(4,8,8,4))
 hist(stop88_clade2_env_self$site_rep_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2000,xlim=c(-4000,1000),ylim=c(0,50))
 dev.copy(pdf,'clade2_env_self_sites_near_repressor2.pdf')
 dev.off()
-
-
-
-
-
-
-
-#Distance from center of genome
-
-hist(stop88_clade2_env_self$site_center_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-
-nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_center_dist > 0))/nrow(stop88_clade2_env_self)
-#74% of all sites are to the right of the genome center
-
-
-
-
-
-
-
-#Distance from left end of genome
-par(mar=c(4,8,8,4))
-hist(stop88_clade2_env_self$tfbs88_site_middle,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-
 
 
 
@@ -741,7 +736,7 @@ names(stop88_clade2_env_self_freq) <- c("phage","frequency")
 
 setwd("~/scratch/immunity_analysis/output/")
 
-#FinalFig
+#Fig. S1b
 par(mar=c(4,8,8,4))
 hist(stop88_clade2_env_self_freq$frequency,col="black",breaks=50,xlim=c(0,50),ylim=c(0,15),main=NULL,ann=FALSE,las=1,cex.axis=2)
 dev.copy(pdf,'clade2_env_self_stops_per_genome.pdf')
@@ -887,7 +882,7 @@ summary(stop88_clade2_env_self_freq_summary$check_right_percent)
 
 setwd("~/scratch/immunity_analysis/output/")
 
-#FinalFig
+#Fig. S1c
 par(mar=c(4,8,8,4))
 plot(stop88_clade2_env_self_freq_summary$right_sites_reverse_percent,
      stop88_clade2_env_self_freq_summary$left_sites_forward_percent,
@@ -903,91 +898,6 @@ dev.off()
 
 
 
-
-
-
-
-
-#Table creates a two column table = the levels and the frequency (int)
-
-
-#Compute # of sites within 2kb of the right genome end
-stoperator_site_predictions88_2kbright <- subset(stoperator_site_predictions88,
-                                                 stoperator_site_predictions88$site_right_end_dist >= -2000)
-
-stoperator_site_predictions88_2kbleft <- subset(stoperator_site_predictions88,
-                                                 stoperator_site_predictions88$site_right_end_dist < -2000)
-
-
-
-
-
-
-
-
-stoperator_site_predictions88_2kbright_targetself <- subset(stoperator_site_predictions88_2kbright,
-                                                            stoperator_site_predictions88_2kbright$tfbs88_site_self == TRUE)
-
-stoperator_site_predictions88_2kbright_nontargetself <- subset(stoperator_site_predictions88_2kbright,
-                                                            stoperator_site_predictions88_2kbright$tfbs88_site_self == FALSE)
-
-
-
-
-
-stoperator_site_predictions88_2kbleft_targetself <- subset(stoperator_site_predictions88_2kbleft,
-                                                           stoperator_site_predictions88_2kbleft$tfbs88_site_self == TRUE)
-
-stoperator_site_predictions88_2kbleft_nontargetself <- subset(stoperator_site_predictions88_2kbleft,
-                                                              stoperator_site_predictions88_2kbleft$tfbs88_site_self == FALSE)
-
-
-
-
-
-
-
-
-stop88_tally <- as.data.frame(table(stoperator_site_predictions88$tfbs88_motif_target))
-stop88_2kbright_tally <- as.data.frame(table(stoperator_site_predictions88_2kbright$tfbs88_motif_target))
-stop88_2kbleft_tally <- as.data.frame(table(stoperator_site_predictions88_2kbleft$tfbs88_motif_target))
-
-
-stop88_2kbright_targetself_tally <- as.data.frame(table(stoperator_site_predictions88_2kbright_targetself$tfbs88_motif_target))
-stop88_2kbright_nontargetself_tally <- as.data.frame(table(stoperator_site_predictions88_2kbright_nontargetself$tfbs88_motif_target))
-
-stop88_2kbleft_targetself_tally <- as.data.frame(table(stoperator_site_predictions88_2kbleft_targetself$tfbs88_motif_target))
-stop88_2kbleft_nontargetself_tally <- as.data.frame(table(stoperator_site_predictions88_2kbleft_nontargetself$tfbs88_motif_target))
-
-
-names(stop88_tally) <- c("tfbs88_motif_target","stoperator88_tally")
-names(stop88_2kbright_tally) <- c("tfbs88_motif_target","stoperator88_2kbright_tally")
-names(stop88_2kbleft_tally) <- c("tfbs88_motif_target","stoperator88_2kbleft_tally")
-
-names(stop88_2kbright_targetself_tally) <- c("tfbs88_motif_target","stoperator88_2kbright_targetself_tally")
-names(stop88_2kbright_nontargetself_tally) <- c("tfbs88_motif_target","stoperator88_2kbright_nontargetself_tally")
-names(stop88_2kbleft_targetself_tally) <- c("tfbs88_motif_target","stoperator88_2kbleft_targetself_tally")
-names(stop88_2kbleft_nontargetself_tally) <- c("tfbs88_motif_target","stoperator88_2kbleft_nontargetself_tally")
-
-
-stoperator_tally <- merge(stop88_tally,stop88_2kbright_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-stoperator_tally <- merge(stoperator_tally,stop88_2kbleft_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-stoperator_tally <- merge(stoperator_tally,stop88_2kbright_targetself_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-stoperator_tally <- merge(stoperator_tally,stop88_2kbright_nontargetself_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-stoperator_tally <- merge(stoperator_tally,stop88_2kbleft_targetself_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-stoperator_tally <- merge(stoperator_tally,stop88_2kbleft_nontargetself_tally,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-
-
-
-#Remove all NA values in final table
-stoperator_tally[is.na(stoperator_tally)] <- 0
-
-
-
-#Add individual target and motif columns
-stoperator_tally <- merge(stoperator_tally,all_levels,by.x="tfbs88_motif_target",by.y="tfbs88_motif_target")
-
-#stoperator_tally now contains tally of all sites predicted from all possible pairwise combinations of PWM and target genome.
 
 
 
@@ -1107,22 +1017,11 @@ main_immunity_data <- subset(main_immunity_data,
 
 
 
-#Histogram of titers to assess the range of titers used
-setwd("~/scratch/immunity_analysis/output/")
-
+# Histogram of titers to assess the range of titers used
+# Useful to compute multiplicity of infection
 par(mar=c(4,8,15,4))
 hist(log(main_immunity_data$tested_titer,10),xlim=c(0,10),col='black',ann=FALSE,main=NULL,las=1,breaks=20)
-dev.copy(pdf,'titer_hist.pdf')
-dev.off()
 
-
-#Plot immunity phenotypes by titer to assess which phenotypes are observed at which range of titers
-par(mar=c(4,8,4,4))
-plot(log(main_immunity_data$tested_titer,10),
-     as.numeric(as.character(main_immunity_data$rank6)),
-     xlim=c(0,9),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'titer_vs_rank6.pdf')
-dev.off()
 
 ###
 
@@ -1161,29 +1060,8 @@ dev.off()
 
 
 
-###Average data
+### Average data
 
-convert_immunity_scores_to_numeric <- function(table){
-  
-  table$scored_infection_strength <- as.numeric(as.character(table$scored_infection_strength))
-  table$scored_turbidity <- as.numeric(as.character(table$scored_turbidity))
-  table$scored_plaque_size <- as.numeric(as.character(table$scored_plaque_size))
-  table$scored_plaques <- as.numeric(as.character(table$scored_plaques))
-  table$scored_four_factors <- as.numeric(as.character(table$scored_four_factors))
-  table$rank6 <- as.numeric(as.character(table$rank6))
-  return(table)
-}
-
-convert_immunity_scores_to_factor <- function(table){
-  
-  table$scored_infection_strength <- factor(as.character(table$scored_infection_strength))
-  table$scored_turbidity <- factor(as.character(table$scored_turbidity))
-  table$scored_plaque_size <- factor(as.character(table$scored_plaque_size))
-  table$scored_plaques <- factor(as.character(table$scored_plaques))
-  table$scored_four_factors <- factor(as.character(table$scored_four_factors))
-  table$rank6 <- factor(as.character(table$rank6))
-  return(table)
-}
 
 
 #For certain analyses, I need averaged non-duplicated immunity comparisons. 
@@ -1457,7 +1335,7 @@ conf_assay_strain_def_chal_average$frequency <- as.factor(conf_assay_strain_def_
 
 
 
-
+# TODO rename to 'Table S2'? and remove various fields?
 #Export all averaged data
 setwd("~/scratch/immunity_analysis/output/")
 write.table(conf_assay_strain_def_chal_average,
@@ -1570,49 +1448,6 @@ main_immunity_data$assay_strain_averaged_rank6_diff <- as.numeric(as.character(m
 
 
 
-
-
-
-# #TEMP
-# 
-# #Identify best candidates for figure of infection spectrum
-# 
-# temp_l5 <- subset(conf_assay_strain_def_chal_average,
-#                   conf_assay_strain_def_chal_average$challenging_phage == 'l5' &
-#                     conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-#                     conf_assay_strain_def_chal_average$strain_type == 'lysogen',
-#                   select=c("defending_phage","challenging_phage","averaged_rank6","frequency","min_rank6","max_rank6"))
-# 
-# temp_gladiator <- subset(conf_assay_strain_def_chal_average,
-#                          conf_assay_strain_def_chal_average$challenging_phage == 'gladiator' &
-#                            conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-#                            conf_assay_strain_def_chal_average$strain_type == 'lysogen',
-#                          select=c("defending_phage","challenging_phage","averaged_rank6","frequency","min_rank6","max_rank6"))
-# 
-# temp_darthphader <- subset(conf_assay_strain_def_chal_average,
-#                            conf_assay_strain_def_chal_average$challenging_phage == 'darthphader' &
-#                              conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-#                              conf_assay_strain_def_chal_average$strain_type == 'lysogen',
-#                            select=c("defending_phage","challenging_phage","averaged_rank6","frequency","min_rank6","max_rank6"))
-# 
-# temp_archernm <- subset(conf_assay_strain_def_chal_average,
-#                         conf_assay_strain_def_chal_average$challenging_phage == 'archernm' &
-#                           conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-#                           conf_assay_strain_def_chal_average$strain_type == 'lysogen',
-#                         select=c("defending_phage","challenging_phage","averaged_rank6","frequency","min_rank6","max_rank6"))
-# 
-# temp_et2brutus <- subset(conf_assay_strain_def_chal_average,
-#                          conf_assay_strain_def_chal_average$challenging_phage == 'et2brutus' &
-#                            conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-#                            conf_assay_strain_def_chal_average$strain_type == 'lysogen',
-#                          select=c("defending_phage","challenging_phage","averaged_rank6","frequency","min_rank6","max_rank6"))
-# 
-# 
-# #
-
-
-
-
 #Assess reproducibility for all comparisons with frequency > 1
 main_immunity_data_assay_strain_reduced <- subset(main_immunity_data,
                                                   as.numeric(as.character(main_immunity_data$assay_strain_frequency)) > 1)
@@ -1680,136 +1515,19 @@ dev.off()
 #Only look at multiple_titer assays
 conf_assay_strain_def_chal_average_multi <- subset(conf_assay_strain_def_chal_average,conf_assay_strain_def_chal_average$assay_type == "multiple_titer")
 
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average_multi$frequency),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,400))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_multi_frequency.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average_multi$frequency2),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,400))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_multi_frequency_adjusted.pdf')
-dev.off()
 
 
-
-
-#Final Number of unique multi-titer assays
+# Summary - number of unique multi-titer assays
 nrow(conf_assay_strain_def_chal_average_multi)
 
-#Final Number of unique multi-titer assays with >1 replicate.
+#Summary - number of unique multi-titer assays with >1 replicate.
 conf_assay_strain_def_chal_average_multi_reps <- subset(conf_assay_strain_def_chal_average_multi,conf_assay_strain_def_chal_average_multi$frequency != "1")
 nrow(conf_assay_strain_def_chal_average_multi_reps)/nrow(conf_assay_strain_def_chal_average_multi)
-#As of 1/17/2019, 67% of unique comparisons has > 1 replicate 
 
 
 
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average_multi_reps$range_rank6),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,400))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_rank6_multi_reps_range.pdf')
-dev.off()
-
-
-#Final number of unique multi-titer assays with > 1 replicate and score range < 2
+#Summary - number of unique multi-titer assays with > 1 replicate and score range < 2
 nrow(subset(conf_assay_strain_def_chal_average_multi_reps,conf_assay_strain_def_chal_average_multi_reps$range_rank6 == "0" | conf_assay_strain_def_chal_average_multi_reps$range_rank6 == "1"))/nrow(conf_assay_strain_def_chal_average_multi_reps)
-#As of 1/17/2019, 82% of unique multi-titer (lysogen or rep clone) comparisons with > 1 replicate have a score range of < 2.
-
-
-
-
-
-
-
-
-
-
-hist(main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff,
-     xlim=c(-3,3),col='black',ann=FALSE,main=NULL,las=1,breaks=9)
-dev.copy(pdf,'assay_strain_averaged_rank6_diff_hist.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(main_immunity_data_assay_strain_reduced$rank6)),
-     main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff,
-     pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(main_immunity_data_assay_strain_reduced$rank6)),
-     main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff,
-     pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(10,8,4,4))
-boxplot(main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff ~ main_immunity_data_assay_strain_reduced$rank6,
-        cex=1,cex.axis=1,ann=FALSE,main=NULL,las=2)
-
-
-par(mar=c(10,8,4,4))
-boxplot(as.numeric(as.character(main_immunity_data_assay_strain_reduced$assay_strain_range_rank6)) ~ main_immunity_data_assay_strain_reduced$rank6,
-        cex=1,cex.axis=1,ann=FALSE,main=NULL,las=2)
-
-par(mar=c(10,8,4,4))
-boxplot(as.numeric(as.character(main_immunity_data_assay_strain_reduced$assay_strain_range_rank6)) ~ main_immunity_data_assay_strain_reduced$rank6,
-        cex=1,cex.axis=1,ann=FALSE,main=NULL,las=2)
-
-par(mar=c(16,8,4,4))
-stripchart(main_immunity_data_assay_strain_reduced$assay_strain_min_rank6 ~ main_immunity_data_assay_strain_reduced$rank6,
-           vertical=TRUE,las=2,cex.axis=1,pch=19,method="jitter",cex=0.5,ylab='')
-
-par(mar=c(16,8,4,4))
-stripchart(main_immunity_data_assay_strain_reduced$assay_strain_max_rank6 ~ main_immunity_data_assay_strain_reduced$rank6,
-           vertical=TRUE,las=2,cex.axis=1,pch=19,method="jitter",cex=0.5,ylab='',col="blue")
-
-
-
-
-par(mar=c(16,8,4,4))
-stripchart(main_immunity_data_assay_strain_reduced$assay_strain_min_rank6 ~ main_immunity_data_assay_strain_reduced$rank6,
-           ylim=c(0,6),vertical=TRUE,las=2,cex.axis=1,pch=19,method="jitter",cex=0.5,ylab='',col="green")
-par(new=TRUE)
-stripchart(main_immunity_data_assay_strain_reduced$assay_strain_max_rank6 ~ main_immunity_data_assay_strain_reduced$rank6,
-           ylim=c(0,6),vertical=TRUE,las=2,cex.axis=1,pch=19,method="jitter",cex=0.5,ylab='',col="blue")
-
-temp_range0 <- subset(main_immunity_data_assay_strain_reduced,main_immunity_data_assay_strain_reduced$assay_strain_range_rank6 == 0)
-barplot(summary(temp_range0$rank6))
-
-temp_range2 <- subset(main_immunity_data_assay_strain_reduced,main_immunity_data_assay_strain_reduced$assay_strain_range_rank6 == 2)
-barplot(summary(temp_range2$rank6))
-
-
-
-
-
-
-
-# hist(main_immunity_data_strain_reduced$strain_averaged_rank6_diff,
-#      xlim=c(-3,3),col='black',ann=FALSE,main=NULL,las=1,breaks=101)
-# dev.copy(pdf,'strain_averaged_rank6_diff_hist.pdf')
-# dev.off()
-
-
-
-#Export the immunity assays that are most divergent from their average
-assay_outliers <- subset(main_immunity_data_assay_strain_reduced,
-                         main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff < -1 |
-                           main_immunity_data_assay_strain_reduced$assay_strain_averaged_rank6_diff > 1)
-write.table(assay_outliers,
-            "assay_outliers.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-#Conclusion: of all confident, averaged, assay_strain_def_chal data, there are 27 comparisons with a rank6 that exceeds the average by 1.
-#The largest difference is 2.
-#None of them appear to be egregious or unrealistic. 
-
-
-
-
-
-
-
-
 
 
 ###End of data average step
@@ -1919,7 +1637,7 @@ immunity_correlation_data <- merge(defending_cor_reduced_df,
 
 
 
-
+#TODO I think this can be deleted
 #Immunity correlation analysis
 setwd("~/scratch/immunity_analysis/output/")
 
@@ -2025,7 +1743,54 @@ conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic <- subset(c
 
 
 
-#FinalFig
+
+
+
+
+
+
+
+
+#Fig. 5b sub-panel 1
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_full_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_full_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repFull.pdf')
+dev.off()
+
+
+
+#Fig. 5b sub-panel 2
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_stopEuc.pdf')
+dev.off()
+
+
+
+
+
+
+#Fig. S5a sub-panel 1
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$pham_pham_dissimilarity,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
@@ -2041,7 +1806,7 @@ plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$pham_pham_dissimila
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_gcd.pdf')
 dev.off()
 
-#FinalFig
+#Fig. S5a sub-panel 2
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$modified_mash_distance,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
@@ -2060,59 +1825,56 @@ dev.off()
 
 
 
-
-#FinalFig
+#Fig. S5d sub-panel 1
 par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_stopEuc.pdf')
-dev.off()
-
-
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$portal_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
 par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_cterm_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$portal_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
 par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_cterm_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$portal_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repCterm.pdf')
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_portal.pdf')
 dev.off()
 
-
-#FinalFig
+#Fig. S5d sub-panel 2
 par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$dnapol_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
 par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_full_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$dnapol_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
 par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_full_mafft_dist_uncorrected,
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$dnapol_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repFull.pdf')
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_dnapol.pdf')
+dev.off()
+
+#Fig. S5d sub-panel 3
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$endovii_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$endovii_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$endovii_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_endovii.pdf')
 dev.off()
 
 
-#FinalFig
+#Fig. S5d sub-panel 4
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$cas4_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
@@ -2129,56 +1891,8 @@ dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_cas4.pdf'
 dev.off()
 
 
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$endovii_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$endovii_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$endovii_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_endovii.pdf')
-dev.off()
 
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$dnapol_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$dnapol_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$dnapol_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_dnapol.pdf')
-dev.off()
-
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$portal_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$portal_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$portal_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_portal.pdf')
-dev.off()
-
-
-#FinalFig
+#Fig. 9b sub-panel 1
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_nterm_mafft_dist_uncorrected,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
@@ -2196,7 +1910,7 @@ dev.off()
 
 
 
-#FinalFig
+#Fig. 9b sub-panel 2
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_hth_compare,
      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
@@ -2213,13 +1927,29 @@ dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repHTH.pd
 dev.off()
 
 
+#Fig. 9b sub-panel 3
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_cterm_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_cterm_mafft_dist_uncorrected,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repCterm.pdf')
+dev.off()
 
 
-#Final Number of assays:
+
+
+#Summary - number of assays:
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic) +
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic) +
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade)
-
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade)
@@ -2228,12 +1958,8 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade)
 
 
 
-# #evaluate specific assays with similar hth
-# temp_hth0 <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic,conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_hth_compare < 1)
-# temp_hth1 <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic,conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_hth_compare == 1)
 
-
-#FinalCorrelations
+#Summary - plot correlations
 lm_gcd <- lm(averaged_rank6 ~
                repressor_full_mafft_dist_uncorrected,
              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
@@ -2290,418 +2016,6 @@ lm_gcd <- lm(averaged_rank6 ~
                repressor_hth_compare,
              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
 summary(lm_gcd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     xlim=c(0,1),ylim=c(0,6),pch=16,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_gcd.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     xlim=c(0,1),ylim=c(0,6),pch=16,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$pham_pham_dissimilarity,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$averaged_rank6)),
-     xlim=c(0,1),ylim=c(0,6),pch=16,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_TempDiff_RepDiff_GCD_vs_ave_rank6.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$modified_mash_distance,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     xlim=c(0,0.5),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$modified_mash_distance,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$averaged_rank6)),
-     xlim=c(0,0.5),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_GCD.pdf')
-dev.off()
-
-#Conclusions:
-#These are the best examples of mutants or non-empirically-temperate phages infecting lysogens of closely-related phages
-#L5_phitm38, L5_phiTM4, LadyBird_Piro94, StarStuf_phiTM38, Trixie_phiTM42, Gladiator_phiTM46
-escape_examples <- subset(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff,
-                          conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$pham_pham_dissimilarity < 0.37 &
-                            conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$averaged_rank6 > 1.4)
-
-#These are the best examples of prophages that complete defend against distantly-related phages
-#It seems that the majority involve at least one extrachromosomal phage
-defense_examples <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep,
-                           conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity < 0.62 &
-                              conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity > 0.5 &
-                             conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6 < 1.1)
-
-
-
-
-
-
-
-#misc phages 
-
-
-conf_assay_strain_ave_lys_multi_misc <- subset(conf_assay_strain_def_chal_average,
-                                               conf_assay_strain_def_chal_average$strain_type == 'lysogen' &
-                                                 conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-                                                 conf_assay_strain_def_chal_average$defending_source == 'environment' &
-                                                 (conf_assay_strain_def_chal_average$challenging_phage == "jeffabunny" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "misswhite" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "d29" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "phitm33" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "piro94" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "journey13" |
-                                                    conf_assay_strain_def_chal_average$challenging_phage == "echild"))
-
-
-
-conf_assay_strain_ave_lys_multi_misc_interclade <- subset(conf_assay_strain_ave_lys_multi_misc,
-                                                          conf_assay_strain_ave_lys_multi_misc$gene_content_clade_compare == "different")
-
-conf_assay_strain_ave_lys_multi_misc_intraclade2 <- subset(conf_assay_strain_ave_lys_multi_misc,
-                                                           conf_assay_strain_ave_lys_multi_misc$gene_content_clade_compare == "clade2")
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_misc$cas4_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_misc$averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_misc_cas4_vs_averank6.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_misc$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_misc$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'misc_phages_ave_rank6_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_misc_intraclade2$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_misc_intraclade2$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_misc_interclade$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_misc_interclade$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-dev.copy(pdf,'misc_phages_ave_rank6_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-#
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$modified_mash_distance,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_mash.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator_pwd_dist_euc,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_stop_euc.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator_pwd_dist_pearson,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator80_tally,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),xlim=c(0,90),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Compare WT phages and all mutant phages
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_def_chal_average$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_def_chal_average$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_TempDiff_RepDiff$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_TempDiff_RepDiff_repCtermMafUn_vs_ave_rank6.pdf')
-dev.off()
-#
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_full_mafft_phyml_dist,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_repFullMafft.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_nterm_mafft_phyml_dist,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_repNterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_cterm_mafft_phyml_dist,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_repCterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_muscle_bionj_distances,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_repFullMuscle.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_hth_compare,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_repHTH.pdf')
-dev.off()
-
-#These are the best examples of strong defense despite much different hth sequences
-hth_defense_examples <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep,
-                               conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_hth_compare == 10 &
-                                 conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6 < 1.5)
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$recb_muscle_bionj_distances,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_recb_vs_ave_rank6.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$cas4_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_by_cas4MafftUn_vs_ave_rank6.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$portal_muscle_bionj_distances,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_portal_vs_ave_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$portal_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_portalMafftUn_vs_ave_rank6.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$endovii_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_endoviiMafftUn_vs_ave_rank6.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$dnapol_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_dnapolMafftUn_vs_ave_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_gcd_vs_repMafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_gcd_vs_portalMafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_gcd_vs_endoviiMafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_gcd_vs_dnapolMafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$pham_pham_dissimilarity,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_gcd_vs_cas4MafftUn.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-#Correlation with genes
-#use pearson for continuous variables
-# cor(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_full_mafft_dist_uncorrected,
-#     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-#     use="complete.obs",
-#     method="pearson")
-
-lm_gcd <- lm(averaged_rank6 ~
-               pham_pham_dissimilarity,
-             data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_gcd)
-
-lm_mash <- lm(averaged_rank6 ~
-                modified_mash_distance,
-              data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_mash)
-
-
-lm_repFull <- lm(averaged_rank6 ~
-                   repressor_full_mafft_dist_uncorrected,
-                 data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_repFull)
-
-lm_cas4 <- lm(averaged_rank6 ~
-                cas4_mafft_dist_uncorrected,
-              data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_cas4)
-
-lm_endovii <- lm(averaged_rank6 ~
-                   endovii_mafft_dist_uncorrected,
-                 data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_endovii)
-
-lm_dnapol <- lm(averaged_rank6 ~
-                  dnapol_mafft_dist_uncorrected,
-                data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_dnapol)
-
-lm_portal <- lm(averaged_rank6 ~
-                  portal_mafft_dist_uncorrected,
-                data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_portal)
-
-lm_stoppwm <- lm(averaged_rank6 ~
-                   stoperator_pwd_dist_euc,
-                 data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_stoppwm)
-
-
-
-
-
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_full_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator_pwd_dist_euc,
-#      xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# abline(lm_repFull)
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2900,223 +2214,8 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-#IntInt
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_repCtermMafUn.pdf')
-dev.off()
-
-#ExtraExtra
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_repCtermMafUn.pdf')
-dev.off()
-
-#IntExtra
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_repCtermMafUn.pdf')
-dev.off()
-
-#ExtraInt
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_repCtermMafUn.pdf')
-dev.off()
-
-
-
 #IntInt_IntPhamSame
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_repCtermMafUn.pdf')
-dev.off()
-
-#IntInt_IntPhamDiff
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_repCtermMafUn.pdf')
-dev.off()
-
-
-#ExtraExtra_ParBPhamSame
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_repCtermMafUn.pdf')
-dev.off()
-
-#ExtraExtra_ParBPhamDiff
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_repCtermMafUn.pdf')
-dev.off()
-
-
-
-
-
-
-#
-#IntExtra
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc.pdf')
-dev.off()
-
-#ExtraInt
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc.pdf')
-dev.off()
-
-
-
-#IntInt_IntPhamSame
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_stopEuc.pdf')
-dev.off()
-
-#IntInt_IntPhamDiff
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_stopEuc.pdf')
-dev.off()
-
-
-#ExtraExtra_ParBPhamSame
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_stopEuc.pdf')
-dev.off()
-
-#ExtraExtra_ParBPhamDiff
-par(mar=c(4,8,8,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Revised Int/Extra by intra-Clade2 and interclade
-#IntExtra
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc_subtypes.pdf')
-dev.off()
-
-
-#Final Number of assays:
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2) + 
-  nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
-
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2)
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
-
-
-
-
-
-
-
-#ExtraInt
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$stoperator_pwd_dist_euc,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc_subtypes.pdf')
-dev.off()
-
-#Final Number of assays:
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2) + 
-  nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
-
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2)
-nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
-
-
-
-
-
-
-#IntInt_IntPhamSame
-#FinalFig
+#Fig. S5b sub-panel 1
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_heterotypic$stoperator_pwd_dist_euc,
      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_heterotypic$averaged_rank6,
@@ -3132,7 +2231,7 @@ plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade$
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_stopEuc_subtypes.pdf')
 dev.off()
 
-#Final Number of assays:
+#Summary - number of assays:
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2) + 
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_homotypic)
@@ -3144,7 +2243,7 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade)
 
 
 #IntInt_IntPhamDiff
-#FinalFig
+#Fig. S5b sub-panel 2
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2$stoperator_pwd_dist_euc,
      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2$averaged_rank6,
@@ -3156,7 +2255,7 @@ plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade$
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_stopEuc_subtypes.pdf')
 dev.off()
 
-#Final Number of assays:
+#Summary - number of assays:
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2) + 
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2)
@@ -3165,10 +2264,43 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade)
 
 
 
+#IntExtra
+#Fig. S5b sub-panel 3
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc_subtypes.pdf')
+dev.off()
+
+
+#Summary - number of assays:
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2) + 
+  nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
+
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2)
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #ExtraExtra_ParBPhamSame
-#FinalFig
+#Fig. S5c sub-panel 1
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_heterotypic$stoperator_pwd_dist_euc,
      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_heterotypic$averaged_rank6,
@@ -3184,7 +2316,7 @@ plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_stopEuc_subtypes.pdf')
 dev.off()
 
-#Final Number of assays:
+#Summary - number of assays:
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2) + 
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_homotypic)
@@ -3198,7 +2330,7 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade
 
 
 #ExtraExtra_ParBPhamDiff
-#FinalFig
+#Fig. S5c sub-panel 2
 par(mar=c(4,8,16,4))
 plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2$stoperator_pwd_dist_euc,
      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2$averaged_rank6,
@@ -3210,7 +2342,7 @@ plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_stopEuc_subtypes.pdf')
 dev.off()
 
-#Final Number of assays:
+#Summary - number of assays:
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2) + 
   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade)
 nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2)
@@ -3221,52 +2353,28 @@ nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade
 
 
 
-
-
-
-
-
-
-
-
-#int
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt$averaged_rank6)),
-     ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntSame$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntSame$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
+#ExtraInt
+#Fig. S5c sub-panel 3
+par(mar=c(4,8,16,4))
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
 par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntDiff$repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(conf_assay_strain_ave_lys_multi_env_temp_rep_IntDiff$averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntDiffandSame_repCtermMafftUn_vs_aveRank6.pdf')
+plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$stoperator_pwd_dist_euc,
+     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc_subtypes.pdf')
 dev.off()
 
+#Summary - number of assays:
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2) + 
+  nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
 
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2)
+nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
 
-#partitioning
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra$averaged_rank6,
-     ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
 
 
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraDiff$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraDiff$averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraSame$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraSame$averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraDiffandSame_repCtermMafftUn_vs_aveRank6.pdf')
-dev.off()
-#
 
 
 
@@ -3278,864 +2386,13 @@ dev.off()
 
 
 
-#Bin data.
-#Choose either all data or just clade2
-#data_to_bin <- conf_assay_strain_ave_lys_multi_env_temp_rep
 
-data_to_bin <- conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2
 
 
 
-#Choose a sub-dataset:
-rank6_0 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 < 0.5)
 
-rank6_1 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 0.5 &
-                    data_to_bin$averaged_rank6 < 1.5)
 
-rank6_2 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 1.5 &
-                    data_to_bin$averaged_rank6 < 2.5)
-
-rank6_3 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 2.5 &
-                    data_to_bin$averaged_rank6 < 3.5)
-
-rank6_4 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 3.5 &
-                    data_to_bin$averaged_rank6 < 4.5)
-
-rank6_5 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 4.5 &
-                    data_to_bin$averaged_rank6 < 5.5)
-
-rank6_6 <- subset(data_to_bin,
-                  data_to_bin$averaged_rank6 >= 5.5)
-
-#QC Check
-nrow(data_to_bin) - 
-  (nrow(rank6_0) + 
-     nrow(rank6_1) + 
-     nrow(rank6_2) + 
-     nrow(rank6_3) + 
-     nrow(rank6_4) + 
-     nrow(rank6_5) + 
-     nrow(rank6_6))
-
-
-
-
-#
-
-
-
-rank6_subset_columns <- c("repressor_cterm_mafft_dist_uncorrected",
-                          "repressor_full_mafft_dist_uncorrected",
-                          "stoperator_pwd_dist_euc",
-                          "stoperator85_tally",
-                          "portal_mafft_dist_uncorrected")
-  
-  
-  
-rank6_0_subset <- subset(rank6_0,select=rank6_subset_columns)
-rank6_1_subset <- subset(rank6_1,select=rank6_subset_columns)
-rank6_2_subset <- subset(rank6_2,select=rank6_subset_columns)
-rank6_3_subset <- subset(rank6_3,select=rank6_subset_columns)
-rank6_4_subset <- subset(rank6_4,select=rank6_subset_columns)
-rank6_5_subset <- subset(rank6_5,select=rank6_subset_columns)
-rank6_6_subset <- subset(rank6_6,select=rank6_subset_columns)
-rank6_interclade_subset <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade,select=rank6_subset_columns)
-
-rank6_0_subset$bin <- "bin0"
-rank6_1_subset$bin <- "bin1"
-rank6_2_subset$bin <- "bin2"
-rank6_3_subset$bin <- "bin3"
-rank6_4_subset$bin <- "bin4"
-rank6_5_subset$bin <- "bin5"
-rank6_6_subset$bin <- "bin6"
-rank6_interclade_subset$bin <- "binInterClade"
-
-
-rank6_binned_subset <- rbind(rank6_0_subset,
-                      rank6_1_subset,
-                      rank6_2_subset,
-                      rank6_3_subset,
-                      rank6_4_subset,
-                      rank6_5_subset,
-                      rank6_6_subset,
-                      rank6_interclade_subset)
-
-
-
-rank6_binned_subset$bin <- factor(rank6_binned_subset$bin,
-                           c("binInterClade",
-                             "bin6",
-                             "bin5",
-                             "bin4",
-                             "bin3",
-                             "bin2",
-                             "bin1",
-                             "bin0"))
-
-
-
-
-
-plot_colors <- c("black",
-                 "dark green",
-                 "green",
-                 "light green",
-                 "light grey",
-                 "grey",
-                 "dark grey",
-                 "black")
-
-errorCircles("repressor_cterm_mafft_dist_uncorrected",
-             "stoperator85_tally",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,70),
-             ylim=c(0,40),
-             colors=plot_colors)
-dev.copy(pdf,'averaged_repCtermMafftUn_vs_stop85tally.pdf')
-dev.off()
-
-
-
-errorCircles("repressor_cterm_mafft_dist_uncorrected",
-             "stoperator_pwd_dist_euc",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,70),
-             ylim=c(0,5),
-             colors=plot_colors)
-dev.copy(pdf,'averaged_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-errorCircles("repressor_full_mafft_dist_uncorrected",
-             "stoperator85_tally",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,70),
-             ylim=c(0,40),
-             colors=plot_colors)
-
-
-errorCircles("repressor_full_mafft_dist_uncorrected",
-             "stoperator_pwd_dist_euc",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,70),
-             ylim=c(0,5),
-             colors=plot_colors)
-
-
-errorCircles("repressor_full_mafft_dist_uncorrected",
-             "stoperator_pwd_dist_euc",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,45),
-             ylim=c(0,3),
-             colors=plot_colors)
-
-errorCircles("portal_mafft_dist_uncorrected",
-             "stoperator_pwd_dist_euc",
-             data=rank6_binned_subset,
-             group="bin",
-             circles=FALSE,
-             sd=TRUE,
-             pch=16,
-             cex=2,
-             labels="",
-             xlim=c(0,25),
-             ylim=c(0,3),
-             colors=plot_colors)
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-plot(data_to_bin$modified_mash_distance,
-     data_to_bin$repressor_full_mafft_phyml_dist,xlim=c(0,0.5),ylim=c(0,2.5))
-     
-
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$modified_mash_distance,
-     rank6_0$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_1$modified_mash_distance,
-     rank6_1$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_2$modified_mash_distance,
-     rank6_2$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_3$modified_mash_distance,
-     rank6_3$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_4$modified_mash_distance,
-     rank6_4$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_5$modified_mash_distance,
-     rank6_5$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,0.5),ylim=c(0,2.5))
-par(new=TRUE)
-plot(rank6_6$modified_mash_distance,
-     rank6_6$repressor_full_mafft_phyml_dist,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,0.5),ylim=c(0,2.5))
-
-
-
-
-plot(data_to_bin$repressor_nterm_mafft_dist_uncorrected,
-     data_to_bin$repressor_cterm_mafft_dist_uncorrected,xlim=c(0,70),ylim=c(0,70))
-
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_nterm_mafft_dist_uncorrected,
-     rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_1$repressor_nterm_mafft_dist_uncorrected,
-     rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_2$repressor_nterm_mafft_dist_uncorrected,
-     rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_3$repressor_nterm_mafft_dist_uncorrected,
-     rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_4$repressor_nterm_mafft_dist_uncorrected,
-     rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_5$repressor_nterm_mafft_dist_uncorrected,
-     rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_6$repressor_nterm_mafft_dist_uncorrected,
-     rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,70))
-
-
-
-plot(data_to_bin$repressor_hth_compare,
-     data_to_bin$repressor_cterm_mafft_dist_uncorrected,xlim=c(0,10),ylim=c(0,70))
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_hth_compare,
-     rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_1$repressor_hth_compare,
-     rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_2$repressor_hth_compare,
-     rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_3$repressor_hth_compare,
-     rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_4$repressor_hth_compare,
-     rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_5$repressor_hth_compare,
-     rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,10),ylim=c(0,70))
-par(new=TRUE)
-plot(rank6_6$repressor_hth_compare,
-     rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,10),ylim=c(0,70))
-
-
-
-
-
-
-#The multi-colored plot below is an alternative to the same plot further below that uses a color-spectrum
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator_pwd_dist_euc,xlim=c(0,70),ylim=c(0,5))
-
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,5))
-par(new=TRUE)
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,5))
-
-
-
-
-#Now split up the plots individually
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_0_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_1_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_2_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_3_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_4_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_5_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_6_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-#
-
-
-
-
-
-
-#Same as above, but no color
-#Now split up the plots individually
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_0_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_1_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_2_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_3_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_4_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_5_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'rank6_6_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-#inter-clade data here
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'interclade_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-
-
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#stoperator_tally85
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep$stoperator85_tally,xlim=c(0,70),ylim=c(0,40))
-
-
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,40))
-par(new=TRUE)
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_binned_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-
-
-
-
-
-#Split into individual plots
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_0_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_1_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_2_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_3_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_4_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_5_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_6_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-
-
-
-#
-
-
-
-
-
-#Same as above, but no color
-#Split into individual plots
-
-
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_0_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_1_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_2_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_3_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_4_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_5_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'rank6_6_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$stoperator85_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,40))
-dev.copy(pdf,'interclade_repCtermMafftUn_vs_stop85_tally.pdf')
-dev.off()
-
-
-
-
-
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-lm_r6_cterm_stoppwm <- lm(averaged_rank6 ~
-                            repressor_cterm_mafft_dist_uncorrected + stoperator_pwd_dist_euc,
-                          data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_r6_cterm_stoppwm)
-
-
-
-
-
-lm_r6_cterm_stop85 <- lm(averaged_rank6 ~
-                            repressor_cterm_mafft_dist_uncorrected + stoperator85_tally,
-                          data = conf_assay_strain_ave_lys_multi_env_temp_rep)
-summary(lm_r6_cterm_stop85)
-
-
-
-
-
-
-
-
-#stop85_up
-#this data looks good
-par(mar=c(4,8,4,4))
-plot(rank6_0$repressor_cterm_mafft_dist_uncorrected,
-     rank6_0$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_1$repressor_cterm_mafft_dist_uncorrected,
-     rank6_1$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_2$repressor_cterm_mafft_dist_uncorrected,
-     rank6_2$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_3$repressor_cterm_mafft_dist_uncorrected,
-     rank6_3$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_4$repressor_cterm_mafft_dist_uncorrected,
-     rank6_4$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_5$repressor_cterm_mafft_dist_uncorrected,
-     rank6_5$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,70),ylim=c(0,6))
-par(new=TRUE)
-plot(rank6_6$repressor_cterm_mafft_dist_uncorrected,
-     rank6_6$stoperator85_up_tally,
-     pch=16,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,70),ylim=c(0,6))
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-conf_assay_strain_ave_lys_multi_env_temp_rep_temp <- conf_assay_strain_ave_lys_multi_env_temp_rep
-conf_assay_strain_ave_lys_multi_env_temp_rep_temp$averaged_rank6_scaled <- conf_assay_strain_ave_lys_multi_env_temp_rep_temp$averaged_rank6/6
-
-conf_assay_strain_ave_lys_multi_env_temp_rep_reduced <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep,
-                                                               select=(c("repressor_cterm_mafft_dist_uncorrected",
-                                                                         "stoperator_pwd_dist_euc",
-                                                                         "averaged_rank6")))
-
-# conf_assay_strain_ave_lys_multi_env_temp_rep_reduced <- conf_assay_strain_ave_lys_multi_env_temp_rep_reduced[complete.cases(conf_assay_strain_ave_lys_multi_env_temp_rep_reduced),]
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_reduced$repressor_cterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_reduced$stoperator_pwd_dist_euc,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,
-#      col=rgb((colorRamp(c("black","blue","cyan","yellow","orange","red"))(conf_assay_strain_ave_lys_multi_env_temp_rep_reduced$averaged_rank6_scaled))/255),
-#      xlim=c(0,70),ylim=c(0,5))
-
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_temp$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_temp$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,
-     col=rgb((colorRamp(c("black","blue","cyan","yellow","orange","red"))(conf_assay_strain_ave_lys_multi_env_temp_rep_temp$averaged_rank6_scaled))/255),
-     xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_repCtermMafftUn_vs_stopEuc_aveRank6Col.pdf')
-dev.off()
-
-
-
-conf_assay_strain_ave_lys_multi_env_temp_rep_temp_gcd <- subset(conf_assay_strain_ave_lys_multi_env_temp_rep_temp,
-                                                                conf_assay_strain_ave_lys_multi_env_temp_rep_temp$pham_pham_dissimilarity > 0.4 &
-                                                                  conf_assay_strain_ave_lys_multi_env_temp_rep_temp$pham_pham_dissimilarity < 0.7)
-
-
-plot(conf_assay_strain_ave_lys_multi_env_temp_rep_temp_gcd$repressor_cterm_mafft_dist_uncorrected,
-     conf_assay_strain_ave_lys_multi_env_temp_rep_temp_gcd$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,
-     col=rgb((colorRamp(c("black","blue","cyan","yellow","orange","red"))(conf_assay_strain_ave_lys_multi_env_temp_rep_temp_gcd$averaged_rank6_scaled))/255),
-     xlim=c(0,70),ylim=c(0,5))
-
-
-
-
-
-
-
-
-
-
-
-
-#Updated Binned Data Stats
+#Binned Data Stats
 
 #Plot only Clade 2 OR (Clade 2 non-homotypic) immunity data stats
 
@@ -4341,64 +2598,11 @@ clade2_binned_frequency$bin <- factor(clade2_binned_frequency$bin,
 
 
 
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$total_num_assays,
-        names.arg=clade2_binned_frequency$bin,
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_freq_total.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$defending_freq,
-        names.arg=clade2_binned_frequency$bin,
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_freq_defending.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$challenging_freq,
-        names.arg=clade2_binned_frequency$bin,
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_freq_challenging.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$num_intra_subcluster_assays,
-        names.arg=clade2_binned_frequency$bin,
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_freq_intrasubcluster.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$num_inter_subcluster_assays,
-        names.arg=clade2_binned_frequency$bin,
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_freq_intersubcluster.pdf')
-dev.off()
 
 
 
 
-
-
-
-
-
-#percent of total
-
-#FinalFig
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$total_assays_percent,
-        names.arg=clade2_binned_frequency$bin,
-        col='black',ylim=c(0,0.3))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_total.pdf')
-dev.off()
-
-#FinalFig
+#Fig. S4a sub-panel 1
 par(mar=c(4,8,4,4))
 barplot(clade2_binned_frequency$defending_percent,
         names.arg=clade2_binned_frequency$bin,
@@ -4406,7 +2610,7 @@ barplot(clade2_binned_frequency$defending_percent,
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_defending.pdf')
 dev.off()
 
-#FinalFig
+#Fig. S4a sub-panel 2
 par(mar=c(4,8,4,4))
 barplot(clade2_binned_frequency$challenging_percent,
         names.arg=clade2_binned_frequency$bin,
@@ -4414,7 +2618,24 @@ barplot(clade2_binned_frequency$challenging_percent,
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_challenging.pdf')
 dev.off()
 
-#FinalFig
+#Fig. S4a sub-panel 3
+par(mar=c(4,8,4,4))
+barplot(clade2_binned_frequency$total_assays_percent,
+        names.arg=clade2_binned_frequency$bin,
+        col='black',ylim=c(0,0.3))
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_total.pdf')
+dev.off()
+
+
+#Fig. S4b sub-panel 1
+par(mar=c(4,8,4,4))
+barplot(clade2_binned_frequency$inter_subcluster_percent,
+        names.arg=clade2_binned_frequency$bin,
+        col='black',ylim=c(0,0.50))
+dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intersubcluster.pdf')
+dev.off()
+
+#Fig. S4b sub-panel 2
 par(mar=c(4,8,4,4))
 barplot(clade2_binned_frequency$intra_subcluster_percent,
         names.arg=clade2_binned_frequency$bin,
@@ -4422,39 +2643,7 @@ barplot(clade2_binned_frequency$intra_subcluster_percent,
 dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intrasubcluster.pdf')
 dev.off()
 
-#FinalFig
-par(mar=c(4,8,4,4))
-barplot(clade2_binned_frequency$inter_subcluster_percent,
-        names.arg=clade2_binned_frequency$bin,
-        col='black',ylim=c(0,0.50))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intersubcluster.pdf')
-dev.off()
 #Clade 2 data above
-
-
-
-
-
-
-
-#Summarize diversity of phenotypes
-
-
-
-temp <- conf_assay_strain_ave_lys_multi
-
-temp$averaged_rank6 <- as.factor(temp$averaged_rank6)
-
-
-par(mar=c(4,8,4,4))
-barplot(summary(as.factor(conf_assay_strain_ave_lys_multi$averaged_rank6)),
-        col='black')
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_binned_freq_defending.pdf')
-dev.off()
-#TODO: in progress
-#
-
-
 
 
 
@@ -4792,22 +2981,11 @@ reciprocal_data$vector1_alpha_ordered <- as.character(reciprocal_data$vector1_de
 
 
 
-#This also accounts for self-comparisons (e.g. alma_alma)
-# reciprocal_data$vector1_alpha_ordered <- (as.character(reciprocal_data$vector1_defending_phage) < as.character(reciprocal_data$vector1_challenging_phage)) |
-#                                          (as.character(reciprocal_data$vector1_defending_phage) == as.character(reciprocal_data$vector1_challenging_phage))
-
-
 
 
 
 #Now retain only the unique pairwise comparisons
 reciprocal_data_alpha_ordered <- subset(reciprocal_data,reciprocal_data$vector1_alpha_ordered == TRUE)
-
-#This is the inverse dataset
-#reciprocal_data_alpha_reversed <- subset(reciprocal_data,reciprocal_data$vector1_alpha_ordered == FALSE)
-
-
-
 
 
 
@@ -4820,15 +2998,6 @@ write.table(reciprocal_data_alpha_ordered,
 
 
 #Plot data
-
-
-plot(as.numeric(as.character(reciprocal_data_alpha_ordered$vector1_averaged_rank6)),
-     as.numeric(as.character(reciprocal_data_alpha_ordered$vector2_averaged_rank6)),
-     pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_nonself_ordered_ave_rank6.pdf')
-dev.off()
-
-
 
 
 
@@ -4854,69 +3023,8 @@ setwd("~/scratch/immunity_analysis/output/")
 
 
 
-#rank6 plots
-plot(as.numeric(as.character(reciprocal_unique_envY$vector1_averaged_rank6)),
-     as.numeric(as.character(reciprocal_unique_envY$vector2_averaged_rank6)),
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_envY_ave_rank6.pdf')
-dev.off()
 
 
-plot(as.numeric(as.character(reciprocal_unique_envY_intY$vector1_averaged_rank6)),
-     as.numeric(as.character(reciprocal_unique_envY_intY$vector2_averaged_rank6)),
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_envY_intY_ave_rank6.pdf')
-dev.off()
-
-plot(as.numeric(as.character(reciprocal_unique_envY_extraY$vector1_averaged_rank6)),
-     as.numeric(as.character(reciprocal_unique_envY_extraY$vector2_averaged_rank6)),
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_envY_extraY_ave_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-hist(reciprocal_unique_envY_intY$averaged_four_factors_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=8)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_intY_ave_four_factors_diff_hist.pdf')
-dev.off()
-
-hist(reciprocal_unique_envY_extraY$averaged_four_factors_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=8)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_extraY_ave_four_factors_diff_hist.pdf')
-dev.off()
-
-
-
-hist(reciprocal_unique_envY_intY$averaged_infection_strength_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_intY_ave_inf_strength_diff_hist.pdf')
-dev.off()
-
-
-hist(reciprocal_unique_envY_extraY$averaged_infection_strength_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_extraY_ave_inf_strength_diff_hist.pdf')
-dev.off()
-
-
-
-
-
-#rank6 hist
-hist(reciprocal_unique_envY$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10,xlim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_rank6_diff_hist.pdf')
-dev.off()
-
-hist(reciprocal_unique_envY_intY$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10,xlim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_intY_rank6_diff_hist.pdf')
-dev.off()
-
-hist(reciprocal_unique_envY_extraY$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10,xlim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_extraY_rank6_diff_hist.pdf')
-dev.off()
 
 
 
@@ -5001,15 +3109,9 @@ reciprocal_binned_freq$bin <- factor(reciprocal_binned_freq$bin,
 sum(reciprocal_binned_freq$freq) - nrow(reciprocal_unique_envY)
 
 
-par(mar=c(4,8,4,4))
-barplot(reciprocal_binned_freq$freq,
-        names.arg=reciprocal_binned_freq$bin,
-        col='black')
-dev.copy(pdf,'reciprocal_unique_env_binned_freq_total.pdf')
-dev.off()
 
 
-#FinalFig
+#Fig. S4c
 par(mar=c(4,8,4,4))
 barplot(reciprocal_binned_freq$freq_percent,
         names.arg=reciprocal_binned_freq$bin,
@@ -5054,40 +3156,52 @@ reciprocal_unique_envY_intraclade2_heterotypic <- subset(reciprocal_unique_envY_
 
 #split by clade and homo/heterotypic
 
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY_interclade$pham_pham_dissimilarity,
-     reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,1),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+
+
+
+#Fig. 5b sub-panel 3
+par(mar=c(4,8,16,4))
+plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
+     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
 par(new=TRUE)
+plot(reciprocal_unique_envY_interclade$repressor_full_mafft_dist_uncorrected,
+     reciprocal_unique_envY_interclade$averaged_rank6,
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repFull.pdf')
+dev.off()
+
+
+#Fig. 5b sub-panel 4
+par(mar=c(4,8,16,4))
+plot(reciprocal_unique_envY_intraclade2_heterotypic$stoperator_pwd_dist_euc,
+     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(reciprocal_unique_envY_interclade$stoperator_pwd_dist_euc,
+     reciprocal_unique_envY_interclade$averaged_rank6,
+     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_stopEuc.pdf')
+dev.off()
+
+
+
+
+
+
+#Fig. S5a sub-panel 3
+par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$pham_pham_dissimilarity,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,1),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
+     xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+par(new=TRUE)
+plot(reciprocal_unique_envY_interclade$pham_pham_dissimilarity,
+     reciprocal_unique_envY_interclade$averaged_rank6,
+     xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
 dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_gcd.pdf')
 dev.off()
 
-
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY_interclade$modified_mash_distance,
-     reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,0.5),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(reciprocal_unique_envY_intraclade2_heterotypic$modified_mash_distance,
-     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,0.5),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_mash.pdf')
-dev.off()
-#
-
-
-
-
-
-
-
-
-#
-
-#FinalFig
+#Fig. S5a sub-panel 4
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$modified_mash_distance,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5100,20 +3214,12 @@ dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_mash.pdf')
 dev.off()
 
 
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(reciprocal_unique_envY_intraclade2_heterotypic$pham_pham_dissimilarity,
-     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(reciprocal_unique_envY_interclade$pham_pham_dissimilarity,
-     reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_gcd.pdf')
-dev.off()
 
 
-#FinalFig
+
+
+
+#Fig. S5d sub-panel 5
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$portal_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5126,7 +3232,7 @@ dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_portal.pdf')
 dev.off()
 
 
-#FinalFig
+#Fig. S5d sub-panel 6
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$dnapol_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5140,7 +3246,7 @@ dev.off()
 
 
 
-#FinalFig
+#Fig. S5d sub-panel 7
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$endovii_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5153,7 +3259,7 @@ dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_endovii.pdf')
 dev.off()
 
 
-#FinalFig
+#Fig. S5d sub-panel 8
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$cas4_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5167,34 +3273,17 @@ dev.off()
 
 
 
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
-     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(reciprocal_unique_envY_interclade$repressor_full_mafft_dist_uncorrected,
-     reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repFull.pdf')
-dev.off()
 
 
 
-#FinalFig
-par(mar=c(4,8,16,4))
-plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(reciprocal_unique_envY_interclade$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repCterm.pdf')
-dev.off()
 
 
-#FinalFig
+
+
+
+
+
+#Fig. 9b sub-panel 4
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_nterm_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5207,7 +3296,7 @@ dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repNterm.pdf')
 dev.off()
 
 
-#FinalFig
+#Fig. 9b sub-panel 5
 par(mar=c(4,8,16,4))
 plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_hth_compare,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
@@ -5219,22 +3308,23 @@ plot(reciprocal_unique_envY_interclade$repressor_hth_compare,
 dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repHTH.pdf')
 dev.off()
 
-
-
-#FinalFig
+#Fig. 9b sub-panel 6
 par(mar=c(4,8,16,4))
-plot(reciprocal_unique_envY_intraclade2_heterotypic$stoperator_pwd_dist_euc,
+plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
 par(new=TRUE)
-plot(reciprocal_unique_envY_interclade$stoperator_pwd_dist_euc,
+plot(reciprocal_unique_envY_interclade$repressor_cterm_mafft_dist_uncorrected,
      reciprocal_unique_envY_interclade$averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_stopEuc.pdf')
+     xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repCterm.pdf')
 dev.off()
 
 
-#Final Number of assays used:
+
+
+
+#Summary - number of assays used:
 nrow(reciprocal_unique_envY_intraclade2_heterotypic) +
   nrow(reciprocal_unique_envY_interclade)
 nrow(reciprocal_unique_envY_intraclade2_heterotypic)
@@ -5243,212 +3333,6 @@ nrow(reciprocal_unique_envY_interclade)
 #
 
 
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$modified_mash_distance)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_mash_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$pham_pham_dissimilarity)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_GCD_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_full_mafft_phyml_dist)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_mash_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_nterm_mafft_phyml_dist)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_mash_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_cterm_mafft_phyml_dist)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_mash_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_full_mafft_dist_uncorrected)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repFullMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_nterm_mafft_dist_uncorrected)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repNtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$repressor_hth_compare)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repHth_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$recb_muscle_bionj_distances)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_recbMuscle_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(as.numeric(as.character(reciprocal_unique_envY$stoperator_pwd_dist_euc)),
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_stopEuc_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY$cas4_mafft_dist_uncorrected,
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_cas4MafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY$endovii_mafft_dist_uncorrected,
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_endoMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY$dnapol_mafft_dist_uncorrected,
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_dnapolMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(reciprocal_unique_envY$portal_mafft_dist_uncorrected,
-     as.numeric(as.character(reciprocal_unique_envY$averaged_rank6_diff)),
-     pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'reciprocal_unique_nonself_envY_portalMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-
-
-#Plot with smoothed/averaged line
-scatter.smooth(reciprocal_unique_envY$portal_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_portalMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-scatter.smooth(reciprocal_unique_envY$dnapol_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_dnapolMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$endovii_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_endoviiMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$cas4_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_cas4MafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$repressor_full_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repFullMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$repressor_nterm_mafft_dist_uncorrected,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repNtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$repressor_hth_compare,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_repHtH_vs_ave_rank6_diff.pdf')
-dev.off()
-
-scatter.smooth(reciprocal_unique_envY$stoperator_pwd_dist_euc,
-               reciprocal_unique_envY$averaged_rank6_diff,
-               pch=1,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(0,6))
-dev.copy(pdf,'reciprocal_unique_nonself_envY_stopEuc_vs_ave_rank6_diff.pdf')
-dev.off()
-#
-
-
-
-
-
-
-
-
-
-
-
-#TODO: plot reciprocal by repressor and PWD dist, binned
-
-
-# temp <- subset(reciprocal_unique_envY,reciprocal_unique_envY$vector1_defending_challenging == 'gladiator_trixie')
-# plot(temp$repressor_cterm_mafft_dist_uncorrected,
-#      temp$stoperator_pwd_dist_euc,xlim=c(0,60),ylim=c(0,4))
-
-reciprocal_unique_envY$averaged_rank6_scaled <- reciprocal_unique_envY$averaged_rank6/6
-
-plot(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,
-     col=rgb((colorRamp(c("black","blue","cyan","green","orange","red"))(reciprocal_unique_envY$averaged_rank6_scaled))/255))
-
-plot(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,
-     col=rgb((colorRamp(c("black","blue","green","orange","yellow"))(reciprocal_unique_envY$averaged_rank6_scaled))/255))
 
 
 #Choose a sub-dataset:
@@ -5485,378 +3369,6 @@ recip_rank6diff_5 <- subset(recip_data_to_bin,
 
 recip_rank6diff_6 <- subset(recip_data_to_bin,
                             recip_data_to_bin$averaged_rank6_diff >= 5.5)
-
-
-
-
-
-
-
-
-#Color spectrum of infection change by stoperator tally
-plot(reciprocal_unique_envY$vector1_stoperator88_tally,
-     reciprocal_unique_envY$vector2_stoperator88_tally,
-     xlim=c(0,40),ylim=c(0,40))
-
-
-
-par(mar=c(4,8,4,4))
-plot(recip_rank6diff_0$vector1_stoperator88_tally,
-     recip_rank6diff_0$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_1$vector1_stoperator88_tally,
-     recip_rank6diff_1$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_2$vector1_stoperator88_tally,
-     recip_rank6diff_2$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_3$vector1_stoperator88_tally,
-     recip_rank6diff_3$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_4$vector1_stoperator88_tally,
-     recip_rank6diff_4$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_5$vector1_stoperator88_tally,
-     recip_rank6diff_5$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,40),ylim=c(0,40))
-par(new=TRUE)
-plot(recip_rank6diff_6$vector1_stoperator88_tally,
-     recip_rank6diff_6$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,40),ylim=c(0,40))
-abline(0,1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Stop motif versus 
-
-plot(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,60),ylim=c(0,4))
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(recip_rank6diff_0$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_1$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_2$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_3$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_4$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_5$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,60),ylim=c(0,4))
-par(new=TRUE)
-plot(recip_rank6diff_6$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,60),ylim=c(0,4))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-plot(reciprocal_unique_envY$repressor_cterm_mafft_dist_uncorrected,
-     reciprocal_unique_envY$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,60),ylim=c(0,5))
-
-plot(recip_data_to_bin$repressor_cterm_mafft_dist_uncorrected,
-     recip_data_to_bin$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,60),ylim=c(0,5))
-
-
-
-
-
-plot(recip_rank6diff_0$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank0.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_1$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank1.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_2$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='cyan',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank2.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_3$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank3.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_4$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='yellow',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank4.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_5$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank5.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_6$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red',xlim=c(0,60),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-#same plots with no color
-setwd("~/scratch/immunity_analysis/output/")
-
-
-plot(recip_rank6diff_0$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_0$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank0.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_1$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_1$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank1.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_2$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_2$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank2.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_3$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_3$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank3.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_4$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_4$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank4.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_5$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_5$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank5.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_6$repressor_cterm_mafft_dist_uncorrected,
-     recip_rank6diff_6$stoperator_pwd_dist_euc,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,70),ylim=c(0,5))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_repCtermMafftUn_vs_stopEuc_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-
-#reciprocal # stop sites
-
-
-plot(reciprocal_unique_envY$vector1_stoperator88_tally,
-     reciprocal_unique_envY$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,60),ylim=c(0,5))
-
-
-plot(recip_data_to_bin$vector1_stoperator88_tally,
-     recip_data_to_bin$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,35),ylim=c(0,35))
-abline(0,1)
-
-
-
-plot(recip_rank6diff_0$vector1_stoperator88_tally,
-     recip_rank6diff_0$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank0.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_1$vector1_stoperator88_tally,
-     recip_rank6diff_1$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank1.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_2$vector1_stoperator88_tally,
-     recip_rank6diff_2$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank2.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_3$vector1_stoperator88_tally,
-     recip_rank6diff_3$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank3.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_4$vector1_stoperator88_tally,
-     recip_rank6diff_4$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank4.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_5$vector1_stoperator88_tally,
-     recip_rank6diff_5$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank5.pdf')
-dev.off()
-
-
-plot(recip_rank6diff_6$vector1_stoperator88_tally,
-     recip_rank6diff_6$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,35),ylim=c(0,35))
-dev.copy(pdf,'recip_unique_nonself_envY_rank6_diff_stop85_vs_stop85_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-#2kb right stop sites
-plot(reciprocal_unique_envY$vector1_stoperator88_2kbright_tally,
-     reciprocal_unique_envY$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,60),ylim=c(0,5))
-
-
-plot(recip_data_to_bin$vector1_stoperator88_2kbright_tally,
-     recip_data_to_bin$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,10),ylim=c(0,10))
-abline(0,1)
-
-
-
-
-
-
-
-plot(recip_rank6diff_0$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_0$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_1$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_1$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_2$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_2$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_3$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_3$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_4$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_4$vector2_stoperator88_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_5$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_5$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-plot(recip_rank6diff_6$vector1_stoperator88_2kbright_tally,
-     recip_rank6diff_6$vector2_stoperator88_2kbright_tally,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black',xlim=c(0,10),ylim=c(0,10))
-
-
-#
-
-
-
-#nontargetself stop sites
-
-#
-
-
-
-
-
 
 
 ###Reciprocal analysis above
@@ -5897,7 +3409,7 @@ plot(recip_rank6diff_6$vector1_stoperator88_2kbright_tally,
 
 
 
-
+#HERE code reduction in progress
 
 
 ###Compare lysogen vs repressor clone data
@@ -11261,1240 +8773,6 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Cluster N data
-setwd("~/scratch/immunity_analysis/input/")
-cluster_n_immunity_data <- read.csv("cluster_n_immunity_data.csv",sep=",",header=TRUE)
-names(cluster_n_immunity_data) <- c('defending_phage','challenging_phage','log10_eop')
-cluster_n_immunity_data$log10_eop <- as.factor(cluster_n_immunity_data$log10_eop)
-
-
-cluster_n_immunity_data$defending_challenging <- paste(cluster_n_immunity_data$defending_phage,
-                                                       "_",
-                                                       cluster_n_immunity_data$challenging_phage,
-                                                       sep="")
-cluster_n_immunity_data$defending_challenging <- as.factor(cluster_n_immunity_data$defending_challenging)
-
-cluster_n_immunity_data <- merge(cluster_n_immunity_data,
-                                 genomic_distance_data,
-                                 by.x="defending_challenging",
-                                 by.y="phage1_phage2")
-
-
-
-
-#merge with metadata
-cluster_n_phage_metadata <- read.csv("cluster_n_phage_metadata.csv",sep=",",header=TRUE)
-
-cluster_n_phage_metadata_to_match <- cluster_n_phage_metadata
-names(cluster_n_phage_metadata_to_match) <- paste('defending_',
-                                                  names(cluster_n_phage_metadata_to_match),
-                                                  sep="")
-cluster_n_immunity_data <- merge(cluster_n_immunity_data,
-                                 cluster_n_phage_metadata_to_match,
-                                 by.x="defending_phage",
-                                 by.y="defending_phage")
-
-cluster_n_phage_metadata_to_match <- cluster_n_phage_metadata
-names(cluster_n_phage_metadata_to_match) <- paste('challenging_',
-                                                  names(cluster_n_phage_metadata_to_match),
-                                                  sep="")
-cluster_n_immunity_data <- merge(cluster_n_immunity_data,
-                                 cluster_n_phage_metadata_to_match,
-                                 by.x="challenging_phage",
-                                 by.y="challenging_phage")
-
-cluster_n_immunity_data$temperate_compare <- ifelse(cluster_n_immunity_data$defending_temperate==cluster_n_immunity_data$challenging_temperate,
-                                                    as.character(cluster_n_immunity_data$defending_temperate),
-                                                    "different")
-
-cluster_n_immunity_data$temperate_compare <- factor(cluster_n_immunity_data$temperate_compare)
-
-
-
-
-#Plot results
-setwd("~/scratch/immunity_analysis/output/")
-
-par(mar=c(4,8,4,4))
-plot(cluster_n_immunity_data$modified_mash_distance,
-     as.numeric(as.character(cluster_n_immunity_data$log10_eop)),
-     xlim=c(0,0.5),ylim=c(-9,0),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'cluster_n_immunity_mash_vs_log10eop.pdf')
-dev.off()
-
-plot(cluster_n_immunity_data$pham_pham_dissimilarity,
-     as.numeric(as.character(cluster_n_immunity_data$log10_eop)),
-     pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'cluster_n_immunity_gcd_vs_log10eop.pdf')
-dev.off()
-
-
-
-
-cluster_n_immunity_data_temperate <- subset(cluster_n_immunity_data,
-                                            cluster_n_immunity_data$temperate_compare == 'yes')
-
-cluster_n_immunity_data_lytic <- subset(cluster_n_immunity_data,
-                                        cluster_n_immunity_data$temperate_compare != 'yes')
-
-
-par(mar=c(4,8,4,4))
-plot(cluster_n_immunity_data_temperate$modified_mash_distance,
-     as.numeric(as.character(cluster_n_immunity_data_temperate$log10_eop)),
-     xlim=c(0,0.5),ylim=c(-9,0),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(cluster_n_immunity_data_lytic$modified_mash_distance,
-     as.numeric(as.character(cluster_n_immunity_data_lytic$log10_eop)),
-     xlim=c(0,0.5),ylim=c(-9,0),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(cluster_n_immunity_data_temperate$pham_pham_dissimilarity,
-     as.numeric(as.character(cluster_n_immunity_data_temperate$log10_eop)),
-     xlim=c(0,1),ylim=c(-9,0),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(cluster_n_immunity_data_lytic$pham_pham_dissimilarity,
-     as.numeric(as.character(cluster_n_immunity_data_lytic$log10_eop)),
-     xlim=c(0,1),ylim=c(-9,0),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-
-
-
-###End of Cluster N analysis
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Coliphage immunity data
-
-
-
-setwd("~/scratch/immunity_analysis/input/")
-
-
-#Import immunity data
-#1 = "assay_number"          
-#2 = "defending_challenging"
-#3 = "defending_phage"
-#4 = "challenging_phage"
-#5 = "infection"
-#6 = "source"
-coliphage_immunity_data <- read.csv("coliphage_immunity_data.csv",sep=",",header=TRUE)
-
-
-#Import phage metadata
-#Format:
-#0 = phageid
-#1 = description
-#2 = accession
-#3 = family
-#4 = size
-#5 = genes
-#6 = lambdoid_immunity_group
-#7 = p2_immunity_group
-#8 = immunity_group_source
-#9 = immunity_group
-coliphage_metadata_table <- read.csv("coliphage_metadata.csv",sep=",",header=TRUE)
-
-
-#Convert all Unspecified fields to NA missing value
-coliphage_metadata_table[coliphage_metadata_table == "Unspecified"] <- NA
-coliphage_metadata_table[coliphage_metadata_table == "unspecified"] <- NA
-
-
-#Modify column names of host data and merge with immunity table
-#Data for all phages in processed mash table should be present in phage metadata table.
-#As a result, do not select all.x=TRUE option. This way, any missing rows indicates an error in the table.
-
-
-#Match metadata for both the query and reference phages in each pairwise comparison
-coliphage_metadata_to_match <- coliphage_metadata_table
-names(coliphage_metadata_to_match) <- paste('defending_',names(coliphage_metadata_to_match),sep="")
-coliphage_immunity_data <- merge(coliphage_immunity_data,coliphage_metadata_to_match,by.x="defending_phage",by.y="defending_phageid")
-coliphage_metadata_to_match <- coliphage_metadata_table
-names(coliphage_metadata_to_match) <- paste('challenging_',names(coliphage_metadata_to_match),sep="")
-coliphage_immunity_data <- merge(coliphage_immunity_data,coliphage_metadata_to_match,by.x="challenging_phage",by.y="challenging_phageid")
-
-
-
-
-
-
-#Import mash dataset and match to gene content dissimilarity data
-#Format:
-#0 = reference genome
-#1 = query genome
-#2 = mash distance 
-#3 = mash p-value
-#4 = mash kmer count
-#5 = reference_query
-coliphage_mash_table <- read.csv("coliphage_processed_mash_output.csv",sep=",",header=TRUE)
-names(coliphage_mash_table) <- c("mash_reference",
-                       "mash_query",
-                       "mash_distance",
-                       "mash_pvalue",
-                       "mash_count",
-                       "mash_ref_query")
-
-
-
-
-#Import pham data and merge with mash table
-#Format
-#0 = phage1_name
-#1 = phage1_number_unshared_phams
-#2 = phage1_shared_proportion
-#3 = phage2_name
-#4 = phage2_number_unshared_phams
-#5 = phage2_shared_proportion
-#6 = number_shared_phams
-#7 = average_shared_proportion
-#8 = jaccard_similarity
-#9 = shared_pham_distribution_mean
-#10 = shared_pham_distribution_median
-#11 = shared_pham_distribution_max
-#12 = unshared_pham_distribution_mean
-#13 = unshared_pham_distribution_median
-#14 = unshared_pham_distribution_max
-#15 = unshared_orpham_count
-coliphage_gcd_table <- read.csv("coliphage_pairwise_pham_proportions.csv",sep=",",header=TRUE)
-
-#Since pham data contains pairwise duplicates, no need to worry about which phage is which when creating ref_query match column
-coliphage_gcd_table$pham_phage1_phage2 <- paste(coliphage_gcd_table$phage1_name,"_",coliphage_gcd_table$phage2_name,sep="")
-coliphage_gcd_table$pham_phage1_phage2 <- as.factor(coliphage_gcd_table$pham_phage1_phage2)
-
-
-#Compute gene content dissimilarity
-coliphage_gcd_table$pham_dissimilarity <- 1 - coliphage_gcd_table$average_shared_proportion
-
-coliphage_gcd_table <- subset(coliphage_gcd_table,select=c("pham_phage1_phage2",
-                                                           "phage1_name",
-                                                           "phage2_name",
-                                                           "pham_dissimilarity"))
-
-names(coliphage_gcd_table) <- c("pham_phage1_phage2",
-                                "pham_phage1",
-                                "pham_phage2",
-                                "pham_pham_dissimilarity")
-
-coliphage_genomic_distance_data <- merge(coliphage_mash_table,coliphage_gcd_table,by.x="mash_ref_query",by.y="pham_phage1_phage2")
-
-
-#Assign filter status and change mash distance if data is not significant
-#Alternatively, the max percent parameter can be omitted with minimal effects on final analysis.
-coliphage_genomic_distance_data$filter <- ifelse(coliphage_genomic_distance_data$mash_pvalue < 1e-10,TRUE,FALSE)
-
-
-
-#Determine the max filtered distance
-# temp_filtered_table <- subset(coliphage_genomic_distance_data,
-#                               coliphage_genomic_distance_data$filter == TRUE)
-#summary(temp_filtered_table$mash_distance)
-#max mash distance = 0.5094640
-#temp_subset <- subset(temp_filtered_table,temp_filtered_table$mash_distance > 0.499999)
-#There is only one pairwise comparison > 0.4999 and it does not involve any coliphages of interest
-
-#At this point, the max mash distance of all filtered comparisons < 0.5. So set the distance of all comparisons that did not pass the filter = 0.5
-coliphage_genomic_distance_data$modified_mash_distance <- ifelse(coliphage_genomic_distance_data$filter == TRUE,
-                                                                 coliphage_genomic_distance_data$mash_distance,
-                                                                 0.5)
-
-
-#Currently, the pairwise data does not contain self-comparisons (i.e. L5 compared to L5), 
-#and it does not contain duplicate reciprocal pairs (i.e. L5-Trixie, if Trixie-L5 is already present)
-#Analyzing immunity data requires all duplicate reciprocal data and self-comparisons
-#First remove only the columns of interest
-coliphage_partial_genomic_distance_data <- subset(coliphage_genomic_distance_data,
-                                                  select=c("mash_reference",
-                                                           "mash_query",
-                                                           "modified_mash_distance",
-                                                           "pham_pham_dissimilarity"))
-
-#Create reciprocal identifiers
-coliphage_partial_genomic_distance_data$ref_query <- paste(coliphage_partial_genomic_distance_data$mash_reference,
-                                                           "_",
-                                                           coliphage_partial_genomic_distance_data$mash_query,
-                                                           sep="")
-coliphage_partial_genomic_distance_data$query_ref <- paste(coliphage_partial_genomic_distance_data$mash_query,
-                                                           "_",
-                                                           coliphage_partial_genomic_distance_data$mash_reference,
-                                                           sep="")
-coliphage_partial_genomic_distance_data$ref_query <- as.factor(coliphage_partial_genomic_distance_data$ref_query)
-coliphage_partial_genomic_distance_data$query_ref <- as.factor(coliphage_partial_genomic_distance_data$query_ref)
-
-coliphage_duplicate_data_for_immunity1 <- subset(coliphage_partial_genomic_distance_data,
-                                                 select=c("ref_query",
-                                                          "modified_mash_distance",
-                                                          "pham_pham_dissimilarity"))
-coliphage_duplicate_data_for_immunity2 <- subset(coliphage_partial_genomic_distance_data,
-                                                 select=c("query_ref",
-                                                          "modified_mash_distance",
-                                                          "pham_pham_dissimilarity"))
-
-#Rename the columns so the two tables match
-names(coliphage_duplicate_data_for_immunity1) <- c("phage1_phage2","modified_mash_distance","pham_pham_dissimilarity")
-names(coliphage_duplicate_data_for_immunity2) <- c("phage1_phage2","modified_mash_distance","pham_pham_dissimilarity")
-
-
-
-#Create a table of self-comparisons
-coliphage_self_comparison_for_immunity <- subset(coliphage_metadata_table,
-                                                 select=c("phageid"))
-coliphage_self_comparison_for_immunity$phage1_phage2 <- paste(coliphage_self_comparison_for_immunity$phageid,
-                                                              "_",
-                                                              coliphage_self_comparison_for_immunity$phageid,
-                                                              sep="")
-coliphage_self_comparison_for_immunity$modified_mash_distance <- 0
-coliphage_self_comparison_for_immunity$pham_pham_dissimilarity <- 0
-coliphage_self_comparison_for_immunity <- subset(coliphage_self_comparison_for_immunity,
-                                                 select=c("phage1_phage2",
-                                                          "modified_mash_distance",
-                                                          "pham_pham_dissimilarity"))
-
-#Now merge the three tables = duplicate/reciprocal data and self-comparisons
-coliphage_all_genomic_distance_data_for_immunity <- rbind(coliphage_duplicate_data_for_immunity1,
-                                                          coliphage_duplicate_data_for_immunity2,
-                                                          coliphage_self_comparison_for_immunity)
-coliphage_all_genomic_distance_data_for_immunity$phage1_phage2 <- as.factor(coliphage_all_genomic_distance_data_for_immunity$phage1_phage2)
-
-#merge immunity data with genomic distance data
-coliphage_immunity_data <- merge(coliphage_immunity_data,
-                                 coliphage_all_genomic_distance_data_for_immunity,
-                                 by.x="defending_challenging",
-                                 by.y="phage1_phage2")
-
-
-
-coliphage_immunity_data$immunity_group_compare <- ifelse(coliphage_immunity_data$defending_immunity_group==
-                                                           coliphage_immunity_data$challenging_immunity_group,
-                                                         as.character(coliphage_immunity_data$defending_immunity_group),
-                                                         "different")
-
-coliphage_immunity_data$lambdoid_immunity_group_compare <- ifelse(coliphage_immunity_data$defending_lambdoid_immunity_group==
-                                                                    coliphage_immunity_data$challenging_lambdoid_immunity_group,
-                                                                  as.character(coliphage_immunity_data$defending_lambdoid_immunity_group),
-                                                                  "different")
-
-coliphage_immunity_data$p2_immunity_group_compare <- ifelse(coliphage_immunity_data$defending_p2_immunity_group==
-                                                           coliphage_immunity_data$challenging_p2_immunity_group,
-                                                         as.character(coliphage_immunity_data$defending_p2_immunity_group),
-                                                         "different")
-
-
-
-
-coliphage_immunity_data$immunity_group_compare <- factor(coliphage_immunity_data$immunity_group_compare)
-coliphage_immunity_data$lambdoid_immunity_group_compare <- factor(coliphage_immunity_data$lambdoid_immunity_group_compare)
-coliphage_immunity_data$p2_immunity_group_compare <- factor(coliphage_immunity_data$p2_immunity_group_compare)
-
-
-
-#convert infection category to infection score
-infection_score_table <- data.frame(c("yes","no","moderate"),c(1,0.5,0))
-names(infection_score_table) <- c("infection_category","infection_score")
-
-coliphage_immunity_data <- merge(coliphage_immunity_data,
-                                 infection_score_table,
-                                 by.x="infection",
-                                 by.y="infection_category")
-
-
-lambdoid_data <- subset(coliphage_immunity_data,coliphage_immunity_data$immunity_group_compare == 'lambdoid')
-p2_data <- subset(coliphage_immunity_data,coliphage_immunity_data$immunity_group_compare == 'p2')
-
-#Plot results
-setwd("~/scratch/immunity_analysis/output/")
-
-par(mar=c(4,8,4,4))
-plot(lambdoid_data$modified_mash_distance,
-     lambdoid_data$infection_score,
-     xlim=c(0,0.5),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(p2_data$modified_mash_distance,
-     p2_data$infection_score,
-     xlim=c(0,0.5),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(lambdoid_data$pham_pham_dissimilarity,
-     lambdoid_data$infection_score,
-     xlim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(p2_data$pham_pham_dissimilarity,
-     p2_data$infection_score,
-     xlim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-###End of coliphage immunity analysis
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###End of main immunity assay code
-
-###################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Old non-averaged misc analyses below
-
-#Subset only the lysogen data
-lysogen_immunity <- subset(main_immunity_data,main_immunity_data$strain_type == 'lysogen')
-lysogen_immunity$defending_challenging <- as.factor(lysogen_immunity$defending_challenging)
-
-lysogen_immunity$defending_phage_parent <- factor(lysogen_immunity$defending_phage_parent)
-lysogen_immunity$challenging_phage_parent <- factor(lysogen_immunity$challenging_phage_parent)
-lysogen_immunity$lawn_reliability <- factor(lysogen_immunity$lawn_reliability)
-lysogen_immunity$phage_reliability <- factor(lysogen_immunity$phage_reliability)
-
-
-#Match the genomic distance data. The double lysogen strain carrying RedRock and Bxb1 should have a lookup value of NA,
-#and the challenging phage phiTM42 (RedRock-Trixie hybrid) should have lookup value of NA
-lysogen_immunity <- merge(lysogen_immunity,genomic_distance_data,by.x="defending_challenging",by.y="ref_query")
-
-
-
-lysogen_immunity_reliable <- subset(lysogen_immunity,lysogen_immunity$lawn_reliability != 1)
-lysogen_immunity_reliable <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$phage_reliability == 2 |
-                                      lysogen_immunity_reliable$phage_reliability == 3)
-
-
-lysogen_immunity_reliable <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$defending_phage_source == 'seaphages' &
-                                      lysogen_immunity_reliable$challenging_phage_source == 'seaphages')
-
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_four_factors)
-hist(lysogen_immunity_reliable$modified_mash_distance,breaks=100,col="black")
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_infection_strength)
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_turbidity)
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_plaque_size)
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_plaques)
-
-integrating_immunity_reliable <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$defending_phage_lysogen_type == 'integration')
-extrachromosomal_immunity_reliable <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$defending_phage_lysogen_type == 'extrachromosomal')
-
-both_integrating_immunity_reliable <- subset(integrating_immunity_reliable,integrating_immunity_reliable$challenging_phage_lysogen_type == 'integration')
-both_extrachromosomal_immunity_reliable <- subset(extrachromosomal_immunity_reliable,extrachromosomal_immunity_reliable$challenging_phage_lysogen_type == 'extrachromosomal')
-
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_four_factors,xlim=c(0,0.4))
-
-
-plot(integrating_immunity_reliable$modified_mash_distance,integrating_immunity_reliable$score_four_factors,xlim=c(0,0.4))
-plot(both_integrating_immunity_reliable$modified_mash_distance,both_integrating_immunity_reliable$score_four_factors,xlim=c(0,0.4))
-
-
-plot(extrachromosomal_immunity_reliable$modified_mash_distance,extrachromosomal_immunity_reliable$score_four_factors,xlim=c(0,0.4))
-plot(both_extrachromosomal_immunity_reliable$modified_mash_distance,both_extrachromosomal_immunity_reliable$score_four_factors,xlim=c(0,0.4))
-
-
-
-
-
-
-#Evaluate single titer repressor clone data
-
-single_titer_all <- subset(main_immunity_data,main_immunity_data$assay_type == 'single_titer')
-single_titer_all$defending_phage <- factor(single_titer_all$defending_phage)
-single_titer_all$challenging_phage <- factor(single_titer_all$challenging_phage)
-single_titer_all$defending_challenging <- factor(single_titer_all$defending_challenging)
-single_titer_all$defending_challenging_parent <- factor(single_titer_all$defending_challenging_parent)
-single_titer_all$lawn_reliability <- factor(single_titer_all$lawn_reliability)
-single_titer_all$phage_reliability <- factor(single_titer_all$phage_reliability)
-
-
-
-
-
-#Only keep reliable data
-single_titer_reliable <- subset(single_titer_all,single_titer_all$lawn_reliability != 1)
-single_titer_reliable <- subset(single_titer_reliable,single_titer_reliable$phage_reliability == 2 |
-                                  single_titer_reliable$phage_reliability == 3)
-
-
-single_titer_lysogen <- subset(single_titer_reliable,single_titer_reliable$strain_type == 'lysogen')
-single_titer_clone <- subset(single_titer_reliable,single_titer_reliable$strain_type == 'repressor_clone')
-
-
-
-single_titer_lysogen_subset <- subset(single_titer_lysogen, select = c("defending_challenging",
-                                                                "challenging_phage",
-                                                                "challenging_phage_source",
-                                                                "defending_phage",
-                                                                "defending_phage_source",
-                                                                "score_infection_strength",
-                                                                "score_turbidity",
-                                                                "score_plaque_size",
-                                                                "score_plaques",
-                                                                "score_four_factors"))
-
-
-single_titer_clone_subset <- subset(single_titer_clone, select = c("defending_challenging",
-                                                                       "challenging_phage",
-                                                                       "challenging_phage_source",
-                                                                       "defending_phage",
-                                                                       "defending_phage_source",
-                                                                       "score_infection_strength",
-                                                                       "score_turbidity",
-                                                                       "score_plaque_size",
-                                                                       "score_plaques",
-                                                                       "score_four_factors"))
-
-
-names(single_titer_lysogen_subset) <- c("defending_challenging",
-                                 "lysogen_challenging_phage",
-                                 "lysogen_challenging_phage_source",
-                                 "lysogen_defending_phage",
-                                 "lysogen_defending_phage_source",
-                                 "lysogen_score_infection_strength",
-                                 "lysogen_score_turbidity",
-                                 "lysogen_score_plaque_size",
-                                 "lysogen_score_plaques",
-                                 "lysogen_score_four_factors")
-
-
-names(single_titer_clone_subset) <- c("defending_challenging",
-                                        "clone_challenging_phage",
-                                        "clone_challenging_phage_source",
-                                        "clone_defending_phage",
-                                        "clone_defending_phage_source",
-                                        "clone_score_infection_strength",
-                                        "clone_score_turbidity",
-                                        "clone_score_plaque_size",
-                                        "clone_score_plaques",
-                                        "clone_score_four_factors")
-
-
-
-single_titer_matched <- merge(single_titer_lysogen_subset,single_titer_clone_subset,by.x = "defending_challenging",by.y = "defending_challenging")
-
-single_titer_matched$score_four_factors_diff <- single_titer_matched$lysogen_score_four_factors - single_titer_matched$clone_score_four_factors
-single_titer_matched$score_infection_strength_diff <- single_titer_matched$lysogen_score_infection_strength - single_titer_matched$clone_score_infection_strength
-single_titer_matched$score_turbidity_diff <- single_titer_matched$lysogen_score_turbidity - single_titer_matched$clone_score_turbidity
-              
-
-
-single_titer_matched_wildtype <- subset(single_titer_matched,single_titer_matched$lysogen_challenging_phage_source == 'seaphages' &
-                                          single_titer_matched$clone_challenging_phage_source == 'seaphages')
-
-plot(single_titer_matched$lysogen_score_four_factors,single_titer_matched$clone_score_four_factors,xlim=c(0,5),ylim=c(0,5))
-plot(single_titer_matched$lysogen_score_infection_strength,single_titer_matched$clone_score_infection_strength,xlim=c(0,3),ylim=c(0,3))
-plot(single_titer_matched$lysogen_score_turbidity,single_titer_matched$clone_score_turbidity,xlim=c(0,2),ylim=c(0,2))
-plot(single_titer_matched$score_four_factors_diff)
-
-
-
-plot(single_titer_matched_wildtype$lysogen_score_four_factors,single_titer_matched_wildtype$clone_score_four_factors,xlim=c(0,5),ylim=c(0,5))
-plot(single_titer_matched_wildtype$lysogen_score_infection_strength,single_titer_matched_wildtype$clone_score_infection_strength,xlim=c(0,3),ylim=c(0,3))
-plot(single_titer_matched_wildtype$lysogen_score_turbidity,single_titer_matched_wildtype$clone_score_turbidity,xlim=c(0,2),ylim=c(0,2))
-plot(single_titer_matched_wildtype$score_four_factors_diff)
-
-
-
-#plot frequencies of each infection score to compare wildtype phage to mutant phage
-barplot(summary(as.factor(single_titer_matched$score_four_factors_diff)),ylim=c(0,130))
-barplot(summary(as.factor(single_titer_matched_wildtype$score_four_factors_diff)),ylim=c(0,130))
-
-#plot(single_titer_matched$lysogen_score_plaque_size,single_titer_matched$clone_score_plaque_size,xlim=c(0,5),ylim=c(0,5))
-#plot(single_titer_matched$lysogen_score_plaques,single_titer_matched$clone_score_plaques,xlim=c(0,5),ylim=c(0,5))
-                   
-
-"immunity_assay_id"                             
-"immunity._set"                                 
-"date"                                          
-"notebook"                                      
-"page"                                          
-"strain"                                        
-"prophage"                                      
-"repressor_clone"                               
-"strain_type"                                   
-"assay_type"                                    
-"lawn_notes"                                    
-"lawn_reliability"                              
-"tested_titer"                                  
-"phage_reliability"                             
-"observation_infection_strength"                
-"observation_turbidity"                         
-"observation_plaque_size"                       
-"observation_plaques"                           
-"defending_phage_source"                        
-"defending_phage_alias"                         
-"defending_phage_description"                   
-"challenging_phage_source"                      
-"challenging_phage_alias"                       
-"challenging_phage_description"                 
-"defending_challenging_parent"                  
-"defending_challenging"                         
-"defending_phage_host"                          
-"defending_phage_cluster"                       
-"defending_phage_subcluster"                    
-"defending_phage_size"                          
-"defending_phage_status"                        
-"defending_phage_author"                        
-"defending_phage_datelastmodified"              
-"defending_phage_mode_approx_80_percent"        
-"defending_phage_network005_interaction_tally"  
-"defending_phage_network005_mash_group"         
-"defending_phage_network005_mash_group_tally"   
-"defending_phage_lysogen_type"                  
-"defending_phage_pham_integrase"                
-"defending_phage_pham_para"                     
-"challenging_phage_host"                        
-"challenging_phage_cluster"                     
-"challenging_phage_subcluster"                  
-"challenging_phage_size"                        
-"challenging_phage_status"                      
-"challenging_phage_author"                      
-"challenging_phage_datelastmodified"            
-"challenging_phage_mode_approx_80_percent"      
-"challenging_phage_network005_interaction_tally"
-"challenging_phage_network005_mash_group"       
-"challenging_phage_network005_mash_group_tally" 
-"challenging_phage_lysogen_type"                
-"challenging_phage_pham_integrase"              
-"challenging_phage_pham_para"                   
-"challenging_phage_parent"                      
-"defending_phage_parent"                        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Now compare prophage and repressor clone multi-titer assay data
-
-
-multi_lysogen_clone_all <- subset(main_immunity_data,main_immunity_data$assay_type == 'multiple_titer' & main_immunity_data$date == '6/17/18')
-multi_lysogen_clone_all$defending_phage <- factor(multi_lysogen_clone_all$defending_phage)
-multi_lysogen_clone_all$challenging_phage <- factor(multi_lysogen_clone_all$challenging_phage)
-multi_lysogen_clone_all$defending_challenging <- factor(multi_lysogen_clone_all$defending_challenging)
-multi_lysogen_clone_all$defending_challenging_parent <- factor(multi_lysogen_clone_all$defending_challenging_parent)
-multi_lysogen_clone_all$lawn_reliability <- factor(multi_lysogen_clone_all$lawn_reliability)
-multi_lysogen_clone_all$phage_reliability <- factor(multi_lysogen_clone_all$phage_reliability)
-
-
-#Only keep reliable data
-multi_lysogen_clone_reliable <- subset(multi_lysogen_clone_all,multi_lysogen_clone_all$lawn_reliability != 1)
-multi_lysogen_clone_reliable <- subset(multi_lysogen_clone_reliable,multi_lysogen_clone_reliable$phage_reliability == 2 |
-                                         multi_lysogen_clone_reliable$phage_reliability == 3)
-
-
-multi_lysogen <- subset(multi_lysogen_clone_reliable,multi_lysogen_clone_reliable$strain_type == 'lysogen')
-multi_clone <- subset(multi_lysogen_clone_reliable,multi_lysogen_clone_reliable$strain_type == 'repressor_clone')
-
-
-
-multi_lysogen_subset <- subset(multi_lysogen, select = c("defending_challenging",
-                                                                       "challenging_phage",
-                                                                       "challenging_phage_source",
-                                                                       "defending_phage",
-                                                                       "defending_phage_source",
-                                                                       "score_infection_strength",
-                                                                       "score_turbidity",
-                                                                       "score_plaque_size",
-                                                                       "score_plaques",
-                                                                       "score_four_factors"))
-
-
-multi_clone_subset <- subset(multi_clone, select = c("defending_challenging",
-                                                                   "challenging_phage",
-                                                                   "challenging_phage_source",
-                                                                   "defending_phage",
-                                                                   "defending_phage_source",
-                                                                   "score_infection_strength",
-                                                                   "score_turbidity",
-                                                                   "score_plaque_size",
-                                                                   "score_plaques",
-                                                                   "score_four_factors"))
-
-
-names(multi_lysogen_subset) <- c("defending_challenging",
-                                        "lysogen_challenging_phage",
-                                        "lysogen_challenging_phage_source",
-                                        "lysogen_defending_phage",
-                                        "lysogen_defending_phage_source",
-                                        "lysogen_score_infection_strength",
-                                        "lysogen_score_turbidity",
-                                        "lysogen_score_plaque_size",
-                                        "lysogen_score_plaques",
-                                        "lysogen_score_four_factors")
-
-
-names(multi_clone_subset) <- c("defending_challenging",
-                                      "clone_challenging_phage",
-                                      "clone_challenging_phage_source",
-                                      "clone_defending_phage",
-                                      "clone_defending_phage_source",
-                                      "clone_score_infection_strength",
-                                      "clone_score_turbidity",
-                                      "clone_score_plaque_size",
-                                      "clone_score_plaques",
-                                      "clone_score_four_factors")
-
-
-
-multi_lysogen_clone_matched <- merge(multi_lysogen_subset,multi_clone_subset,by.x = "defending_challenging",by.y = "defending_challenging")
-
-
-multi_lysogen_clone_matched$score_four_factors_diff <- multi_lysogen_clone_matched$lysogen_score_four_factors - multi_lysogen_clone_matched$clone_score_four_factors
-multi_lysogen_clone_matched$score_infection_strength_diff <- multi_lysogen_clone_matched$lysogen_score_infection_strength - multi_lysogen_clone_matched$clone_score_infection_strength
-multi_lysogen_clone_matched$score_turbidity_diff <- multi_lysogen_clone_matched$lysogen_score_turbidity - multi_lysogen_clone_matched$clone_score_turbidity
-
-
-
-multi_lysogen_clone_matched_wildtype <- subset(multi_lysogen_clone_matched,multi_lysogen_clone_matched$lysogen_challenging_phage_source == 'seaphages' &
-                                          multi_lysogen_clone_matched$clone_challenging_phage_source == 'seaphages')
-
-plot(multi_lysogen_clone_matched$lysogen_score_four_factors,multi_lysogen_clone_matched$clone_score_four_factors)
-plot(multi_lysogen_clone_matched$lysogen_score_infection_strength,multi_lysogen_clone_matched$clone_score_infection_strength)
-plot(multi_lysogen_clone_matched$lysogen_score_turbidity,multi_lysogen_clone_matched$clone_score_turbidity)
-plot(multi_lysogen_clone_matched$score_four_factors_diff)
-
-
-
-plot(multi_lysogen_clone_matched_wildtype$lysogen_score_four_factors,multi_lysogen_clone_matched_wildtype$clone_score_four_factors,xlim=c(0,5),ylim=c(0,5))
-plot(multi_lysogen_clone_matched_wildtype$lysogen_score_infection_strength,multi_lysogen_clone_matched_wildtype$clone_score_infection_strength,xlim=c(0,3),ylim=c(0,3))
-plot(multi_lysogen_clone_matched_wildtype$lysogen_score_turbidity,multi_lysogen_clone_matched_wildtype$clone_score_turbidity,xlim=c(0,2),ylim=c(0,2))
-plot(multi_lysogen_clone_matched_wildtype$score_four_factors_diff)
-
-
-
-#plot frequencies of each infection score to compare wildtype phage to mutant phage
-barplot(summary(as.factor(multi_lysogen_clone_matched$score_four_factors_diff)),ylim=c(0,25))
-barplot(summary(as.factor(multi_lysogen_clone_matched_wildtype$score_four_factors_diff)),ylim=c(0,25))
-
-
-
-
-
-
-
-
-
-#Plot immunity profiles per phage
-#assumes lawn and phage reliability and lysogen matched to genomic distance
-
-
-table <- subset(main_immunity_data,main_immunity_data$defending_phage == 'trixie')
-table <- subset(table,table$strain_type == 'lysogen')
-table <- subset(table,table$lawn_reliability != 1)
-table <- subset(table,table$phage_reliability == 2 |
-                  table$phage_reliability == 3)
-
-plot(lysogen_immunity_reliable$modified_mash_distance,lysogen_immunity_reliable$score_four_factors)
-
-plot(table$)
-
-plot_immunity_profiles_by_phage <- function(table){
-
-    
-  table <- subset(table,table$)
-  
-  
-  
-  
-}
-  
-  
-  
-  
-
-
-
-
-
-
-
-
-#Plot superinfection profiles, matching escape mutant with parent phage
-
-
-immunity_reliable <- subset(immunity_data,immunity_data$lawn_reliability != 1)
-immunity_reliable <- subset(immunity_reliable,immunity_reliable$phage_reliability == 2 |
-                              immunity_reliable$phage_reliability == 3)
-
-
-# phitm46_data <- subset(immunity_reliable,immunity_reliable$challenging_phage == 'phitm46' |
-#                          immunity_reliable$challenging_phage == 'davinci')
-
-
-
-phitm46_data <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$challenging_phage == 'phitm46')
-davinci_data <- subset(lysogen_immunity_reliable,lysogen_immunity_reliable$challenging_phage == 'davinci')
-
-
-plot(phitm46_data$modified_mash_distance,phitm46_data$score_four_factors)
-
-
-
-###
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Extra
-
-lys_conf_envDY <- subset(lys_conf,
-                         lys_conf$defending_source == 'environment')
-
-
-lys_conf_envDYCY <- subset(lys_conf_envDY,
-                           lys_conf_envDY$challenging_source == 'environment')
-
-lys_conf_envDYCN <- subset(lys_conf_envDY,
-                           lys_conf_envDY$challenging_source == 'lab')
-
-lys_conf_envDYCY_intDY <- subset(lys_conf_envDYCY,
-                                 lys_conf_envDYCY$defending_lysogen_type == 'integration')
-
-
-lys_conf_envDY_intDN <- subset(lys_conf_envDY,
-                               lys_conf_envDY$defending_lysogen_type == 'extrachromosomal')
-
-
-
-lys_conf_envDY_intDY_intCY <- subset(lys_conf_envDY_intDY,
-                                     lys_conf_envDY_intDY$challenging_lysogen_type == 'integration')
-
-
-lys_conf_envDY_intDN_intCN <- subset(lys_conf_envDY,
-                                     lys_conf_envDY$challenging_lysogen_type == 'extrachromosomal')
-
-
-
-
-lysogen_immunity_genomic_distances_reliable_env_repYes <- subset(lysY_mash_conf_envY,
-                                                                 lysY_mash_conf_envY$challenging_cluster_a_functional_repressor_predicted == 'yes')
-
-
-lysogen_immunity_genomic_distances_reliable_env_repNo <- subset(lysogen_immunity_genomic_distances_reliable_env,
-                                                                lysogen_immunity_genomic_distances_reliable_env$challenging_cluster_a_functional_repressor_predicted == 'no')
-
-lysogen_immunity_genomic_distances_reliable_env_repYes_intYes <- subset(lysogen_immunity_genomic_distances_reliable_env_repYes,
-                                                                        lysogen_immunity_genomic_distances_reliable_env_repYes$defending_lysogen_type == 'integration')
-
-lysogen_immunity_genomic_distances_reliable_env_repYes_extraYes <- subset(lysogen_immunity_genomic_distances_reliable_env_repYes_intYes,
-                                                                          lysogen_immunity_genomic_distances_reliable_env_repYes_intYes$challenging_lysogen_type == 'extrachromosomal')
-
-
-lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo <- subset(lysogen_immunity_genomic_distances_reliable_env_repYes,
-                                                                         lysogen_immunity_genomic_distances_reliable_env_repYes$challenging_lysogen_type == 'integration')
-
-lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo_phamSame <- subset(lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo,
-                                                                                  lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo$integrase_compare != 'different')
-
-lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo_phamDiff <- subset(lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo,
-                                                                                  lysogen_immunity_genomic_distances_reliable_env_repYes_extraNo$integrase_compare == 'different')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Extra
-
-###Assess scored_four_factors frequencies to compute new scoring total
-
-#Multi, conf, lysogen data
-setwd("~/scratch/immunity_analysis/output/")
-multi_conf_lys_unique_scores <- subset(main_immunity_data,
-                                       main_immunity_data$assay_type == 'multiple_titer' &
-                                         main_immunity_data$lawn_reliability != 1 &
-                                         main_immunity_data$phage_reliability != 1 &
-                                         main_immunity_data$strain_type == 'lysogen',
-                                       select=c("scored_infection_strength",
-                                                "scored_turbidity",
-                                                "scored_plaque_size",
-                                                "scored_plaques"))
-
-
-multi_conf_lys_unique_scores$scores_grouped <- paste(multi_conf_lys_unique_scores$scored_infection_strength,"_",
-                                                     multi_conf_lys_unique_scores$scored_turbidity,"_",
-                                                     multi_conf_lys_unique_scores$scored_plaques,"_",
-                                                     multi_conf_lys_unique_scores$scored_plaque_size,
-                                                     sep="")
-
-multi_conf_lys_unique_scores$scores_grouped <- factor(multi_conf_lys_unique_scores$scores_grouped)
-
-# #I may need to change this to table function. Summary doesn't output all values (only first 100).But with table function, columns are different order, and no need for rownames field.
-# multi_conf_lys_unique_scores_count <- as.data.frame(summary(multi_conf_lys_unique_scores$scores_grouped))
-# multi_conf_lys_unique_scores_count$scores_grouped <- rownames(multi_conf_lys_unique_scores_count)
-# names(multi_conf_lys_unique_scores_count) <- c('frequency','scores_grouped')
-# #
-
-
-
-multi_conf_lys_unique_scores <- multi_conf_lys_unique_scores[!duplicated(multi_conf_lys_unique_scores),]
-multi_conf_lys_unique_scores <- merge(multi_conf_lys_unique_scores,multi_conf_lys_unique_scores_count,by.x='scores_grouped',by.y='scores_grouped')
-
-
-write.table(multi_conf_lys_unique_scores,
-            "multi_conf_lys_unique_scores.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-multi_conf_lys_unique_scores_ordered <- multi_conf_lys_unique_scores[order(multi_conf_lys_unique_scores$scored_infection_strength,
-                                                                           multi_conf_lys_unique_scores$scored_turbidity,
-                                                                           multi_conf_lys_unique_scores$scored_plaques,
-                                                                           multi_conf_lys_unique_scores$scored_plaque_size),]
-multi_conf_lys_unique_scores_ordered <- multi_conf_lys_unique_scores_ordered[,c(1,2,4,3)]
-multi_conf_lys_unique_scores_ordered$scored_rank20 <- c(0:20)
-
-
-
-
-
-#
-#Multi, conf, repressor_clone and lysogen data
-setwd("~/scratch/immunity_analysis/output/")
-multi_conf_unique_scores <- subset(main_immunity_data,
-                                   main_immunity_data$assay_type == 'multiple_titer' &
-                                     main_immunity_data$lawn_reliability != 1 &
-                                     main_immunity_data$phage_reliability != 1,
-                                   select=c("scored_infection_strength",
-                                            "scored_turbidity",
-                                            "scored_plaque_size",
-                                            "scored_plaques"))
-
-
-multi_conf_unique_scores$scores_grouped <- paste(multi_conf_unique_scores$scored_infection_strength,"_",
-                                                 multi_conf_unique_scores$scored_turbidity,"_",
-                                                 multi_conf_unique_scores$scored_plaques,"_",
-                                                 multi_conf_unique_scores$scored_plaque_size,
-                                                 sep="")
-
-multi_conf_unique_scores$scores_grouped <- factor(multi_conf_unique_scores$scores_grouped)
-
-# #I may need to change this to table function. Summary doesn't output all values (only first 100).  But with table function, columns are different order, and no need for rownames field.
-# multi_conf_unique_scores_count <- as.data.frame(summary(multi_conf_unique_scores$scores_grouped))
-# multi_conf_unique_scores_count$scores_grouped <- rownames(multi_conf_unique_scores_count)
-# names(multi_conf_unique_scores_count) <- c('frequency','scores_grouped')
-# #
-
-multi_conf_unique_scores <- multi_conf_unique_scores[!duplicated(multi_conf_unique_scores),]
-multi_conf_unique_scores <- merge(multi_conf_unique_scores,multi_conf_unique_scores_count,by.x='scores_grouped',by.y='scores_grouped')
-
-
-write.table(multi_conf_unique_scores,
-            "multi_conf_unique_scores.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-# multi_conf_unique_scores_ordered <- multi_conf_unique_scores[order(multi_conf_unique_scores$scored_infection_strength,
-#                                                                            multi_conf_unique_scores$scored_turbidity,
-#                                                                            multi_conf_unique_scores$scored_plaques,
-#                                                                            multi_conf_unique_scores$scored_plaque_size),]
-# multi_conf_unique_scores_ordered <- multi_conf_unique_scores_ordered[,c(1,2,4,3)]
-# multi_conf_unique_scores_ordered$scored_rank20 <- c(0:20)
-
-
-
-
-
-
-
-
-#
-#Single, conf, repressor_clone and lysogen data
-setwd("~/scratch/immunity_analysis/output/")
-single_conf_unique_scores <- subset(main_immunity_data,
-                                    main_immunity_data$assay_type == 'single_titer' &
-                                      main_immunity_data$lawn_reliability != 1 &
-                                      main_immunity_data$phage_reliability != 1,
-                                    select=c("scored_infection_strength",
-                                             "scored_turbidity",
-                                             "scored_plaque_size",
-                                             "scored_plaques"))
-
-
-single_conf_unique_scores$scores_grouped <- paste(single_conf_unique_scores$scored_infection_strength,"_",
-                                                  single_conf_unique_scores$scored_turbidity,"_",
-                                                  single_conf_unique_scores$scored_plaques,"_",
-                                                  single_conf_unique_scores$scored_plaque_size,
-                                                  sep="")
-
-single_conf_unique_scores$scores_grouped <- factor(single_conf_unique_scores$scores_grouped)
-
-# #I may need to change this to table function. Summary doesn't output all values (only first 100). But with table function, columns are different order, and no need for rownames field.
-# single_conf_unique_scores_count <- as.data.frame(summary(single_conf_unique_scores$scores_grouped))
-# single_conf_unique_scores_count$scores_grouped <- rownames(single_conf_unique_scores_count)
-# names(single_conf_unique_scores_count) <- c('frequency','scores_grouped')
-# #
-
-
-
-
-single_conf_unique_scores <- single_conf_unique_scores[!duplicated(single_conf_unique_scores),]
-single_conf_unique_scores <- merge(single_conf_unique_scores,single_conf_unique_scores_count,by.x='scores_grouped',by.y='scores_grouped')
-
-
-write.table(single_conf_unique_scores,
-            "single_conf_unique_scores.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-
-
-#
-#all conf data
-setwd("~/scratch/immunity_analysis/output/")
-
-conf_unique_scores <- subset(main_immunity_data,
-                             main_immunity_data$lawn_reliability != 1 &
-                               main_immunity_data$phage_reliability != 1,
-                             select=c("scored_infection_strength",
-                                      "scored_turbidity",
-                                      "scored_plaque_size",
-                                      "scored_plaques"))
-
-
-conf_unique_scores$scores_grouped <- paste(conf_unique_scores$scored_infection_strength,"_",
-                                           conf_unique_scores$scored_turbidity,"_",
-                                           conf_unique_scores$scored_plaques,"_",
-                                           conf_unique_scores$scored_plaque_size,
-                                           sep="")
-
-conf_unique_scores$scores_grouped <- factor(conf_unique_scores$scores_grouped)
-
-
-# #I may need to change this to table function. Summary doesn't output all values (only first 100). But with table function, columns are different order, and no need for rownames field.
-# conf_unique_scores_count <- as.data.frame(summary(conf_unique_scores$scores_grouped))
-# conf_unique_scores_count$scores_grouped <- rownames(conf_unique_scores_count)
-# names(conf_unique_scores_count) <- c('frequency','scores_grouped')
-# #
-
-
-
-
-conf_unique_scores <- conf_unique_scores[!duplicated(conf_unique_scores),]
-conf_unique_scores <- merge(conf_unique_scores,conf_unique_scores_count,by.x='scores_grouped',by.y='scores_grouped')
-
-
-write.table(conf_unique_scores,
-            "conf_unique_scores.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-
-#
-
-
-
-rank_table <- expand.grid(scored_infection_strength = c(0:3),
-                          scored_turbidity = c(0:2),
-                          scored_plaques = c(0,1),
-                          scored_plaque_size = c(0:2))
-rank_table <- rank_table[order(rank_table$scored_infection_strength,
-                               rank_table$scored_turbidity,
-                               rank_table$scored_plaques,
-                               rank_table$scored_plaque_size),]
-
-
-###
 
 
 
