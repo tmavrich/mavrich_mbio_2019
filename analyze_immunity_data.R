@@ -124,6 +124,52 @@ convert_immunity_scores_to_factor <- function(table){
 
 
 
+match_average_lysogen_and_clone_data <- function(lysogen_data,clone_data){
+  
+  
+  lysY_reduced <- subset(lysogen_data,select = c(clone_match_columns))
+  names(lysY_reduced) <- paste('lys_',names(lysY_reduced),sep="")
+  
+  cloneY_reduced <- subset(clone_data,select = c(clone_match_columns))
+  names(cloneY_reduced) <- paste('clone_',names(cloneY_reduced),sep="")
+  
+  
+  
+  lys_clone_compare <- merge(lysY_reduced,cloneY_reduced,by.x='lys_defending_challenging',by.y='clone_defending_challenging')
+  
+  lys_clone_compare$lys_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$lys_averaged_infection_strength))
+  lys_clone_compare$lys_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$lys_averaged_turbidity))
+  lys_clone_compare$lys_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaque_size))
+  lys_clone_compare$lys_averaged_plaques <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaques))
+  lys_clone_compare$lys_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$lys_averaged_rank6))
+  
+  
+  lys_clone_compare$clone_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$clone_averaged_infection_strength))
+  lys_clone_compare$clone_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$clone_averaged_turbidity))
+  lys_clone_compare$clone_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaque_size))
+  lys_clone_compare$clone_averaged_plaques <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaques))
+  lys_clone_compare$clone_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$clone_averaged_rank6))
+  
+  
+  
+  lys_clone_compare$infection_strength_diff <- lys_clone_compare$clone_averaged_infection_strength - lys_clone_compare$lys_averaged_infection_strength
+  lys_clone_compare$turbidity_diff <- lys_clone_compare$clone_averaged_turbidity - lys_clone_compare$lys_averaged_turbidity
+  lys_clone_compare$plaque_size_diff <- lys_clone_compare$clone_averaged_plaque_size - lys_clone_compare$lys_averaged_plaque_size
+  lys_clone_compare$plaque_diff <- lys_clone_compare$clone_averaged_plaques - lys_clone_compare$lys_averaged_plaques
+  lys_clone_compare$rank6_diff <- lys_clone_compare$clone_averaged_rank6 - lys_clone_compare$lys_averaged_rank6
+  
+  
+  
+  return(lys_clone_compare)
+  
+  
+}
+
+
+
+
+
+
 
 
 
@@ -139,71 +185,7 @@ convert_immunity_scores_to_factor <- function(table){
 # 
 # 
 # 
-# plot_scored_four_factors_mash <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$modified_mash_distance,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        xlim=c(0,0.4),ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# plot_scored_four_factors_gcd <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$pham_pham_dissimilarity,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# plot_scored_four_factors_repressor <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$repressor_muscle_bionj_distances,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# plot_scored_four_factors_repressor_phyml <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$repressor_prank_phyml_distances,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# 
-# plot_scored_four_factors_recb <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$recb_muscle_bionj_distances,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# plot_scored_four_factors_portal <- function(table){
-#   
-#   par(mar=c(4,8,4,4))
-#   plot(table$portal_muscle_bionj_distances,
-#        as.numeric(as.character(table$scored_four_factors)),
-#        ylim=c(0,9),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# }
-# 
-# 
-# plot_reduce_data1 <- function(table,source1,source2,lys1,lys2){
-#   
-#   table <- subset(table,
-#                   table$defending_source == source1
-#                   & table$challenging_source == source2
-#                   & table$defending_lysogen_type == lys1
-#                   & table$challenging_lysogen_type == lys2
-#   )
-#   
-#   plot_scored_four_factors(table)
-#   plot_name <- paste(source1,"_",source2,"_",lys1,"_",lys2,'.pdf',sep='')
-#   dev.copy(pdf,plot_name)
-#   dev.off()
-#   
-# }
+
 
 
 
@@ -2675,9 +2657,6 @@ dev.off()
 
 
 
-
-
-
 ###Reciprocal analysis
 #Using averaged data, compute differences in reciprocal immunity data
 
@@ -2901,7 +2880,34 @@ dev.off()
 
 
 
+# 
+# vectored_column_names <- c("assay_strain_defending_challenging",
+#                            "defending_challenging",
+#                            "defending_phage",
+#                            "challenging_phage",
+#                            "averaged_infection_strength",
+#                            "averaged_turbidity",
+#                            "averaged_plaque_size",
+#                            "averaged_plaques",
+#                            "averaged_four_factors",
+#                            "averaged_rank6",
+#                            "strain_defending_challenging",
+#                            "assay_type",
+#                            "frequency",
+#                            "stoperator88_tally",
+#                            "stoperator88_2kbright_tally",
+#                            "stoperator88_2kbleft_tally",
+#                            "stoperator88_2kbright_targetself_tally",
+#                            "stoperator88_2kbright_nontargetself_tally",
+#                            "stoperator88_2kbleft_targetself_tally",
+#                            "stoperator88_2kbleft_nontargetself_tally",
+#                            "tfbs88_stoperator_target",
+#                            "tfbs88_stoperator_motif"
+# )
 
+
+
+#TODO make sure this reduced list is okay. I removed columns related to stoperator tallies
 vectored_column_names <- c("assay_strain_defending_challenging",
                            "defending_challenging",
                            "defending_phage",
@@ -2914,18 +2920,8 @@ vectored_column_names <- c("assay_strain_defending_challenging",
                            "averaged_rank6",
                            "strain_defending_challenging",
                            "assay_type",
-                           "frequency",
-                           "stoperator88_tally",
-                           "stoperator88_2kbright_tally",
-                           "stoperator88_2kbleft_tally",
-                           "stoperator88_2kbright_targetself_tally",
-                           "stoperator88_2kbright_nontargetself_tally",
-                           "stoperator88_2kbleft_targetself_tally",
-                           "stoperator88_2kbleft_nontargetself_tally",
-                           "tfbs88_stoperator_target",
-                           "tfbs88_stoperator_motif"
+                           "frequency"
 )
-
 
 
 
@@ -3334,43 +3330,6 @@ nrow(reciprocal_unique_envY_interclade)
 
 
 
-
-#Choose a sub-dataset:
-#all data or only clade2
-#recip_data_to_bin <- reciprocal_unique_envY
-
-reciprocal_unique_envY_intraclade2 <- subset(reciprocal_unique_envY,
-                                             reciprocal_unique_envY$gene_content_clade_compare == "clade2")
-
-recip_data_to_bin <- reciprocal_unique_envY_intraclade2
-
-recip_rank6diff_0 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff < 0.5)
-
-recip_rank6diff_1 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff >= 0.5 &
-                              recip_data_to_bin$averaged_rank6_diff < 1.5)
-
-recip_rank6diff_2 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6 >= 1.5 &
-                              recip_data_to_bin$averaged_rank6_diff < 2.5)
-
-recip_rank6diff_3 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff >= 2.5 &
-                              recip_data_to_bin$averaged_rank6_diff < 3.5)
-
-recip_rank6diff_4 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff >= 3.5 &
-                              recip_data_to_bin$averaged_rank6_diff < 4.5)
-
-recip_rank6diff_5 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff >= 4.5 &
-                              recip_data_to_bin$averaged_rank6_diff < 5.5)
-
-recip_rank6diff_6 <- subset(recip_data_to_bin,
-                            recip_data_to_bin$averaged_rank6_diff >= 5.5)
-
-
 ###Reciprocal analysis above
 
 
@@ -3409,7 +3368,6 @@ recip_rank6diff_6 <- subset(recip_data_to_bin,
 
 
 
-#HERE code reduction in progress
 
 
 ###Compare lysogen vs repressor clone data
@@ -3435,47 +3393,6 @@ clone_match_columns <- c('defending_challenging',
                          'repressor_cterm_mafft_dist_uncorrected',
                          'stoperator_pwd_dist_euc',
                          'gene_content_clade_compare')
-
-match_average_lysogen_and_clone_data <- function(lysogen_data,clone_data){
-  
-  
-  lysY_reduced <- subset(lysogen_data,select = c(clone_match_columns))
-  names(lysY_reduced) <- paste('lys_',names(lysY_reduced),sep="")
-
-  cloneY_reduced <- subset(clone_data,select = c(clone_match_columns))
-  names(cloneY_reduced) <- paste('clone_',names(cloneY_reduced),sep="")
-  
-
-  
-  lys_clone_compare <- merge(lysY_reduced,cloneY_reduced,by.x='lys_defending_challenging',by.y='clone_defending_challenging')
-  
-  lys_clone_compare$lys_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$lys_averaged_infection_strength))
-  lys_clone_compare$lys_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$lys_averaged_turbidity))
-  lys_clone_compare$lys_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaque_size))
-  lys_clone_compare$lys_averaged_plaques <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaques))
-  lys_clone_compare$lys_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$lys_averaged_rank6))
-
-
-  lys_clone_compare$clone_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$clone_averaged_infection_strength))
-  lys_clone_compare$clone_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$clone_averaged_turbidity))
-  lys_clone_compare$clone_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaque_size))
-  lys_clone_compare$clone_averaged_plaques <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaques))
-  lys_clone_compare$clone_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$clone_averaged_rank6))
-  
-  
-  
-  lys_clone_compare$infection_strength_diff <- lys_clone_compare$clone_averaged_infection_strength - lys_clone_compare$lys_averaged_infection_strength
-  lys_clone_compare$turbidity_diff <- lys_clone_compare$clone_averaged_turbidity - lys_clone_compare$lys_averaged_turbidity
-  lys_clone_compare$plaque_size_diff <- lys_clone_compare$clone_averaged_plaque_size - lys_clone_compare$lys_averaged_plaque_size
-  lys_clone_compare$plaque_diff <- lys_clone_compare$clone_averaged_plaques - lys_clone_compare$lys_averaged_plaques
-  lys_clone_compare$rank6_diff <- lys_clone_compare$clone_averaged_rank6 - lys_clone_compare$lys_averaged_rank6
-  
-
-
-  return(lys_clone_compare)
-  
-  
-}
 
 
 
@@ -3627,41 +3544,9 @@ nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
 #Plots
 setwd("~/scratch/immunity_analysis/output/")
 
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_lys_clone_matched$lys_averaged_rank6,
-     ave_multi_conf_lys_clone_matched$clone_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6))
-dev.copy (pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_averaged_rank6,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$clone_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6))
-abline(0,1)
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6compare.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(ave_multi_conf_envN_lys_clone_matched$lys_averaged_rank6,
-     ave_multi_conf_envN_lys_clone_matched$clone_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6))
-abline(0,1)
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6compare.pdf')
-dev.off()
 
 
-#Final correlation stats
-lm_lys_clone_env_averaged_rank6 <- lm(clone_averaged_rank6 ~
-                                        lys_averaged_rank6,
-                                      data = ave_multi_conf_env_rep_emp_lys_clone_matched)
-summary(lm_lys_clone_env_averaged_rank6)
 
-lm_lys_clone_envN_averaged_rank6 <- lm(clone_averaged_rank6 ~
-                                         lys_averaged_rank6,
-                                       data = ave_multi_conf_envN_lys_clone_matched)
-summary(lm_lys_clone_envN_averaged_rank6)
-#
 
 
 
@@ -3670,7 +3555,7 @@ summary(lm_lys_clone_envN_averaged_rank6)
 
 #
 
-#FinalFig
+#Fig. 6c
 par(mar=c(4,8,8,4))
 plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$lys_averaged_rank6,
      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$clone_averaged_rank6,
@@ -3687,7 +3572,7 @@ abline(0,1)
 dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6compare_subtypes.pdf')
 dev.off()
 
-#Final Number of assays used:
+#Summary - number of assays used:
 nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic) +
   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade) +
   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
@@ -3697,7 +3582,7 @@ nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
 
 
 
-#FinalFig
+#Fig. 7d
 par(mar=c(4,8,8,4))
 plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$lys_averaged_rank6,
      ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$clone_averaged_rank6,
@@ -3715,7 +3600,7 @@ dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6compare_subtypes.pdf')
 dev.off()
 
 
-#Final Number of assays used:
+#Summary - number of assays used:
 nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
   nrow(ave_multi_conf_envN_lys_clone_matched_interclade) +
   nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
@@ -3728,117 +3613,7 @@ nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
 
 
 
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_averaged_rank6,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$clone_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-par(new=TRUE)
-plot(ave_multi_conf_envN_lys_clone_matched$lys_averaged_rank6,
-     ave_multi_conf_envN_lys_clone_matched$clone_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-dev.copy (pdf,'.pdf')
-dev.off()
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_modified_mash_distance,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,0.4),ylim=c(-4,4))
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_mash.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_envN_lys_clone_matched$lys_modified_mash_distance,
-     ave_multi_conf_envN_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,0.4),ylim=c(-4,4))
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_mash.pdf')
-dev.off()
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_repressor_cterm_mafft_dist_uncorrected,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(-4,4))
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_repCtermUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_envN_lys_clone_matched$lys_repressor_cterm_mafft_dist_uncorrected,
-     ave_multi_conf_envN_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,ylim=c(-4,4))
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_repCtermUn.pdf')
-dev.off()
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_pham_pham_dissimilarity,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4))
-abline(h=0)
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_GCD.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(ave_multi_conf_envN_lys_clone_matched$lys_pham_pham_dissimilarity,
-     ave_multi_conf_envN_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4))
-abline(h=0)
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_GCD.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(ave_multi_conf_env_rep_emp_lys_clone_matched$lys_stoperator_pwd_dist_euc,
-     ave_multi_conf_env_rep_emp_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4))
-abline(h=0)
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(ave_multi_conf_envN_lys_clone_matched$lys_stoperator_pwd_dist_euc,
-     ave_multi_conf_envN_lys_clone_matched$rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4))
-abline(h=0)
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-#FinalFig
+#Fig. 6d
 par(mar=c(4,8,16,4))
 plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$lys_stoperator_pwd_dist_euc,
      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$rank6_diff,
@@ -3855,7 +3630,7 @@ abline(h=0)
 dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf')
 dev.off()
 
-#Final Number of assays used:
+#Summary - number of assays used:
 nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic) +
   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade) +
   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
@@ -3866,7 +3641,7 @@ nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
 
 
 
-#FinalFig
+#Fig. 7e
 par(mar=c(4,8,16,4))
 plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$lys_stoperator_pwd_dist_euc,
      ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$rank6_diff,
@@ -3884,7 +3659,7 @@ dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_stopEuc_subtyp
 dev.off()
 
 
-#Final Number of assays used:
+#Summary - number of assays used:
 nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
   nrow(ave_multi_conf_envN_lys_clone_matched_interclade) +
   nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
@@ -3899,107 +3674,6 @@ nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Compare L5 and phiTM41 defense profiles
-
-
-#Analysis using averaged data
-#This can't be mixed with code for non-averaged data because averaged dataframe columns are named differently
-#Averaged data should only reflect confident data
-lys_l5_ave <- subset(conf_assay_strain_def_chal_average,
-                     conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-                       conf_assay_strain_def_chal_average$defending_phage == 'l5' &
-                       conf_assay_strain_def_chal_average$strain_type == 'lysogen')
-
-lys_phitm41_ave <- subset(conf_assay_strain_def_chal_average,
-                          conf_assay_strain_def_chal_average$assay_type == 'multiple_titer' &
-                            conf_assay_strain_def_chal_average$defending_phage == 'phitm41' &
-                            conf_assay_strain_def_chal_average$strain_type == 'lysogen')
-
-
-
-
-
-#Choose which dataset to reduce
-l5_ave_reduced <- subset(lys_l5_ave,
-                         select = c(
-                           'defending_challenging',
-                           'challenging_phage',
-                           'averaged_infection_strength',
-                           'averaged_turbidity',
-                           'averaged_plaque_size',
-                           'averaged_plaques',
-                           'averaged_four_factors',
-                           'averaged_rank6'))
-
-names(l5_ave_reduced) <- c('l5_defending_challenging',
-                       'challenging_phage',
-                       'l5_averaged_infection_strength',
-                       'l5_averaged_turbidity',
-                       'l5_averaged_plaque_size',
-                       'l5_averaged_plaques',
-                       'l5_averaged_four_factors',
-                       'l5_averaged_rank6')
-
-
-
-phitm41_ave_reduced <- subset(lys_phitm41_ave,
-                          select = c(
-                            'defending_challenging',
-                            'challenging_phage',
-                            'averaged_infection_strength',
-                            'averaged_turbidity',
-                            'averaged_plaque_size',
-                            'averaged_plaques',
-                            'averaged_four_factors',
-                            'averaged_rank6'))
-
-names(phitm41_ave_reduced) <- c('phitm41_defending_challenging',
-                            'challenging_phage',
-                            'phitm41_averaged_infection_strength',
-                            'phitm41_averaged_turbidity',
-                            'phitm41_averaged_plaque_size',
-                            'phitm41_averaged_plaques',
-                            'phitm41_averaged_four_factors',
-                            'phitm41_averaged_rank6')
-
-
-
-l5_phitm41_ave_compare <- merge(l5_ave_reduced,phitm41_ave_reduced,by.x='challenging_phage',by.y='challenging_phage')
-
-l5_phitm41_ave_compare$l5_averaged_infection_strength <- as.numeric(as.character(l5_phitm41_ave_compare$l5_averaged_infection_strength))
-l5_phitm41_ave_compare$phitm41_averaged_infection_strength <- as.numeric(as.character(l5_phitm41_ave_compare$phitm41_averaged_infection_strength))
-
-l5_phitm41_ave_compare$l5_averaged_rank6 <- as.numeric(as.character(l5_phitm41_ave_compare$l5_averaged_rank6))
-l5_phitm41_ave_compare$phitm41_averaged_rank6 <- as.numeric(as.character(l5_phitm41_ave_compare$phitm41_averaged_rank6))
-
-l5_phitm41_ave_compare$averaged_rank6_diff <- l5_phitm41_ave_compare$l5_averaged_rank6 - l5_phitm41_ave_compare$phitm41_averaged_rank6
-
-setwd("~/scratch/immunity_analysis/output/")
-
-par(mar=c(4,8,4,4))
-hist(l5_phitm41_ave_compare$averaged_rank6_diff,
-     xlim=c(-1.5,1.5),col='black',ann=FALSE,main=NULL,las=1,breaks=15)
-dev.copy(pdf,'l5_phitm41_ave_compare_averaged_rank6_diff.pdf')
-dev.off()
-
-
-###Compare L5 and phiTM41 defense profiles above
 
 
 
@@ -4084,277 +3758,10 @@ chal_l5_assays$phitm1_phitm4_rank6_diff <- chal_l5_assays$phitm4_averaged_rank6 
 setwd("~/scratch/immunity_analysis/output/")
 
 
-#
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-par(new=TRUE)
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm4_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="green")
-par(new=TRUE)
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="cyan")
-abline(0,1)
-dev.copy (pdf,'chal_l5_assays_ave_rank6_l5_vs_mutants.pdf')
-dev.off()
 
-#Number of assays used:
-nrow(chal_l5_assays)
 
 
 
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm41_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm41_averaged_rank6)))
-                            
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm1_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-
-
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays$l5_averaged_rank6,
-#      chal_l5_assays$phitm4_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-# abline(0,1)
-# dev.copy (pdf,'chal_l5_phitm4_rank6.pdf')
-# dev.off()
-
-
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays$l5_averaged_rank6,
-     chal_l5_assays$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm6_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm6_averaged_rank6)))
-
-
-
-
-
-# 
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays$phitm1_averaged_rank6,
-#      chal_l5_assays$phitm4_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-# abline(0,1)
-# dev.copy (pdf,'chal_phitm1_phitm4_rank6.pdf')
-# dev.off()
-# 
-# 
-# 
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays$phitm1_averaged_rank6,
-#      chal_l5_assays$phitm6_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-# abline(0,1)
-# dev.copy (pdf,'chal_phitm1_phitm6_rank6.pdf')
-# dev.off()
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_pham_pham_dissimilarity,
-     chal_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="black")
-par(new=TRUE)
-plot(chal_l5_assays$l5_pham_pham_dissimilarity,
-     chal_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="red")
-par(new=TRUE)
-plot(chal_l5_assays$l5_pham_pham_dissimilarity,
-     chal_l5_assays$l5_phitm4_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="green")
-par(new=TRUE)
-plot(chal_l5_assays$l5_pham_pham_dissimilarity,
-     chal_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="cyan")
-abline(h=0)
-dev.copy (pdf,'chal_l5_assays_ave_rank6_vs_gcd_l5_vs_mutants.pdf')
-dev.off()
-
-
-
-
-#
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-par(new=TRUE)
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="red")
-par(new=TRUE)
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm4_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="green")
-par(new=TRUE)
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="cyan")
-abline(h=0)
-dev.copy (pdf,'chal_l5_assays_ave_rank6_vs_stopEuc_l5_vs_mutants.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'chal_l5_phitm41_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'chal_l5_phitm1_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm4_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'chal_l5_phitm4_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'chal_l5_phitm6_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$phitm1_phitm4_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'chal_phitm1_phitm4_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-#
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="black")
-dev.copy (pdf,'chal_phitm1_rank6_vs_stopEuc.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-
-
-#
-par(mar=c(4,8,16,4))
-plot(chal_l5_assays$l5_stoperator_pwd_dist_euc,
-     chal_l5_assays$phitm4_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="black")
-dev.copy (pdf,'chal_phitm4_rank6_vs_stopEuc.pdf')
-dev.off()
-
-
-#number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm4_averaged_rank6)))
-
-
-
-
-
-
-
-
-
-
-
-#Same analyses but splitting by clade2 phages
 chal_l5_assays_nonclade2 <- subset(chal_l5_assays,chal_l5_assays$l5_defending_gene_content_clade != "clade2")
 chal_l5_assays_clade2 <- subset(chal_l5_assays,chal_l5_assays$l5_defending_gene_content_clade == "clade2")
 
@@ -4383,98 +3790,7 @@ nrow(chal_l5_assays_clade2_phitm1heterotypic)
 
 
 
-
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays_clade2$l5_averaged_rank6,
-     chal_l5_assays_clade2$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-     chal_l5_assays_nonclade2$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm41_rank6_by_subtype.pdf')
-dev.off()
-
-#Final number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm41_averaged_rank6)))
-nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm41_averaged_rank6)))
-nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm41_averaged_rank6)))
-
-
-
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays_clade2$l5_averaged_rank6,
-     chal_l5_assays_clade2$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-     chal_l5_assays_nonclade2$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm1_rank6_by_subtype.pdf')
-dev.off()
-
-#Final number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
-nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
-
-
-
-
-
-
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(chal_l5_assays_clade2$l5_averaged_rank6,
-     chal_l5_assays_clade2$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-     chal_l5_assays_nonclade2$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-abline(0,1)
-dev.copy (pdf,'chal_l5_phitm6_rank6_by_subtype.pdf')
-dev.off()
-
-#Final number of assays
-nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm6_averaged_rank6)))
-nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm6_averaged_rank6)))
-nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm6_averaged_rank6)))
-
-
-
-
-
-
-
-# #
-# par(mar=c(4,8,16,4))
-# plot(chal_l5_assays_clade2$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_clade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_nonclade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="grey")
-# dev.copy (pdf,'chal_phitm1_rank6_vs_stopEuc_by_subtype.pdf')
-# dev.off()
-# 
-# #number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
-
-
-
-
-
-
-
-#FinalFig
+#Fig. 10d sub-panel 1
 par(mar=c(4,8,16,4))
 plot(chal_l5_assays_clade2_phitm1heterotypic$l5_stoperator_pwd_dist_euc,
      chal_l5_assays_clade2_phitm1heterotypic$phitm1_averaged_rank6,
@@ -4491,7 +3807,7 @@ plot(chal_l5_assays_nonclade2$l5_stoperator_pwd_dist_euc,
 dev.copy (pdf,'chal_phitm1_rank6_vs_stopEuc_by_subtype.pdf')
 dev.off()
 
-#Final number of assays
+#Summary - number of assays
 nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
 nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
 nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
@@ -4501,7 +3817,7 @@ nrow(chal_l5_assays_clade2_phitm1heterotypic)
 
 
 
-#FinalFig
+#Fig. 10d sub-panel 2
 par(mar=c(4,8,16,4))
 plot(chal_l5_assays_clade2$l5_stoperator_pwd_dist_euc,
      chal_l5_assays_clade2$phitm4_averaged_rank6,
@@ -4514,7 +3830,7 @@ dev.copy (pdf,'chal_phitm4_rank6_vs_stopEuc_by_subtype.pdf')
 dev.off()
 
 
-#Final number of assays
+#Summary - number of assays
 nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm4_averaged_rank6)))
 nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm4_averaged_rank6)))
 nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm4_averaged_rank6)))
@@ -4524,10 +3840,64 @@ nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm4_aver
 
 
 
+#Fig. S8g sub-panel 1
+par(mar=c(4,8,8,4))
+plot(chal_l5_assays_clade2$l5_averaged_rank6,
+     chal_l5_assays_clade2$phitm41_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
+par(new=TRUE)
+plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
+     chal_l5_assays_nonclade2$phitm41_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
+abline(0,1)
+dev.copy (pdf,'chal_l5_phitm41_rank6_by_subtype.pdf')
+dev.off()
+
+#Summary - number of assays
+nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm41_averaged_rank6)))
+nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm41_averaged_rank6)))
+nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm41_averaged_rank6)))
 
 
 
 
+#Fig. S8g sub-panel 2
+par(mar=c(4,8,8,4))
+plot(chal_l5_assays_clade2$l5_averaged_rank6,
+     chal_l5_assays_clade2$phitm6_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
+par(new=TRUE)
+plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
+     chal_l5_assays_nonclade2$phitm6_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
+abline(0,1)
+dev.copy (pdf,'chal_l5_phitm6_rank6_by_subtype.pdf')
+dev.off()
+
+#Summary - number of assays
+nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm6_averaged_rank6)))
+nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm6_averaged_rank6)))
+nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm6_averaged_rank6)))
+
+
+
+#Fig. S8g sub-panel 3
+par(mar=c(4,8,8,4))
+plot(chal_l5_assays_clade2$l5_averaged_rank6,
+     chal_l5_assays_clade2$phitm1_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
+par(new=TRUE)
+plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
+     chal_l5_assays_nonclade2$phitm1_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
+abline(0,1)
+dev.copy (pdf,'chal_l5_phitm1_rank6_by_subtype.pdf')
+dev.off()
+
+#Summary - number of assays
+nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
+nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
+nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
 
 
 
@@ -4577,185 +3947,6 @@ def_l5_assays$phitm1_phitm6_rank6_diff <- def_l5_assays$phitm6_averaged_rank6 - 
 #Plots
 
 
-
-#
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-par(new=TRUE)
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="cyan")
-abline(0,1)
-dev.copy (pdf,'def_l5_assays_ave_rank6_l5_vs_mutants.pdf')
-dev.off()
-
-#Number of assays used:
-nrow(def_l5_assays)
-
-
-
-
-
-
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm41_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'def_l5_phitm41_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm41_averaged_rank6)))
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'def_l5_phitm1_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm1_averaged_rank6)))
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$l5_averaged_rank6,
-     def_l5_assays$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'def_l5_phitm6_rank6.pdf')
-dev.off()
-
-#number of assays
-nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm6_averaged_rank6)))
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$phitm1_averaged_rank6,
-     def_l5_assays$phitm6_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-abline(0,1)
-dev.copy (pdf,'def_phitm1_phitm6_rank6.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(def_l5_assays$l5_pham_pham_dissimilarity,
-     def_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="black")
-par(new=TRUE)
-plot(def_l5_assays$l5_pham_pham_dissimilarity,
-     def_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="red")
-par(new=TRUE)
-plot(def_l5_assays$l5_pham_pham_dissimilarity,
-     def_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,1),ylim=c(-4,4),col="cyan")
-abline(h=0)
-dev.copy (pdf,'def_l5_assays_ave_rank6_vs_gcd_l5_vs_mutants.pdf')
-dev.off()
-
-
-#
-par(mar=c(4,8,16,4))
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-par(new=TRUE)
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="red")
-par(new=TRUE)
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="cyan")
-abline(h=0)
-dev.copy (pdf,'def_l5_assays_ave_rank6_vs_stopEuc_l5_vs_mutants.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,16,4))
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm41_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'def_l5_phiTM41_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,16,4))
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm1_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'def_l5_phiTM1_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,16,4))
-plot(def_l5_assays$l5_stoperator_pwd_dist_euc,
-     def_l5_assays$l5_phitm6_rank6_diff,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-abline(h=0)
-dev.copy (pdf,'def_l5_phiTM6_rankDiff_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-#Same analyses but splitting by clade2 phages
 def_l5_assays_clade2 <- subset(def_l5_assays,def_l5_assays$l5_challenging_gene_content_clade == "clade2")
 def_l5_assays_nonclade2 <- subset(def_l5_assays,def_l5_assays$l5_challenging_gene_content_clade != "clade2")
 
@@ -4770,7 +3961,7 @@ summary(def_l5_assays_nonclade2$l5_challenging_phage)
 
 
 
-#FinalFig
+#Fig. S8h sub-panel 1
 par(mar=c(4,8,8,4))
 plot(def_l5_assays_clade2$l5_averaged_rank6,
      def_l5_assays_clade2$phitm41_averaged_rank6,
@@ -4783,32 +3974,15 @@ abline(0,1)
 dev.copy (pdf,'def_l5_phitm41_rank6_by_subtype.pdf')
 dev.off()
 
-#Final number of assays
+#Summary - number of assays
 nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm41_averaged_rank6)))
 nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm41_averaged_rank6)))
 nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm41_averaged_rank6)))
 
 
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(def_l5_assays_clade2$l5_averaged_rank6,
-     def_l5_assays_clade2$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-par(new=TRUE)
-plot(def_l5_assays_nonclade2$l5_averaged_rank6,
-     def_l5_assays_nonclade2$phitm1_averaged_rank6,
-     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-abline(0,1)
-dev.copy (pdf,'def_l5_phitm1_rank6_by_subtype.pdf')
-dev.off()
-
-#Final number of assays
-nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm1_averaged_rank6)))
-nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm1_averaged_rank6)))
-nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm1_averaged_rank6)))
 
 
-#FinalFig
+#Fig. S8h sub-panel 2
 par(mar=c(4,8,8,4))
 plot(def_l5_assays_clade2$l5_averaged_rank6,
      def_l5_assays_clade2$phitm6_averaged_rank6,
@@ -4821,7 +3995,7 @@ abline(0,1)
 dev.copy (pdf,'def_l5_phitm6_rank6_by_subtype.pdf')
 dev.off()
 
-#Final number of assays
+#Summary - number of assays
 nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm6_averaged_rank6)))
 nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm6_averaged_rank6)))
 nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm6_averaged_rank6)))
@@ -4829,111 +4003,28 @@ nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm6_averag
 
 
 
+#Fig. S8h sub-panel 3
+par(mar=c(4,8,8,4))
+plot(def_l5_assays_clade2$l5_averaged_rank6,
+     def_l5_assays_clade2$phitm1_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
+par(new=TRUE)
+plot(def_l5_assays_nonclade2$l5_averaged_rank6,
+     def_l5_assays_nonclade2$phitm1_averaged_rank6,
+     pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
+abline(0,1)
+dev.copy (pdf,'def_l5_phitm1_rank6_by_subtype.pdf')
+dev.off()
 
-
+#Summary - number of assays
+nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm1_averaged_rank6)))
+nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm1_averaged_rank6)))
+nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm1_averaged_rank6)))
 
 
 
 
 ###L5-mutant comparisons using all averaged data (look at all L5 mutants, not just phiTM41) above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Compare known empirical temperate to isolated mutant to escape mutant
-
-#Mutant-parent phage sets
-#1
-#pioneer
-#phitm35 (escape mutant)
-
-#2
-#eagleeye
-#phitm36 (escape mutant)
-
-#3
-#starstuff
-#d29
-#phitm43 (isolated mutant)
-#phitm44 (isolated mutant)
-#phitm38 (escape mutant)
-
-#4
-#et2brutus
-#phitm39 (escape mutant)	
-#phitm40 (escape mutant)
-
-
-#5
-#l5
-#phitm1 (engineered mutant)
-#phitm4 (isolated mutant)
-#phitm6 (engineered mutant)
-#phitm41 (escape mutant)
-
-
-#6
-#trixie
-#phitm42 (escape mutant)
-
-#7 (clone EM)
-#bxb1
-#phitm45 (escape mutant)
-
-#8 (clone EM)
-#davinci
-#phitm46 (escape mutant)
-
-#9 (clone EM)
-#gladiator
-#phitm47 (escape mutant)
-
-###
-
-
-
-
-
 
 
 
@@ -5012,260 +4103,10 @@ write.table(mutant_analysis,
 
 
 
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     mutant_analysis$parent_averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'parent_ave_rank6_vs_cas4MafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_ave_rank6_vs_cas4MafftUn.pdf')
-dev.off()
 
 
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$parent_averaged_infection_strength)),
-     xlim=c(0,0.4),ylim=c(0,4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue')
-par(new=TRUE)
-plot(mutant_analysis$mutant_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$mutant_averaged_infection_strength)),
-     xlim=c(0,0.4),ylim=c(0,4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$parent_averaged_four_factors)),
-     xlim=c(0,0.4),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue')
-par(new=TRUE)
-plot(mutant_analysis$mutant_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$mutant_averaged_four_factors)),
-     xlim=c(0,0.4),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'mutant_parent_.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_repressor_muscle_bionj_distances,
-     as.numeric(as.character(mutant_analysis$parent_averaged_four_factors)),
-     xlim=c(0,1),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue')
-par(new=TRUE)
-plot(mutant_analysis$parent_repressor_muscle_bionj_distances,
-     as.numeric(as.character(mutant_analysis$mutant_averaged_four_factors)),
-     xlim=c(0,1),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_repressor_full_mafft_dist_uncorrected,
-     as.numeric(as.character(mutant_analysis$parent_averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='blue')
-par(new=TRUE)
-plot(mutant_analysis$parent_repressor_full_mafft_dist_uncorrected,
-     as.numeric(as.character(mutant_analysis$mutant_averaged_rank6)),
-     xlim=c(0,60),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$averaged_infection_strength_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_parent_ave_inf_strength_diff_by_mash.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(mutant_analysis$parent_modified_mash_distance,
-     as.numeric(as.character(mutant_analysis$averaged_four_factors_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_parent_ave_four_factors_diff_by_mash.pdf')
-dev.off()
-
-
-
-
+#TODO Not published but valuable
 hist(mutant_analysis$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10)
-dev.copy(pdf,'mutant_parent_ave_rank6_diff_hist.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-#Bin data
-
-mutant_data_to_bin <- mutant_analysis
-
-
-
-#Choose a sub-dataset:
-mutant_rank6diff_0 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff < 0.5)
-
-mutant_rank6diff_1 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 0.5 &
-                           mutant_data_to_bin$averaged_rank6_diff < 1.5)
-
-mutant_rank6diff_2 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 1.5 &
-                           mutant_data_to_bin$averaged_rank6_diff < 2.5)
-
-mutant_rank6diff_3 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 2.5 &
-                           mutant_data_to_bin$averaged_rank6_diff < 3.5)
-
-mutant_rank6diff_4 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 3.5 &
-                           mutant_data_to_bin$averaged_rank6_diff < 4.5)
-
-mutant_rank6diff_5 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 4.5 &
-                           mutant_data_to_bin$averaged_rank6_diff < 5.5)
-
-mutant_rank6diff_6 <- subset(mutant_data_to_bin,
-                         mutant_data_to_bin$averaged_rank6_diff >= 5.5)
-
-#QC Check
-nrow(mutant_data_to_bin) - 
-  (nrow(mutant_rank6diff_0) + 
-     nrow(mutant_rank6diff_1) + 
-     nrow(mutant_rank6diff_2) + 
-     nrow(mutant_rank6diff_3) + 
-     nrow(mutant_rank6diff_4) + 
-     nrow(mutant_rank6diff_5) + 
-     nrow(mutant_rank6diff_6))
-
-
-mutant_rank6diff_0_freq <- data.frame("bin0",nrow(mutant_rank6diff_0))
-mutant_rank6diff_1_freq <- data.frame("bin1",nrow(mutant_rank6diff_1))
-mutant_rank6diff_2_freq <- data.frame("bin2",nrow(mutant_rank6diff_2))
-mutant_rank6diff_3_freq <- data.frame("bin3",nrow(mutant_rank6diff_3))
-mutant_rank6diff_4_freq <- data.frame("bin4",nrow(mutant_rank6diff_4))
-mutant_rank6diff_5_freq <- data.frame("bin5",nrow(mutant_rank6diff_5))
-mutant_rank6diff_6_freq <- data.frame("bin6",nrow(mutant_rank6diff_6))
-
-
-names(mutant_rank6diff_0_freq) <- c("bin","freq")
-names(mutant_rank6diff_1_freq) <- c("bin","freq")
-names(mutant_rank6diff_2_freq) <- c("bin","freq")
-names(mutant_rank6diff_3_freq) <- c("bin","freq")
-names(mutant_rank6diff_4_freq) <- c("bin","freq")
-names(mutant_rank6diff_5_freq) <- c("bin","freq")
-names(mutant_rank6diff_6_freq) <- c("bin","freq")
-
-
-mutant_rank6diff_0_freq$freq_percent <- mutant_rank6diff_0_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_1_freq$freq_percent <- mutant_rank6diff_1_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_2_freq$freq_percent <- mutant_rank6diff_2_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_3_freq$freq_percent <- mutant_rank6diff_3_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_4_freq$freq_percent <- mutant_rank6diff_4_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_5_freq$freq_percent <- mutant_rank6diff_5_freq$freq/nrow(mutant_data_to_bin)
-mutant_rank6diff_6_freq$freq_percent <- mutant_rank6diff_6_freq$freq/nrow(mutant_data_to_bin)
-
-
-mutant_rank6diff_binned_freq <- rbind(mutant_rank6diff_0_freq,
-                                      mutant_rank6diff_1_freq,
-                                      mutant_rank6diff_2_freq,
-                                      mutant_rank6diff_3_freq,
-                                      mutant_rank6diff_4_freq,
-                                      mutant_rank6diff_5_freq,
-                                      mutant_rank6diff_6_freq)
-
-
-mutant_rank6diff_binned_freq$bin <- factor(mutant_rank6diff_binned_freq$bin,
-                                           c("bin6",
-                                             "bin5",
-                                             "bin4",
-                                             "bin3",
-                                             "bin2",
-                                             "bin1",
-                                             "bin0"))
-
-
-#QC
-sum(mutant_rank6diff_binned_freq$freq) - nrow(mutant_data_to_bin)
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-barplot(mutant_rank6diff_binned_freq$freq,
-        names.arg=mutant_rank6diff_binned_freq$bin,
-        col='black')
-dev.copy(pdf,'mutant_rank6diff_binned_freq_total.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-barplot(mutant_rank6diff_binned_freq$freq_percent,
-        names.arg=mutant_rank6diff_binned_freq$bin,
-        col='black',ylim=c(0,0.6))
-dev.copy(pdf,'mutant_rank6diff_binned_freq_percent.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-#Conclusions: in general, mutants infect with equal or greater strength than the parent.
-#Some good examples:
-#1. phiTM4 and phiTM6 infecting L5
-#2. phiTM42 infecting Trixie and Et2Brutus
-#3. phiTM38 infecting StarStuff
-#4. phiTM41 infecting Trixie and DarthPhader (moderate but not strong)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5369,55 +4210,6 @@ summary(escape_mutant_analysis_intraclade2_mutanthomotypic$mutant_defending_phag
 
 
 
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis$parent_pham_pham_dissimilarity,
-     escape_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm35_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm35_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm36_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm36_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm38_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm38_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm40_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm40_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm41_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm41_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm42_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm42_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm46_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm46_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm47_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm47_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
 
 
 
@@ -5425,95 +4217,7 @@ plot(phitm47_mutant_analysis$parent_pham_pham_dissimilarity,
 
 
 
-
-
-par(mar=c(4,8,4,4))
-plot(phitm35_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm35_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm36_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm36_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-par(mar=c(4,8,4,4))
-plot(phitm38_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm38_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm40_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm40_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm41_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm41_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm42_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm42_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-par(mar=c(4,8,4,4))
-plot(phitm46_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm46_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-par(mar=c(4,8,4,4))
-plot(phitm47_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm47_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_pham_pham_dissimilarity,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,1),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_cas4_mafft_dist_uncorrected,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_modified_mash_distance,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,0.5),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_repressor_cterm_mafft_dist_uncorrected,
-     phitm39_mutant_analysis$averaged_rank6_diff,
-     ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis$parent_averaged_rank6,
-     escape_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-dev.copy(pdf,'ave_rank6_parent_vs_mutant.pdf')
-dev.off()
-
-
-
-
-
-#FinalFig
+#Fig. 7c sub-panel 1
 par(mar=c(4,8,8,4))
 plot(escape_mutant_analysis_intraclade2$parent_averaged_rank6,
      escape_mutant_analysis_intraclade2$mutant_averaged_rank6,
@@ -5527,63 +4231,8 @@ dev.copy(pdf,'ave_rank6_parent_vs_mutant_subtypes.pdf')
 dev.off()
 
 
-# #
-# par(mar=c(4,8,16,4))
-# plot(escape_mutant_analysis_intraclade2$parent_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2$parent_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_interclade$parent_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_interclade$parent_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# dev.copy(pdf,'ave_rank6_parent_vs_parent_stopEuc.pdf')
-# dev.off()
-# 
-# 
-# #
-# par(mar=c(4,8,16,4))
-# plot(escape_mutant_analysis_intraclade2$mutant_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2$mutant_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_interclade$mutant_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_interclade$mutant_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# dev.copy(pdf,'ave_rank6_mutant_vs_mutant_stopEuc.pdf')
-# dev.off()
-# 
-# 
-# 
-# 
-# #Number of assays used:
-# nrow(escape_mutant_analysis_intraclade2) +
-#   nrow(escape_mutant_analysis_interclade)
-# nrow(escape_mutant_analysis_intraclade2)
-# nrow(escape_mutant_analysis_interclade)
-# 
-# 
-# 
-# 
-# #correlations
-# lm_stop_vs_averank6_parent <- lm(parent_averaged_rank6 ~
-#                                    parent_stoperator_pwd_dist_euc,
-#                                  data = escape_mutant_analysis_intraclade2)
-# summary(lm_stop_vs_averank6_parent)
-# 
-# lm_stop_vs_averank6_mutant <- lm(mutant_averaged_rank6 ~
-#                                    mutant_stoperator_pwd_dist_euc,
-#                                  data = escape_mutant_analysis_intraclade2)
-# summary(lm_stop_vs_averank6_mutant)
 
-
-
-
-
-
-
-
-
-#FinalFig
+#Fig. 7f sub-panel 1
 par(mar=c(4,8,16,4))
 plot(escape_mutant_analysis_intraclade2_parentheterotypic$parent_stoperator_pwd_dist_euc,
      escape_mutant_analysis_intraclade2_parentheterotypic$parent_averaged_rank6,
@@ -5600,7 +4249,7 @@ dev.copy(pdf,'ave_rank6_parent_vs_parent_stopEuc.pdf')
 dev.off()
 
 
-#FinalFig
+#Fig. 7f sub-panel 2
 par(mar=c(4,8,16,4))
 plot(escape_mutant_analysis_intraclade2_mutantheterotypic$mutant_stoperator_pwd_dist_euc,
      escape_mutant_analysis_intraclade2_mutantheterotypic$mutant_averaged_rank6,
@@ -5619,7 +4268,7 @@ dev.off()
 
 
 
-#Final Number of assays used:
+#Summary - number of assays used:
 nrow(escape_mutant_analysis_intraclade2) +
   nrow(escape_mutant_analysis_interclade)
 nrow(escape_mutant_analysis_intraclade2)
@@ -5631,7 +4280,7 @@ nrow(escape_mutant_analysis_intraclade2_mutanthomotypic)
 
 
 
-#Final correlations
+#Summary - correlations
 lm_stop_vs_averank6_parent <- lm(parent_averaged_rank6 ~
                                    parent_stoperator_pwd_dist_euc,
                                  data = escape_mutant_analysis_intraclade2_parentheterotypic)
@@ -5647,78 +4296,7 @@ summary(lm_stop_vs_averank6_mutant)
 
 
 
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(phitm35_mutant_analysis$parent_averaged_rank6,
-     phitm35_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm36_mutant_analysis$parent_averaged_rank6,
-     phitm36_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm38_mutant_analysis$parent_averaged_rank6,
-     phitm38_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm39_mutant_analysis$parent_averaged_rank6,
-     phitm39_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm40_mutant_analysis$parent_averaged_rank6,
-     phitm40_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm41_mutant_analysis$parent_averaged_rank6,
-     phitm41_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm42_mutant_analysis$parent_averaged_rank6,
-     phitm42_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm46_mutant_analysis$parent_averaged_rank6,
-     phitm46_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-par(mar=c(4,8,4,4))
-plot(phitm47_mutant_analysis$parent_averaged_rank6,
-     phitm47_mutant_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis$parent_averaged_rank6,
-     escape_mutant_analysis$averaged_rank6_diff,
-     xlim=c(0,6),ylim=c(-6,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-
-
-
-
-
-
-
-
-
-
+#TODO do I need this variables?
 escape_mutant_analysis_repN <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage != "phitm41")
 escape_mutant_analysis_repY <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage == "phitm41")
 
@@ -5730,145 +4308,6 @@ escape_mutant_analysis_repN_interclade <- subset(escape_mutant_analysis_repN,esc
 escape_mutant_analysis_repY_intraclade2 <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "clade2")
 escape_mutant_analysis_repY_interclade <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "different")
 
-
-
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis_repN$parent_cas4_mafft_dist_uncorrected,
-     escape_mutant_analysis_repN$mutant_averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_repN_ave_rank6_vs_cas4MafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis_repY$parent_cas4_mafft_dist_uncorrected,
-     escape_mutant_analysis_repY$mutant_averaged_rank6,
-     xlim=c(0,50),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_repY_ave_rank6_vs_cas4MafftUn.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis_repN$parent_cas4_mafft_dist_uncorrected,
-     escape_mutant_analysis_repN$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(h=0)
-dev.copy(pdf,'mutant_repN_ave_rank6Diff_vs_cas4MafftUn.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_analysis_repY$parent_cas4_mafft_dist_uncorrected,
-     escape_mutant_analysis_repY$averaged_rank6_diff,
-     xlim=c(0,50),ylim=c(-2,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(h=0)
-dev.copy(pdf,'mutant_repY_ave_rank6Diff_vs_cas4MafftUn.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-#
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis$parent_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'parent_ave_rank6_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repN$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repN$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_repN_ave_rank6_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repY$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repY$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'mutant_repY_ave_rank6_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repN$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repN$averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(-2,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(h=0)
-dev.copy(pdf,'mutant_repN_ave_rank6Diff_vs_stopEuc.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repY$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repY$averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(-2,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(h=0)
-dev.copy(pdf,'mutant_repY_ave_rank6Diff_vs_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_intraclade2$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_intraclade2$parent_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-par(new=TRUE)
-plot(escape_mutant_analysis_interclade$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_interclade$parent_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-dev.copy(pdf,'parent_ave_rank6_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repN_intraclade2$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repN_intraclade2$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-par(new=TRUE)
-plot(escape_mutant_analysis_repN_interclade$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repN_interclade$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-dev.copy(pdf,'mutant_repN_ave_rank6_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-plot(escape_mutant_analysis_repY_intraclade2$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repY_intraclade2$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-par(new=TRUE)
-plot(escape_mutant_analysis_repY_interclade$parent_stoperator_pwd_dist_euc,
-     escape_mutant_analysis_repY_interclade$mutant_averaged_rank6,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-dev.copy(pdf,'mutant_repY_ave_rank6_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-#
 
 
 
@@ -5958,30 +4397,10 @@ escape_mutant_rep_analysis_interclade <- subset(escape_mutant_rep_analysis,
                                                  escape_mutant_rep_analysis$parent_gene_content_clade_compare == "different")
 
 
-# par(mar=c(4,8,4,4))
-# plot(escape_mutant_rep_analysis$parent_averaged_rank6,
-#      escape_mutant_rep_analysis$mutant_averaged_rank6,
-#      xlim=c(0,6),ylim=c(0,6),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-# abline(0,1)
-# dev.copy(pdf,'ave_rank6_parent_vs_mutant_rep.pdf')
-# dev.off()
 
 
 
-
-par(mar=c(4,8,4,4))
-plot(escape_mutant_rep_analysis$parent_averaged_rank6,
-     escape_mutant_rep_analysis$mutant_averaged_rank6,
-     xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-abline(0,1)
-dev.copy(pdf,'ave_rank6_parent_vs_mutant_rep.pdf')
-dev.off()
-
-
-
-
-
-#FinalFig
+#Fig. 7c sub-panel 2
 par(mar=c(4,8,8,4))
 plot(escape_mutant_rep_analysis_intraclade2$parent_averaged_rank6,
      escape_mutant_rep_analysis_intraclade2$mutant_averaged_rank6,
@@ -5994,919 +4413,13 @@ abline(0,1)
 dev.copy(pdf,'ave_rank6_parent_vs_mutant_rep_subtypes.pdf')
 dev.off()
 
-#Number of assays used:
+#Summary -number of assays used:
 nrow(escape_mutant_rep_analysis_intraclade2) +
   nrow(escape_mutant_rep_analysis_interclade)
 nrow(escape_mutant_rep_analysis_intraclade2)
 nrow(escape_mutant_rep_analysis_interclade)
 
 ###Compare known empirical temperate to isolated mutant to escape mutant
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Compute distance between challengers to determine minimum distance where you see a change in infection
-
-
-
-#Create list of all unique phages used in the immunity dataset
-# defending_phages <- as.character(levels(main_immunity_data$defending_phage))
-# challenging_phages <- as.character(levels(main_immunity_data$challenging_phage))
-# immunity_phages <- levels(factor(c(defending_phages,challenging_phages)))
-
-immunity_phages <- union(main_immunity_data$defending_phage,main_immunity_data$challenging_phage)
-
-#Create list of all phage triplets  
-
-challenge_distance_min <- expand.grid(challenging_phage1 = immunity_phages,
-                                      challenging_phage2 = immunity_phages,
-                                      defending_phage = immunity_phages)
-
-challenge_distance_min$challenging_phage1_challenging_phage2 <- paste(challenge_distance_min$challenging_phage1,
-                                                                      "_",
-                                                                      challenge_distance_min$challenging_phage2,
-                                                                      sep="")
-
-challenge_distance_min$defending_challenging_phage1 <- paste(challenge_distance_min$defending_phage,
-                                                             "_",
-                                                             challenge_distance_min$challenging_phage1,
-                                                             sep="")
-
-challenge_distance_min$defending_challenging_phage2 <- paste(challenge_distance_min$defending_phage,
-                                                             "_",
-                                                             challenge_distance_min$challenging_phage2,
-                                                             sep="")
-
-#Start adding averaged, non-redundant immunity data
-#Most of the phage triplets will not be present so many rows should be dropped
-#Note: if using assay_strain_averaged data, ensure that only multi-titer lysogen data is used.
-#This should not be needed if using assay_averaged data is used.
-
-temp_immunity_data <- subset(conf_assay_strain_def_chal_average,
-                      conf_assay_strain_def_chal_average$strain_type == 'lysogen' & 
-                        conf_assay_strain_def_chal_average$assay_type == 'multiple_titer')
-
-names(temp_immunity_data) <- paste('dc1','_',names(temp_immunity_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                temp_immunity_data,
-                                by.x="defending_challenging_phage1",
-                                by.y="dc1_defending_challenging")
-
-temp_immunity_data <- subset(conf_assay_strain_def_chal_average,
-                             conf_assay_strain_def_chal_average$strain_type == 'lysogen' & 
-                               conf_assay_strain_def_chal_average$assay_type == 'multiple_titer')
-
-
-names(temp_immunity_data) <- paste('dc2','_',names(temp_immunity_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                temp_immunity_data,
-                                by.x="defending_challenging_phage2",
-                                by.y="dc2_defending_challenging")
-
-
-
-#Retrieve distance data for challenging phage pairs
-
-
-#Match the genomic distance data. Phages not in actino1319 will not be matched
-c1c2_genomic_distance_data <- genomic_distance_data
-names(c1c2_genomic_distance_data) <- paste('c1c2','_',names(c1c2_genomic_distance_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_genomic_distance_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2")
-
-
-#Match the gene distance data. Many comparisons will not be matched
-c1c2_repressor_distance_data <- repressor_distance_data
-names(c1c2_repressor_distance_data) <- paste('c1c2','_',names(c1c2_repressor_distance_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_repressor_distance_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-c1c2_portal_distance_data <- portal_distance_data
-names(c1c2_portal_distance_data) <- paste('c1c2','_',names(c1c2_portal_distance_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_portal_distance_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-c1c2_recb_distance_data <- recb_distance_data
-names(c1c2_recb_distance_data) <- paste('c1c2','_',names(c1c2_recb_distance_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_recb_distance_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-c1c2_repressor336_distance_data <- repressor336_distance_data
-names(c1c2_repressor336_distance_data) <- paste('c1c2','_',names(c1c2_repressor336_distance_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_repressor336_distance_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-
-#TODO: merge with new portal, cas4, and endovii data
-
-
-c1c2_stoperator_pwm_data <- stoperator_pwm_data
-names(c1c2_stoperator_pwm_data) <- paste('c1c2','_',names(c1c2_stoperator_pwm_data),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_stoperator_pwm_data,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-
-
-
-#merge defense and challenging correlations with paired challenging phages
-
-#TODO: confirm that after merging, defending_profile_cor does not have any NA values
-c1c2_defending_cor_df <- subset(defending_cor_df,select=c("phage1_phage2","defending_profile_cor"))
-names(c1c2_defending_cor_df) <- paste('c1c2','_',names(c1c2_defending_cor_df),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_defending_cor_df,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-#TODO: confirm that after merging, challenging_profile_cor does not have any NA values
-c1c2_challenging_cor_df <- subset(challenging_cor_df,select=c("phage1_phage2","challenging_profile_cor"))
-names(c1c2_challenging_cor_df) <- paste('c1c2','_',names(c1c2_challenging_cor_df),sep="")
-challenge_distance_min <- merge(challenge_distance_min,
-                                c1c2_challenging_cor_df,
-                                by.x="challenging_phage1_challenging_phage2",
-                                by.y="c1c2_phage1_phage2",
-                                all.x=TRUE)
-
-
-
-#Compute difference in infection profiles
-challenge_distance_min$dc1dc2_averaged_infection_strength_diff <- abs(challenge_distance_min$dc1_averaged_infection_strength - challenge_distance_min$dc2_averaged_infection_strength)
-challenge_distance_min$dc1dc2_averaged_four_factors_diff <- abs(challenge_distance_min$dc1_averaged_four_factors - challenge_distance_min$dc2_averaged_four_factors)
-challenge_distance_min$dc1dc2_averaged_rank6_diff <- abs(challenge_distance_min$dc1_averaged_rank6 - challenge_distance_min$dc2_averaged_rank6)
-
-
-
-
-#Compute comparison fields
-#I can't run these through the comparison function because these comparisons involve both challenging phages and not the defending phage
-challenge_distance_min$c1c2_subcluster_compare <- ifelse(challenge_distance_min$dc1_challenging_subcluster==challenge_distance_min$dc2_challenging_subcluster,
-                                                     as.character(challenge_distance_min$dc1_challenging_subcluster),
-                                                     "different")
-
-challenge_distance_min$c1c2_source_compare <- ifelse(challenge_distance_min$dc1_challenging_source==challenge_distance_min$dc2_challenging_source,
-                                                       as.character(challenge_distance_min$dc1_challenging_source),
-                                                       "different")
-
-challenge_distance_min$c1c2_temperate_empirical_compare <- ifelse(challenge_distance_min$dc1_challenging_cluster_a_temperate_empirical==challenge_distance_min$dc2_challenging_cluster_a_temperate_empirical,
-                                                                    as.character(challenge_distance_min$dc1_challenging_cluster_a_temperate_empirical),
-                                                                    "different")
-
-challenge_distance_min$c1c2_functional_repressor_compare <- ifelse(challenge_distance_min$dc1_challenging_cluster_a_functional_repressor_predicted==challenge_distance_min$dc2_challenging_cluster_a_functional_repressor_predicted,
-                                                                    as.character(challenge_distance_min$dc1_challenging_cluster_a_functional_repressor_predicted),
-                                                                    "different")
-
-challenge_distance_min$c1c2_lysogen_type_compare <- ifelse(challenge_distance_min$dc1_challenging_lysogen_type==challenge_distance_min$dc2_challenging_lysogen_type,
-                                                             as.character(challenge_distance_min$dc1_challenging_lysogen_type),
-                                                             "different")
-
-challenge_distance_min$c1c2_integrase_compare <- ifelse(challenge_distance_min$dc1_challenging_pham_integrase==challenge_distance_min$dc2_challenging_pham_integrase,
-                                                          as.character(challenge_distance_min$dc1_challenging_pham_integrase),
-                                                          "different")
-
-challenge_distance_min$c1c2_parb_compare <- ifelse(challenge_distance_min$dc1_challenging_pham_parb==challenge_distance_min$dc2_challenging_pham_parb,
-                                                        as.character(challenge_distance_min$dc1_challenging_pham_parb),
-                                                        "different")
-
-challenge_distance_min$c1c2_repressor_hth_compare <- stringdist(as.character(challenge_distance_min$dc1_challenging_repressor_hth_domain_sequence),
-                                                                 as.character(challenge_distance_min$dc2_challenging_repressor_hth_domain_sequence),
-                                                                 method="hamming")
-
-challenge_distance_min$c1c2_repressor_length_full_compare <- abs(challenge_distance_min$dc1_challenging_repressor_length_full - challenge_distance_min$dc2_challenging_repressor_length_full)
-challenge_distance_min$c1c2_repressor_length_nterm_compare <- abs(challenge_distance_min$dc1_challenging_repressor_length_nterm - challenge_distance_min$dc2_challenging_repressor_length_nterm)
-challenge_distance_min$c1c2_repressor_length_cterm_compare <- abs(challenge_distance_min$dc1_challenging_repressor_length_cterm - challenge_distance_min$dc2_challenging_repressor_length_cterm)
-challenge_distance_min$c1c2_gene_content_clade_compare <- ifelse(challenge_distance_min$dc1_challenging_gene_content_clade==challenge_distance_min$dc2_challenging_gene_content_clade,
-                                                                 as.character(challenge_distance_min$dc1_challenging_gene_content_clade),
-                                                                 "different")
-
-challenge_distance_min$c1c2_subcluster_compare <- as.factor(challenge_distance_min$c1c2_subcluster_compare)
-challenge_distance_min$c1c2_source_compare <- as.factor(challenge_distance_min$c1c2_source_compare)
-challenge_distance_min$c1c2_temperate_empirical_compare <- as.factor(challenge_distance_min$c1c2_temperate_empirical_compare)
-challenge_distance_min$c1c2_functional_repressor_compare <- as.factor(challenge_distance_min$c1c2_functional_repressor_compare)
-challenge_distance_min$c1c2_lysogen_type_compare <- as.factor(challenge_distance_min$c1c2_lysogen_type_compare)
-challenge_distance_min$c1c2_integrase_compare <- as.factor(challenge_distance_min$c1c2_integrase_compare)
-challenge_distance_min$c1c2_parb_compare <- as.factor(challenge_distance_min$c1c2_parb_compare)
-challenge_distance_min$c1c2_gene_content_clade_compare <- as.factor(challenge_distance_min$c1c2_gene_content_clade_compare)
-
-
-
-
-
-
-
-
-#Now that all data has been matched, the data is duplicated (e.g. challenging_phage1_challenging_phage2 contains l5_alma and alma_l5)
-#To solve this, remove all rows in which the challenging_phage1 and challenging_phage2 are not alphabetically ordered.
-#This does NOT retain self-comparisons (e.g. alma_alma)
-challenge_distance_min$c1c2_alpha_ordered <- as.character(challenge_distance_min$challenging_phage1) < as.character(challenge_distance_min$challenging_phage2)
-
-#Now retain only the unique pairwise comparisons
-challenge_distance_min_alpha_ordered <- subset(challenge_distance_min,challenge_distance_min$c1c2_alpha_ordered == TRUE)
-
-
-
-
-#Subset by envY and lysogen type to investigate
-challenge_distance_min_ordered_envY_intY <- subset(challenge_distance_min_alpha_ordered,
-                                                   challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                     challenge_distance_min_alpha_ordered$c1c2_lysogen_type_compare == 'integration')
-
-challenge_distance_min_ordered_envY_extraY <- subset(challenge_distance_min_alpha_ordered,
-                                                     challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                       challenge_distance_min_alpha_ordered$c1c2_lysogen_type_compare == 'extrachromosomal')
-
-challenge_distance_min_ordered_envY <- subset(challenge_distance_min_alpha_ordered,
-                                              challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment')
-
-
-challenge_distance_min_ordered_envY_repY_empY <- subset(challenge_distance_min_alpha_ordered,
-                                                        challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                          challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare == 'yes' &
-                                                          challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare == 'yes')
-
-
-challenge_distance_min_ordered_envDiff_repDiff_empDiff <- subset(challenge_distance_min_alpha_ordered,
-                                                        challenge_distance_min_alpha_ordered$c1c2_source_compare != 'environment' |
-                                                          challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare != 'yes' |
-                                                          challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare != 'yes')
-
-
-challenge_distance_min_ordered_envDiff <- subset(challenge_distance_min_alpha_ordered,
-                                                        challenge_distance_min_alpha_ordered$c1c2_source_compare != 'environment')
-
-challenge_distance_min_ordered_repDiff <- subset(challenge_distance_min_alpha_ordered,
-                                                 challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare != 'yes')
-
-challenge_distance_min_ordered_empDiff <- subset(challenge_distance_min_alpha_ordered,
-                                                 challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare != 'yes')
-
-
-challenge_distance_min_ordered_envY_repY_empY_clade2 <- subset(challenge_distance_min_alpha_ordered,
-                                                        challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                          challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare == 'yes' &
-                                                          challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare == 'yes' &
-                                                          challenge_distance_min_alpha_ordered$dc1_challenging_gene_content_clade == 'clade2' &
-                                                          challenge_distance_min_alpha_ordered$dc2_challenging_gene_content_clade == 'clade2' &
-                                                          challenge_distance_min_alpha_ordered$dc2_defending_gene_content_clade == 'clade2')
-
-challenge_distance_min_ordered_envY_repY_empY_interclade <- subset(challenge_distance_min_alpha_ordered,
-                                                                   challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                                     challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare == 'yes' &
-                                                                     challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare == 'yes' &
-                                                                     challenge_distance_min_alpha_ordered$c1c2_gene_content_clade_compare == 'different' &
-                                                                     challenge_distance_min_alpha_ordered$dc2_defending_gene_content_clade == 'clade2')
-
-
-challenge_distance_min_ordered_envY_repY_empY_denvY_clade2 <- subset(challenge_distance_min_alpha_ordered,
-                                                               challenge_distance_min_alpha_ordered$c1c2_source_compare == 'environment' &
-                                                                 challenge_distance_min_alpha_ordered$c1c2_functional_repressor_compare == 'yes' &
-                                                                 challenge_distance_min_alpha_ordered$c1c2_temperate_empirical_compare == 'yes' &
-                                                                 challenge_distance_min_alpha_ordered$dc1_challenging_gene_content_clade == 'clade2' &
-                                                                 challenge_distance_min_alpha_ordered$dc2_challenging_gene_content_clade == 'clade2' &
-                                                                 challenge_distance_min_alpha_ordered$dc2_defending_gene_content_clade == 'clade2' &
-                                                                 challenge_distance_min_alpha_ordered$dc2_defending_source == 'environment')
-
-
-#Export the results
-setwd("~/scratch/immunity_analysis/output/")
-
-write.table(challenge_distance_min_ordered_envY_repY_empY,
-            "challenge_distance_min_ordered_envY_repY_empY.csv",
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-#Plot the results
-setwd("~/scratch/immunity_analysis/output/")
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min$averaged_infection_strength_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min$averaged_four_factors_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_alpha_ordered$c1c2_modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_alpha_ordered$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_ordered_envY$averaged_infection_strength_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_ordered_envY$averaged_four_factors_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envDiff_repDiff_empDiff$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_ordered_envDiff_repDiff_empDiff$averaged_four_factors_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-par(new=TRUE)
-plot(challenge_distance_min_ordered_envY_repY_empY$modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$averaged_four_factors_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_min_ordered_wildtype_others_mash_vs_ave_ff_diff.pdf')
-dev.off()
-
-
-temp <- subset(challenge_distance_min_ordered_envY_repY_empY,challenge_distance_min_ordered_envY_repY_empY$modified_mash_distance < 0.13 &
-                 challenge_distance_min_ordered_envY_repY_empY$averaged_four_factors_diff > 2.5)
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_alpha_ordered$c1c2_modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_alpha_ordered$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY$c1c2_modified_mash_distance,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY$c1c2_pham_pham_dissimilarity,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY$c1c2_repressor_full_mafft_dist_uncorrected,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_alpha_ordered$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     challenge_distance_min_alpha_ordered$dc1dc2_averaged_rank6_diff,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_min_alpha_ordered_c1c2_repCtermMafftUn_vs_dc1dc2_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY_clade2$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     challenge_distance_min_ordered_envY_repY_empY_clade2$dc1dc2_averaged_rank6_diff,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_envYrepYempYclade2Y_c1c2__repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY_denvY_clade2$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     challenge_distance_min_ordered_envY_repY_empY_denvY_clade2$dc1dc2_averaged_rank6_diff,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_envYrepYempYclade2YdenvY_repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(challenge_distance_min_ordered_envY_repY_empY_interclade$c1c2_stoperator_pwd_dist_euc,
-     challenge_distance_min_ordered_envY_repY_empY_interclade$dc1dc2_averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-par(new=TRUE)
-plot(challenge_distance_min_ordered_envY_repY_empY_clade2$c1c2_stoperator_pwd_dist_euc,
-     challenge_distance_min_ordered_envY_repY_empY_clade2$dc1dc2_averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'challenge_distance_envYrepYempY_c1c2_stopEuc_vs_ave_rank6_diff_by_subtypes.pdf')
-dev.off()
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_ordered_envY_repY_empY$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(challenge_distance_min_ordered_envY_repY_empY$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(challenge_distance_min_ordered_envDiff_repDiff_empDiff$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(challenge_distance_min_ordered_envDiff_repDiff_empDiff$dc1dc2_averaged_rank6_diff)),
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-#Conclusions: The best examples of large infection differences among closely-related phages:
-#1. StarStuff and Jaan infecting Trixie, or StarStuff and Serenity infecting Trixie
-#2. DaVinci and Gladiator infecting Et2Brutus, Mulciber, or Drake55
-
-
-
-#TODO: save this plot once full correlation data is included
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_alpha_ordered$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     challenge_distance_min_alpha_ordered$c1c2_challenging_profile_cor,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_min_alpha_ordered_c1c2_repCtermMafftUn_vs_challenging_profile_cor.pdf')
-dev.off()
-
-#TODO: save this plot once full correlation data is included
-par(mar=c(4,8,4,4))
-plot(challenge_distance_min_alpha_ordered$c1c2_repressor_cterm_mafft_dist_uncorrected,
-     challenge_distance_min_alpha_ordered$c1c2_defending_profile_cor,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'challenge_distance_min_alpha_ordered_c1c2_repCtermMafftUn_vs_defending_profile_cor.pdf')
-dev.off()
-
-
-
-
-
-###Compute distance between challengers to determine minimum distance where you see a change in infection above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Compute distance between defendings to determine minimum distance where you see a change in infection
-
-#Create list of all unique phages used in the immunity dataset
-immunity_phages <- union(main_immunity_data$defending_phage,main_immunity_data$challenging_phage)
-
-#Create list of all phage triplets  
-
-
-defend_distance_min <- expand.grid(defending_phage1 = immunity_phages,
-                                   defending_phage2 = immunity_phages,
-                                   challenging_phage = immunity_phages)
-
-defend_distance_min$defending_phage1_defending_phage2 <- paste(defend_distance_min$defending_phage1,
-                                                               "_",
-                                                               defend_distance_min$defending_phage2,
-                                                               sep="")
-
-defend_distance_min$defending_phage1_challenging <- paste(defend_distance_min$defending_phage1,
-                                                          "_",
-                                                          defend_distance_min$challenging_phage,
-                                                          sep="")
-
-defend_distance_min$defending_phage2_challenging <- paste(defend_distance_min$defending_phage2,
-                                                          "_",
-                                                          defend_distance_min$challenging_phage,
-                                                          sep="")
-
-#Start adding averaged, non-redundant immunity data. Most of the phage triplets will not be present so many rows should be dropped
-#Note: if using assay_strain_averaged data, ensure that only multi-titer lysogen data is used.
-#This should not be needed if using assay_averaged data is used.
-
-temp_immunity_data <- subset(conf_assay_strain_def_chal_average,
-                             conf_assay_strain_def_chal_average$strain_type == 'lysogen' & 
-                               conf_assay_strain_def_chal_average$assay_type == 'multiple_titer')
-
-names(temp_immunity_data) <- paste('d1c','_',names(temp_immunity_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             temp_immunity_data,
-                             by.x="defending_phage1_challenging",
-                             by.y="d1c_defending_challenging")
-
-temp_immunity_data <- subset(conf_assay_strain_def_chal_average,
-                             conf_assay_strain_def_chal_average$strain_type == 'lysogen' & 
-                               conf_assay_strain_def_chal_average$assay_type == 'multiple_titer')
-
-names(temp_immunity_data) <- paste('d2c','_',names(temp_immunity_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             temp_immunity_data,
-                             by.x="defending_phage2_challenging",
-                             by.y="d2c_defending_challenging")
-
-
-
-
-
-
-#Retrieve distance data for defending phage pairs
-
-
-#Match the genomic distance data. Phages not in actino1319 will not be matched
-d1d2_genomic_distance_data <- genomic_distance_data
-names(d1d2_genomic_distance_data) <- paste('d1d2','_',names(d1d2_genomic_distance_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_genomic_distance_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2")
-
-
-#Match the gene distance data. Many comparisons will not be matched
-d1d2_repressor_distance_data <- repressor_distance_data
-names(d1d2_repressor_distance_data) <- paste('d1d2','_',names(d1d2_repressor_distance_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_repressor_distance_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2",
-                             all.x=TRUE)
-
-d1d2_portal_distance_data <- portal_distance_data
-names(d1d2_portal_distance_data) <- paste('d1d2','_',names(d1d2_portal_distance_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_portal_distance_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2",
-                             all.x=TRUE)
-
-d1d2_recb_distance_data <- recb_distance_data
-names(d1d2_recb_distance_data) <- paste('d1d2','_',names(d1d2_recb_distance_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_recb_distance_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2",
-                             all.x=TRUE)
-
-d1d2_repressor336_distance_data <- repressor336_distance_data
-names(d1d2_repressor336_distance_data) <- paste('d1d2','_',names(d1d2_repressor336_distance_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_repressor336_distance_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2",
-                             all.x=TRUE)
-
-#TODO: merge with new portal, cas4, endovii data
-
-d1d2_stoperator_pwm_data <- stoperator_pwm_data
-names(d1d2_stoperator_pwm_data) <- paste('d1d2','_',names(d1d2_stoperator_pwm_data),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                             d1d2_stoperator_pwm_data,
-                             by.x="defending_phage1_defending_phage2",
-                             by.y="d1d2_phage1_phage2",
-                             all.x=TRUE)
-
-
-
-#merge defense and challenging correlations with paired challenging phages
-
-#TODO: confirm that after merging, defending_profile_cor does not have any NA values
-d1d2_defending_cor_df <- subset(defending_cor_df,select=c("phage1_phage2","defending_profile_cor"))
-names(d1d2_defending_cor_df) <- paste('d1d2','_',names(d1d2_defending_cor_df),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                                d1d2_defending_cor_df,
-                                by.x="defending_phage1_defending_phage2",
-                                by.y="d1d2_phage1_phage2",
-                                all.x=TRUE)
-
-
-#TODO: confirm that after merging, challenging_profile_cor does not have any NA values
-d1d2_challenging_cor_df <- subset(challenging_cor_df,select=c("phage1_phage2","challenging_profile_cor"))
-names(d1d2_challenging_cor_df) <- paste('d1d2','_',names(d1d2_challenging_cor_df),sep="")
-defend_distance_min <- merge(defend_distance_min,
-                                d1d2_challenging_cor_df,
-                                by.x="defending_phage1_defending_phage2",
-                                by.y="d1d2_phage1_phage2",
-                                all.x=TRUE)
-
-
-
-#Compute difference in infection profiles
-defend_distance_min$d1cd2c_averaged_infection_strength_diff <- abs(defend_distance_min$d1c_averaged_infection_strength - defend_distance_min$d2c_averaged_infection_strength)
-defend_distance_min$d1cd2c_averaged_four_factors_diff <- abs(defend_distance_min$d1c_averaged_four_factors - defend_distance_min$d2c_averaged_four_factors)
-defend_distance_min$d1cd2c_averaged_rank6_diff <- abs(defend_distance_min$d1c_averaged_rank6 - defend_distance_min$d2c_averaged_rank6)
-
-
-
-#Compute comparison fields
-defend_distance_min$d1d2_subcluster_compare <- ifelse(defend_distance_min$d1c_defending_subcluster==defend_distance_min$d2c_defending_subcluster,
-                                                  as.character(defend_distance_min$d1c_defending_subcluster),
-                                                  "different")
-
-defend_distance_min$d1d2_source_compare <- ifelse(defend_distance_min$d1c_defending_source==defend_distance_min$d2c_defending_source,
-                                                      as.character(defend_distance_min$d1c_defending_source),
-                                                      "different")
-
-defend_distance_min$d1d2_temperate_empirical_compare <- ifelse(defend_distance_min$d1c_defending_cluster_a_temperate_empirical==defend_distance_min$d2c_defending_cluster_a_temperate_empirical,
-                                                                   as.character(defend_distance_min$d1c_defending_cluster_a_temperate_empirical),
-                                                                   "different")
-
-defend_distance_min$d1d2_functional_repressor_compare <- ifelse(defend_distance_min$d1c_defending_cluster_a_functional_repressor_predicted==defend_distance_min$d2c_defending_cluster_a_functional_repressor_predicted,
-                                                                   as.character(defend_distance_min$d1c_defending_cluster_a_functional_repressor_predicted),
-                                                                   "different")
-
-defend_distance_min$d1d2_lysogen_type_compare <- ifelse(defend_distance_min$d1c_defending_lysogen_type==defend_distance_min$d2c_defending_lysogen_type,
-                                                            as.character(defend_distance_min$d1c_defending_lysogen_type),
-                                                            "different")
-
-defend_distance_min$d1d2_integrase_compare <- ifelse(defend_distance_min$d1c_defending_pham_integrase==defend_distance_min$d2c_defending_pham_integrase,
-                                                         as.character(defend_distance_min$d1c_defending_pham_integrase),
-                                                         "different")
-
-defend_distance_min$d1d2_parb_compare <- ifelse(defend_distance_min$d1c_defending_pham_parb==defend_distance_min$d2c_defending_pham_parb,
-                                                     as.character(defend_distance_min$d1c_defending_pham_parb),
-                                                     "different")
-
-defend_distance_min$d1d2_repressor_hth_compare <- stringdist(as.character(defend_distance_min$d1c_defending_repressor_hth_domain_sequence),
-                                                                as.character(defend_distance_min$d2c_defending_repressor_hth_domain_sequence),
-                                                                method="hamming")
-
-defend_distance_min$d1d2_repressor_length_full_compare <- abs(defend_distance_min$d1c_defending_repressor_length_full - defend_distance_min$d2c_defending_repressor_length_full)
-defend_distance_min$d1d2_repressor_length_nterm_compare <- abs(defend_distance_min$d1c_defending_repressor_length_nterm - defend_distance_min$d2c_defending_repressor_length_nterm)
-defend_distance_min$d1d2_repressor_length_cterm_compare <- abs(defend_distance_min$d1c_defending_repressor_length_cterm - defend_distance_min$d2c_defending_repressor_length_cterm)
-
-defend_distance_min$d1d2_gene_content_clade_compare <- ifelse(defend_distance_min$d1c_defending_gene_content_clade==defend_distance_min$d2c_defending_gene_content_clade,
-                                                                 as.character(defend_distance_min$d1c_defending_gene_content_clade),
-                                                                 "different")
-
-
-defend_distance_min$d1d2_subcluster_compare <- as.factor(defend_distance_min$d1d2_subcluster_compare)
-defend_distance_min$d1d2_source_compare <- as.factor(defend_distance_min$d1d2_source_compare)
-defend_distance_min$d1d2_temperate_empirical_compare <- as.factor(defend_distance_min$d1d2_temperate_empirical_compare)
-defend_distance_min$d1d2_functional_repressor_compare <- as.factor(defend_distance_min$d1d2_functional_repressor_compare)
-defend_distance_min$d1d2_lysogen_type_compare <- as.factor(defend_distance_min$d1d2_lysogen_type_compare)
-defend_distance_min$d1d2_integrase_compare <- as.factor(defend_distance_min$d1d2_integrase_compare)
-defend_distance_min$d1d2_parb_compare <- as.factor(defend_distance_min$d1d2_parb_compare)
-defend_distance_min$d1d2_gene_content_clade_compare <- as.factor(defend_distance_min$d1d2_gene_content_clade_compare)
-
-
-
-
-
-
-#Now that all data has been matched, the data is duplicated (e.g. defending_phage1_defending_phage2 contains l5_alma and alma_l5)
-#To solve this, remove all rows in which the defending_phage1 and defending_phage2 are not alphabetically ordered.
-#This does NOT retain self-comparisons (e.g. alma_alma)
-defend_distance_min$d1d2_alpha_ordered <- as.character(defend_distance_min$defending_phage1) < as.character(defend_distance_min$defending_phage2)
-
-#Now retain only the unique pairwise comparisons
-defend_distance_min_alpha_ordered <- subset(defend_distance_min,defend_distance_min$d1d2_alpha_ordered == TRUE)
-
-
-
-#Subset by envY and lysogen type to investigate
-
-defend_distance_min_ordered_envY <- subset(defend_distance_min_alpha_ordered,
-                                              defend_distance_min_alpha_ordered$d1d2_source_compare == 'environment')
-
-defend_distance_min_ordered_envN <- subset(defend_distance_min_alpha_ordered,
-                                           defend_distance_min_alpha_ordered$d1d2_source_compare != 'environment')
-
-
-
-
-defend_distance_min_ordered_envY_clade2 <- subset(defend_distance_min_alpha_ordered,
-                                           defend_distance_min_alpha_ordered$d1d2_source_compare == 'environment' &
-                                             defend_distance_min_alpha_ordered$d1c_defending_gene_content_clade == 'clade2' &
-                                             defend_distance_min_alpha_ordered$d2c_defending_gene_content_clade == 'clade2' &
-                                             defend_distance_min_alpha_ordered$d2c_challenging_gene_content_clade == 'clade2')
-
-
-defend_distance_min_ordered_envY_cenvYcrepYctempY_clade2 <- subset(defend_distance_min_alpha_ordered,
-                                                                   defend_distance_min_alpha_ordered$d1d2_source_compare == 'environment' &
-                                                                     defend_distance_min_alpha_ordered$d1c_defending_gene_content_clade == 'clade2' &
-                                                                     defend_distance_min_alpha_ordered$d2c_defending_gene_content_clade == 'clade2' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_gene_content_clade == 'clade2' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_source == 'environment' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_cluster_a_functional_repressor_predicted == 'yes' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_cluster_a_temperate_empirical == 'yes')
-
-
-defend_distance_min_ordered_envY_cenvYcrepYctempY_interclade <- subset(defend_distance_min_alpha_ordered,
-                                                                   defend_distance_min_alpha_ordered$d1d2_source_compare == 'environment' &
-                                                                     defend_distance_min_alpha_ordered$d1d2_gene_content_clade_compare == 'different' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_gene_content_clade == 'clade2' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_source == 'environment' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_cluster_a_functional_repressor_predicted == 'yes' &
-                                                                     defend_distance_min_alpha_ordered$d2c_challenging_cluster_a_temperate_empirical == 'yes')
-
-
-
-
-
-
-
-#Plot the results
-setwd("~/scratch/immunity_analysis/output/")
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY$modified_mash_distance,
-     as.numeric(as.character(defend_distance_min_ordered_envY$averaged_infection_strength_diff)),
-     xlim=c(0,0.4),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY$modified_mash_distance,
-     as.numeric(as.character(defend_distance_min_ordered_envY$averaged_four_factors_diff)),
-     xlim=c(0,0.4),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(defend_distance_min_ordered_envN$modified_mash_distance,
-     as.numeric(as.character(defend_distance_min_ordered_envN$averaged_four_factors_diff)),
-     xlim=c(0,0.4),ylim=c(0,8),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'defend_distance_min_envY_envN_ordered_envY_mash_vs_ave_ff_diff.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY$d1d2_repressor_cterm_mafft_dist_uncorrected,
-     as.numeric(as.character(defend_distance_min_ordered_envY$d1cd2c_averaged_rank6_diff)),
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'defend_distance_min_ordered_envY_d1d2_repCtermMafftUn_vs_d1cd2c_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY_clade2$d1d2_repressor_cterm_mafft_dist_uncorrected,
-     defend_distance_min_ordered_envY_clade2$d1cd2c_averaged_rank6_diff,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'defend_distance_min_envY_clade2_d1d2_repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY_cenvYcrepYctempY_clade2$d1d2_repressor_cterm_mafft_dist_uncorrected,
-     defend_distance_min_ordered_envY_cenvYcrepYctempY_clade2$d1cd2c_averaged_rank6_diff,
-     xlim=c(0,60),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'defend_distance_min_envY_cenvYcrepYctempY_clade2_repCtermMafftUn_vs_ave_rank6_diff.pdf')
-dev.off()
-
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(defend_distance_min_ordered_envY_cenvYcrepYctempY_interclade$d1d2_stoperator_pwd_dist_euc,
-     defend_distance_min_ordered_envY_cenvYcrepYctempY_interclade$d1cd2c_averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-par(new=TRUE)
-plot(defend_distance_min_ordered_envY_cenvYcrepYctempY_clade2$d1d2_stoperator_pwd_dist_euc,
-     defend_distance_min_ordered_envY_cenvYcrepYctempY_clade2$d1cd2c_averaged_rank6_diff,
-     xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='orange')
-dev.copy(pdf,'defend_distance_min_envY_cenvYcrepYctempY_d1d2_stopEuc_vs_ave_rank6_diff_by_subtypes.pdf')
-dev.off()
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_ordered_envY$d1d2_pham_pham_dissimilarity,
-     as.numeric(as.character(defend_distance_min_ordered_envY$d1cd2c_averaged_rank6_diff)),
-     xlim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-par(new=TRUE)
-plot(defend_distance_min_ordered_envN$d1d2_pham_pham_dissimilarity,
-     defend_distance_min_ordered_envN$d1cd2c_averaged_rank6_diff,
-     xlim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='green')
-dev.copy(pdf,'.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-#TODO: save plot once all correlation data is included
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_alpha_ordered$d1d2_repressor_cterm_mafft_dist_uncorrected,
-     defend_distance_min_alpha_ordered$d1d2_defending_profile_cor,
-     xlim=c(0,70),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'defend_distance_min_ordered_d1d2_repCtermMafftUn_vs_defending_profile_cor.pdf')
-dev.off()
-
-#TODO: save plot once all correlation data is included
-par(mar=c(4,8,4,4))
-plot(defend_distance_min_alpha_ordered$d1d2_repressor_cterm_mafft_dist_uncorrected,
-     defend_distance_min_alpha_ordered$d1d2_challenging_profile_cor,
-     xlim=c(0,70),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-dev.copy(pdf,'defend_distance_min_ordered_d1d2_repCtermMafftUn_vs_challenging_profile_cor.pdf')
-dev.off()
-
-
-
-
-
-###Compute distance between defendings to determine minimum distance where you see a change in infection above
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -6982,8 +4495,6 @@ names(phage_metadata_to_match) <- paste('phage2','_',names(phage_metadata_to_mat
 distance_metrics <- merge(distance_metrics,phage_metadata_to_match,by.x="phage2",by.y="phage2_phageid")
 
 
-#TODO: merge with stoperator site prediction tally data?
-
 
 #Compute comparisons
 
@@ -7043,14 +4554,6 @@ distance_metrics$gene_content_clade_compare2 <- ifelse(distance_metrics$phage1_g
                                                "different")
 
 
-
-
-# group1 <- factor(c("A1"))
-# group2 <- factor(c("A5","A8","A18","A3","A19","A7","A10"))
-# group3 <- factor(c("A4"))
-# group4 <- factor(c("A13","A15","A12","A9","A14","A2","A11","A6","A16","A17"))
-
-
 distance_metrics$cluster_compare <- as.factor(distance_metrics$cluster_compare)
 distance_metrics$subcluster_compare <- as.factor(distance_metrics$subcluster_compare)
 distance_metrics$source_compare <- as.factor(distance_metrics$source_compare)
@@ -7068,288 +4571,15 @@ distance_metrics$gene_content_clade_compare2 <- factor(distance_metrics$gene_con
 
 
 
-#Plot # Cluster A phages and their GCD diversity
-
-
-#When computing genomic diversity, do not include the escape mutants
-clusterA_data <- subset(distance_metrics,
-                        distance_metrics$cluster_compare == "A" &
-                          distance_metrics$source_compare == "environment")
-
-
-
-#Subcluster factored list
-clusterA_subcluster_list2 <- factor(c("A17",
-                                      "A18",
-                                      "A13",
-                                      "A19",
-                                      "A14",
-                                      "A12",
-                                      "A16",
-                                      "A11",
-                                      "A15",
-                                      "A8",
-                                      "A9",
-                                      "A6",
-                                      "A4",
-                                      "A5",
-                                      "A10",
-                                      "A7",
-                                      "A1",
-                                      "A3",
-                                      "A2"))
-
-clusterA_data$phage1_subcluster <- factor(clusterA_data$phage1_subcluster,clusterA_subcluster_list2)
-clusterA_data$phage2_subcluster <- factor(clusterA_data$phage2_subcluster,clusterA_subcluster_list2)
-
-
-
-clusterA_subcluster_colorlist2 <- c("orange","grey",#"A17"
-                                    "cyan","grey",#"A18"
-                                    "orange","grey",#"A13"
-                                    "green","grey",#"A19"
-                                    "orange","grey",#"A14"
-                                    "orange","grey",#"A12"
-                                    "orange","grey",#"A16"
-                                    "orange","grey",#"A11"
-                                    "orange","grey",#"A15"
-                                    "cyan","grey",#"A8"
-                                    "orange","grey",#"A9"
-                                    "orange","grey",#"A6"
-                                    "green","grey",#"A4"
-                                    "cyan","grey",#"A5"
-                                    "green","grey",#"A10"
-                                    "green","grey",#"A7"
-                                    "red","grey",#"A1"
-                                    "green","grey",#"A3"
-                                    "orange","grey"#"A2"
-)
-
-
-
-# par(mar=c(10,8,4,4))
-# stripchart(clusterA_data$pham_pham_dissimilarity ~ clusterA_data$subcluster_compare2*clusterA_data$phage1_subcluster,
-#            vertical=TRUE,method="jitter",pch=19,cex=0.5,ylim=c(0,1),las=2,cex.axis=1,ann=FALSE,main=NULL,col=c("blue","green"))
-# dev.copy(pdf,'gcd_distribution_by_subcluster.pdf')
-# dev.off()
-
-setwd("~/scratch/immunity_analysis/output/")
-par(mar=c(10,8,4,4))
-stripchart(clusterA_data$pham_pham_dissimilarity ~ clusterA_data$subcluster_compare2*clusterA_data$phage1_subcluster,
-           vertical=TRUE,method="jitter",pch=19,cex=0.5,ylim=c(0,1),las=2,cex.axis=1,ann=FALSE,main=NULL,col=clusterA_subcluster_colorlist2)
-dev.copy(pdf,'gcd_distribution_by_subcluster2.pdf')
-dev.off()
-
-
-
-
-
-
-#Gene content clade factored list
-clusterA_gene_content_clade_list <- factor(c("clade1",
-                                      "clade4",
-                                      "clade3",
-                                      "clade2"))
-
-clusterA_data$phage1_gene_content_clade <- factor(clusterA_data$phage1_gene_content_clade,clusterA_gene_content_clade_list)
-clusterA_data$phage2_gene_content_clade <- factor(clusterA_data$phage2_gene_content_clade,clusterA_gene_content_clade_list)
-
-
-
-clusterA_gene_content_clade_colorlist <- c("red","grey",#"clade1"
-                                           "cyan","grey",#"clade4"
-                                           "green","grey",#"clade3"
-                                           "orange","grey"#"clade2"
-)
-
-
-par(mar=c(10,8,4,4))
-stripchart(clusterA_data$pham_pham_dissimilarity ~ clusterA_data$gene_content_clade_compare2*clusterA_data$phage1_gene_content_clade,
-           vertical=TRUE,method="jitter",pch=19,cex=0.5,ylim=c(0,1),las=2,cex.axis=1,ann=FALSE,main=NULL,col=clusterA_gene_content_clade_colorlist)
-dev.copy(pdf,'gcd_distribution_by_gene_content_clade.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-#Phage frequency
-
-#By subcluster
-clusterA_metadata <- subset(phage_metadata,
-                            phage_metadata$cluster == 'A' &
-                              phage_metadata$source == 'environment')
-
-
-clusterA_metadata$subcluster <- factor(clusterA_metadata$subcluster,clusterA_subcluster_list2)
-
-par(mar=c(10,8,4,4))
-barplot(summary(clusterA_metadata$subcluster),
-        ylim=c(0,100),col="black",las=2)
-dev.copy(pdf,'subcluster_abundance.pdf')
-dev.off()
-
-
-
-
-#By gene content clade
-clusterA_metadata$gene_content_clade <- factor(clusterA_metadata$gene_content_clade,clusterA_gene_content_clade_list)
-
-par(mar=c(10,8,4,4))
-barplot(summary(clusterA_metadata$gene_content_clade),
-        ylim=c(0,150),col="black",las=2)
-dev.copy(pdf,'clade_abundance.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #Plot relationship between repressors, stoperators, and genomes
 
 
-par(mar=c(4,8,4,4))
-plot(distance_metrics$modified_mash_distance,
-     distance_metrics$pham_pham_dissimilarity,
-     xlim=c(0,0.5),ylim=c(0,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$modified_mash_distance,
-     distance_metrics$stoperator_pwd_dist_euc,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$stoperator_pwd_dist_euc,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_stopEuc.pdf')
-dev.off()
-#TODO: review outliers in gcd_vs_stoperator 
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$repressor_full_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$repressor_nterm_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_repCtermMafUn.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_nterm_mafft_dist_uncorrected,
-     distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-abline(0,1)
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$cas4_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_cas4MafftUn.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$endovii_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_endoviiMafftUn.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$dnapol_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_dnapolMafftUn.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$portal_mafft_dist_uncorrected,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'gcd_vs_portalMafftUn.pdf')
-dev.off()
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$portal_muscle_bionj_distances,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$portal_prank_phyml_distances,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$recb_muscle_bionj_distances,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #Keep only Mycobacteriophage data and drop Gordonia phages
+#Do not include escape mutants.
 clusterA_data <- subset(distance_metrics,
                         distance_metrics$cluster_compare == "A" &
                           distance_metrics$source_compare == "environment" &
@@ -7357,27 +4587,12 @@ clusterA_data <- subset(distance_metrics,
                           distance_metrics$phage2_host == "Mycobacterium")
 
 
-clusterA_clade1 <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "clade1")
 clusterA_clade2 <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "clade2")
-clusterA_clade3 <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "clade3")
-clusterA_clade4 <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "clade4")
-clusterA_cladeDiff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different")
-
-clusterA_clade1_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different" &
-                                 (clusterA_data$phage1_gene_content_clade == 'clade1' |
-                                    clusterA_data$phage2_gene_content_clade == 'clade1'))
 
 clusterA_clade2_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different" &
                                  (clusterA_data$phage1_gene_content_clade == 'clade2' |
                                     clusterA_data$phage2_gene_content_clade == 'clade2'))
 
-clusterA_clade3_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different" &
-                                 (clusterA_data$phage1_gene_content_clade == 'clade3' |
-                                    clusterA_data$phage2_gene_content_clade == 'clade3'))
-
-clusterA_clade4_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different" &
-                                 (clusterA_data$phage1_gene_content_clade == 'clade4' |
-                                    clusterA_data$phage2_gene_content_clade == 'clade4'))
 
 
 
@@ -7399,569 +4614,7 @@ setwd("~/scratch/immunity_analysis/output/")
 
 
 
-#GCD vs portal distances
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-#Keep y axis at 70 to directly compare to repressor plots
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_portal_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="light grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-dev.copy(pdf,'gcd_vs_portal_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_portal_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$portal_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_portal_clade4.pdf')
-dev.off()
-
-
-
-
-#
-
-
-
-
-
-
-#GCD vs dna pol distances
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-#Keep y axis at 70 to directly compare to repressor plots
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_dnapol_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-dev.copy(pdf,'gcd_vs_dnapol_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_dnapol_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$dnapol_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_dnapol_clade4.pdf')
-dev.off()
-
-
-
-
-#
-
-
-
-
-
-
-
-
-
-#GCD vs endovii distances
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-#Keep y axis at 70 to directly compare to repressor plots
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_endovii_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-dev.copy(pdf,'gcd_vs_endovii_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_endovii_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$endovii_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_endovii_clade4.pdf')
-dev.off()
-
-
-
-
-#
-
-
-
-
-
-
-
-
-
-
-#GCD vs cas4 distances
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-#Keep y axis at 70 to directly compare to repressor plots
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_cas4_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="light grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-dev.copy(pdf,'gcd_vs_cas4_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_cas4_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$cas4_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_cas4_clade4.pdf')
-dev.off()
-
-
-
-
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#GCD vs repressor distances
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-par(new=TRUE)
-plot(clusterA_cladeDiff$pham_pham_dissimilarity,
-     clusterA_cladeDiff$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-
-
-
-
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_repFullMafUn_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_repFullMafUn_clade2.pdf')
-dev.off()
-
-#Number of comparisons:
-nrow(clusterA_clade2_diff) +
-  nrow(clusterA_clade2)
-
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_repFullMafUn_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_repFullMafUn_clade4.pdf')
-dev.off()
-
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-#GCD vs stoperator motif distances
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$pham_pham_dissimilarity,
-     clusterA_clade1_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$pham_pham_dissimilarity,
-     clusterA_clade1$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_stopEuc_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-     clusterA_clade2_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade2$pham_pham_dissimilarity,
-     clusterA_clade2$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'gcd_vs_stopEuc_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$pham_pham_dissimilarity,
-     clusterA_clade3_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$pham_pham_dissimilarity,
-     clusterA_clade3$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'gcd_vs_stopEuc_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$pham_pham_dissimilarity,
-     clusterA_clade4_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$pham_pham_dissimilarity,
-     clusterA_clade4$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'gcd_vs_stopEuc_clade4.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-#repressor vs stoperator motif distances
-par(mar=c(4,8,4,4))
-plot(clusterA_data$repressor_full_mafft_dist_uncorrected,
-     clusterA_data$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-#clade1
-par(mar=c(4,8,4,4))
-plot(clusterA_clade1_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade1_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade1$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade1$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'repMafftUn_vs_stopEuc_clade1.pdf')
-dev.off()
-
-
-
-#clade2
-#FinalFig
-par(mar=c(4,8,8,4))
-plot(clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade2_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade2$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade2$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-dev.copy(pdf,'repMafftUn_vs_stopEuc_clade2.pdf')
-dev.off()
-
-
-#clade3
-par(mar=c(4,8,4,4))
-plot(clusterA_clade3_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade3_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade3$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade3$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-dev.copy(pdf,'repMafftUn_vs_stopEuc_clade3.pdf')
-dev.off()
-
-
-#clade4
-par(mar=c(4,8,4,4))
-plot(clusterA_clade4_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade4_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_clade4$repressor_full_mafft_dist_uncorrected,
-     clusterA_clade4$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-dev.copy(pdf,'repMafftUn_vs_stopEuc_clade4.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Mash vs GCD
-#FinalFig
+#Fig. 2c
 par(mar=c(4,8,8,4))
 plot(clusterA_clade2_diff$modified_mash_distance,
      clusterA_clade2_diff$pham_pham_dissimilarity,
@@ -7976,15 +4629,52 @@ dev.off()
 
 
 
+#Fig. 2d
+par(mar=c(4,8,8,4))
+plot(clusterA_clade2_diff$pham_pham_dissimilarity,
+     clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
+     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+par(new=TRUE)
+plot(clusterA_clade2$pham_pham_dissimilarity,
+     clusterA_clade2$repressor_full_mafft_dist_uncorrected,
+     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+dev.copy(pdf,'gcd_vs_repFullMafUn_clade2.pdf')
+dev.off()
+
+#Summary -number of comparisons:
+nrow(clusterA_clade2_diff) +
+  nrow(clusterA_clade2)
 
 
 
 
 
+#Fig. 2f sub-panel 1
+par(mar=c(4,8,8,4))
+plot(clusterA_clade2_diff$pham_pham_dissimilarity,
+     clusterA_clade2_diff$stoperator_pwd_dist_euc,
+     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+par(new=TRUE)
+plot(clusterA_clade2$pham_pham_dissimilarity,
+     clusterA_clade2$stoperator_pwd_dist_euc,
+     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+dev.copy(pdf,'gcd_vs_stopEuc_clade2.pdf')
+dev.off()
 
-#RepNterm vs RepCterm
-#clade2
-#FinalFig
+#Fig. 2f sub-panel 2
+par(mar=c(4,8,8,4))
+plot(clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
+     clusterA_clade2_diff$stoperator_pwd_dist_euc,
+     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+par(new=TRUE)
+plot(clusterA_clade2$repressor_full_mafft_dist_uncorrected,
+     clusterA_clade2$stoperator_pwd_dist_euc,
+     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+dev.copy(pdf,'repMafftUn_vs_stopEuc_clade2.pdf')
+dev.off()
+
+
+#Fig. 9a
 par(mar=c(4,8,8,4))
 plot(clusterA_clade2_diff$repressor_nterm_mafft_dist_uncorrected,
      clusterA_clade2_diff$repressor_cterm_mafft_dist_uncorrected,
@@ -8006,644 +4696,7 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$repressor_full_mafft_dist_uncorrected,
-     clusterA_data$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$recb_muscle_bionj_distances,
-     clusterA_data$stoperator_pwd_dist_euc,
-     ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$portal_muscle_bionj_distances,
-     clusterA_data$stoperator_pwd_dist_euc,
-     ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$repressor_hth_compare,
-     clusterA_data$stoperator_pwd_dist_euc,
-     ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-
-
-temp3 <- subset(clusterA_data,select=c("repressor_full_mafft_dist_uncorrected","stoperator_pwd_dist_euc"))
-temp3 <- temp3[complete.cases(temp3),]
-cor(temp3$repressor_full_mafft_dist_uncorrected,temp3$stoperator_pwd_dist_euc)
-
-#use pearson for continuous variables
-cor(clusterA_data$repressor_full_mafft_dist_uncorrected,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_repFull <- lm(stoperator_pwd_dist_euc ~
-                   repressor_full_mafft_dist_uncorrected,
-                 data = clusterA_data)
-summary(lm_repFull)
-
-plot(clusterA_data$repressor_full_mafft_dist_uncorrected,
-     clusterA_data$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-abline(lm_repFull)
-
-
-
-cor(clusterA_data$repressor_nterm_mafft_dist_uncorrected,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_repNterm <- lm(repressor_nterm_mafft_dist_uncorrected ~
-                    stoperator_pwd_dist_euc,
-                  data = clusterA_data)
-summary(lm_repNterm)
-
-
-cor(clusterA_data$repressor_cterm_mafft_dist_uncorrected,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_repCterm <- lm(repressor_cterm_mafft_dist_uncorrected ~
-                    stoperator_pwd_dist_euc,
-                  data = clusterA_data)
-summary(lm_repCterm)
-
-
-cor(clusterA_data$repressor_hth_compare,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_repHth <- lm(repressor_hth_compare ~
-                  stoperator_pwd_dist_euc,
-                data = clusterA_data)
-summary(lm_repHth)
-
-cor(clusterA_data$recb_muscle_bionj_distances,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_Recb <- lm(recb_muscle_bionj_distances ~
-                stoperator_pwd_dist_euc,
-              data = clusterA_data)
-summary(lm_Recb)
-
-cor(clusterA_data$portal_muscle_bionj_distances,
-    clusterA_data$stoperator_pwd_dist_euc,
-    use="complete.obs",
-    method="pearson")
-lm_portal <- lm(portal_muscle_bionj_distances ~
-                  stoperator_pwd_dist_euc,
-                data = clusterA_data)
-summary(lm_portal)
-
-
-
-lm_group1_repFull <- lm(repressor_full_mafft_dist_uncorrected ~
-                          stoperator_pwd_dist_euc,
-                        data = clusterA_group1)
-summary(lm_group1_repFull)
-
-lm_group2_repFull <- lm(repressor_full_mafft_dist_uncorrected ~
-                          stoperator_pwd_dist_euc,
-                        data = clusterA_group2)
-summary(lm_group2_repFull)
-
-lm_group3_repFull <- lm(repressor_full_mafft_dist_uncorrected ~
-                          stoperator_pwd_dist_euc,
-                        data = clusterA_group3)
-summary(lm_group3_repFull)
-
-lm_group4_repFull <- lm(repressor_full_mafft_dist_uncorrected ~
-                          stoperator_pwd_dist_euc,
-                        data = clusterA_group4)
-summary(lm_group4_repFull)
-
-
-#stoperator pwm
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-temp <- subset(clusterA_data,clusterA_data$pham_pham_dissimilarity > 0.6 & clusterA_data$stoperator_pwd_dist_euc < 0.8)
-temp2 <- subset(clusterA_data,clusterA_data$pham_pham_dissimilarity < 0.2 & clusterA_data$stoperator_pwd_dist_euc > 2.2)
-
-
-#group1
-par(mar=c(4,8,4,4))
-plot(clusterA_group1_diff$pham_pham_dissimilarity,
-     clusterA_group1_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group1$pham_pham_dissimilarity,
-     clusterA_group1$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-
-#group2
-par(mar=c(4,8,4,4))
-plot(clusterA_group2_diff$pham_pham_dissimilarity,
-     clusterA_group2_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group2$pham_pham_dissimilarity,
-     clusterA_group2$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-
-#group3
-par(mar=c(4,8,4,4))
-plot(clusterA_group3_diff$pham_pham_dissimilarity,
-     clusterA_group3_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group3$pham_pham_dissimilarity,
-     clusterA_group3$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-
-#group4
-par(mar=c(4,8,4,4))
-plot(clusterA_group4_diff$pham_pham_dissimilarity,
-     clusterA_group4_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group4$pham_pham_dissimilarity,
-     clusterA_group4$stoperator_pwd_dist_euc,
-     xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-
-
-
-
-
-
-
-#group1
-par(mar=c(4,8,4,4))
-plot(clusterA_group1_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_group1_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group1$repressor_full_mafft_dist_uncorrected,
-     clusterA_group1$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-
-#group2
-par(mar=c(4,8,4,4))
-plot(clusterA_group2_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_group2_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group2$repressor_full_mafft_dist_uncorrected,
-     clusterA_group2$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-
-#group3
-par(mar=c(4,8,4,4))
-plot(clusterA_group3_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_group3_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group3$repressor_full_mafft_dist_uncorrected,
-     clusterA_group3$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-
-#group4
-par(mar=c(4,8,4,4))
-plot(clusterA_group4_diff$repressor_full_mafft_dist_uncorrected,
-     clusterA_group4_diff$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group4$repressor_full_mafft_dist_uncorrected,
-     clusterA_group4$stoperator_pwd_dist_euc,
-     xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(10,8,4,4))
-stripchart(clusterA_data$pham_pham_dissimilarity ~ clusterA_data$group_compare2*clusterA_data$phage1_group,
-           vertical=TRUE,method="jitter",pch=19,cex=0.01,ylim=c(0,1),las=2,cex.axis=1,ann=FALSE,main=NULL,col=c("blue","green"))
-dev.copy(pdf,'gcd_distribution_by_group.pdf')
-dev.off()
-
-
-par(mar=c(10,8,4,4))
-
-hist(clusterA_group1$pham_pham_dissimilarity,
-     xlim=c(0,1),col='black',ann=FALSE,main=NULL,las=1,breaks=100,ylim=c(0,400))
-dev.copy(pdf,'clusterA_group1_gcd_hist.pdf')
-dev.off()
-
-hist(clusterA_group2$pham_pham_dissimilarity,
-     xlim=c(0,1),col='black',ann=FALSE,main=NULL,las=1,breaks=100,ylim=c(0,400))
-
-hist(clusterA_group3$pham_pham_dissimilarity,
-     xlim=c(0,1),col='black',ann=FALSE,main=NULL,las=1,breaks=100,ylim=c(0,400))
-
-hist(clusterA_group4$pham_pham_dissimilarity,
-     xlim=c(0,1),col='black',ann=FALSE,main=NULL,las=1,breaks=100,ylim=c(0,400))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-clusterA_data$subcluster1_subcluster2 <- paste(clusterA_data$phage1_subcluster,"_",clusterA_data$phage2_subcluster,sep="")
-clusterA_data$subcluster1_subcluster2 <- as.factor(clusterA_data$subcluster1_subcluster2)
-
-clusterA_subcluster_data <- subset(clusterA_data,
-                                   clusterA_data$subcluster_compare != "different")
-
-clusterA_subcluster_data$subcluster_compare <- factor(clusterA_subcluster_data$subcluster_compare)
-
-
-subclusterA1_data <- subset(clusterA_data,
-                            clusterA_data$subcluster_compare == "A1")
-
-
-subclusterA1_data <- subset(clusterA_data,
-                            clusterA_data$subcluster_compare == "A1")
-
-
-A3_A4_data <- subset(clusterA_data,
-                     clusterA_data$subcluster1_subcluster2 == 'A3_A4' |
-                       clusterA_data$subcluster1_subcluster2 == 'A4_A3')
-
-par(mar=c(4,8,4,4))
-plot(A3_A4_data$pham_pham_dissimilarity,
-     A3_A4_data$repressor_full_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_data$pham_pham_dissimilarity,
-     clusterA_data$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(clusterA_subcluster_data$pham_pham_dissimilarity,
-     clusterA_subcluster_data$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(subclusterA1_data$pham_pham_dissimilarity,
-     subclusterA1_data$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$stoperator_pwd_dist_pearson,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     distance_metrics$stoperator_pwd_dist_euc,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-dev.copy(pdf,'repCtermMafUn_vs_stopEuc.pdf')
-dev.off()
-
-
-#TODO: review outliers in repressorCterm_vs_stoperator 
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     distance_metrics$stoperator_pwd_dist_pearson,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_nterm_mafft_dist_uncorrected,
-     distance_metrics$stoperator_pwd_dist_euc,
-     pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-
-
-
-
-
-#Repressor similarity
-par(mar=c(4,8,4,4))
-plot(clusterA_group1$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group1$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-abline(0,1)
-dev.copy(pdf,'clusterA_group1_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group2$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group2$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-abline(0,1)
-dev.copy(pdf,'clusterA_group2_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group3$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group3$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-abline(0,1)
-dev.copy(pdf,'clusterA_group3_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group4$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group4$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-abline(0,1)
-dev.copy(pdf,'clusterA_group4_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-
-
-
-
-#Repressor similarity
-par(mar=c(4,8,4,4))
-plot(clusterA_group1_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group1_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group1$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group1$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-abline(0,1)
-dev.copy(pdf,'clusterA_group1_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group2_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group2_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group2$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group2$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-abline(0,1)
-dev.copy(pdf,'clusterA_group2_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group3_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group3_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group3$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group3$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-abline(0,1)
-dev.copy(pdf,'clusterA_group3_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group4_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group4_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group4$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group4$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-abline(0,1)
-dev.copy(pdf,'clusterA_group4_rep_nterm_vs_cterm.pdf')
-dev.off()
-
-
-
-
-#Zoom in
-par(mar=c(4,8,4,4))
-plot(clusterA_group1_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group1_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group1$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group1$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-par(new=TRUE)
-plot(clusterA_group2_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group2_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group2$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group2$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-par(new=TRUE)
-plot(clusterA_group3_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group3_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group3$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group3$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-par(new=TRUE)
-plot(clusterA_group4_diff$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group4_diff$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group4$repressor_nterm_mafft_dist_uncorrected,
-     clusterA_group4$repressor_cterm_mafft_dist_uncorrected,
-     xlim=c(0,40),ylim=c(0,40),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-abline(0,1)
-dev.copy(pdf,'clusterA_all_groups_zoom_in.pdf')
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group1_diff$repressor_nterm_mafft_phyml_dist,
-     clusterA_group1_diff$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group1$repressor_nterm_mafft_phyml_dist,
-     clusterA_group1$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-abline(0,1)
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group2_diff$repressor_nterm_mafft_phyml_dist,
-     clusterA_group2_diff$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group2$repressor_nterm_mafft_phyml_dist,
-     clusterA_group2$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="cyan")
-abline(0,1)
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group3_diff$repressor_nterm_mafft_phyml_dist,
-     clusterA_group3_diff$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group3$repressor_nterm_mafft_phyml_dist,
-     clusterA_group3$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="green")
-abline(0,1)
-
-par(mar=c(4,8,4,4))
-plot(clusterA_group4_diff$repressor_nterm_mafft_phyml_dist,
-     clusterA_group4_diff$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-par(new=TRUE)
-plot(clusterA_group4$repressor_nterm_mafft_phyml_dist,
-     clusterA_group4$repressor_cterm_mafft_phyml_dist,
-     xlim=c(0,4),ylim=c(0,4),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-abline(0,1)
-
-
-
-
-
-
-
-scatter.smooth(clusterA_group4$repressor_hth_compare,
-               clusterA_group4$stoperator_pwd_dist_euc,
-               pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-
-
-
-
-
-
-
-
-
-
-#Immunity correlation
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$pham_pham_dissimilarity,
-     distance_metrics$defending_cor_reduced,
-     xlim=c(0,1),ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     distance_metrics$defending_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$stoperator_pwd_dist_euc,
-     distance_metrics$defending_cor_reduced,
-     ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$stoperator_pwd_dist_euc,
-     distance_metrics$challenging_cor_reduced,
-     ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-par(mar=c(4,8,4,4))
-plot(distance_metrics$repressor_cterm_mafft_dist_uncorrected,
-     distance_metrics$challenging_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2$stoperator_pwd_dist_euc,
-     clusterA_clade2$challenging_cor_reduced,
-     ylim=c(-1,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1)
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2$repressor_cterm_mafft_dist_uncorrected,
-     clusterA_clade2$challenging_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=19,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-par(new=TRUE)
-plot(clusterA_clade2_diff$repressor_cterm_mafft_dist_uncorrected,
-     clusterA_clade2_diff$challenging_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=19,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-
-
-par(mar=c(4,8,4,4))
-plot(clusterA_clade2$repressor_cterm_mafft_dist_uncorrected,
-     clusterA_clade2$defending_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=19,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-par(new=TRUE)
-plot(clusterA_clade2_diff$repressor_cterm_mafft_dist_uncorrected,
-     clusterA_clade2_diff$defending_cor_reduced,
-     xlim=c(0,70),ylim=c(-1,1),pch=19,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#FinalFig
+#Fig. 5c sub-panel 1
 par(mar=c(4,8,16,4))
 plot(clusterA_clade2$stoperator_pwd_dist_euc,
      clusterA_clade2$challenging_cor_reduced,
@@ -8655,16 +4708,15 @@ plot(clusterA_clade2_diff$stoperator_pwd_dist_euc,
 dev.copy(pdf,'clusterA_clade2_challCor_vs_stopEuc_subtypes.pdf')
 dev.off()
 
-#Number of comparisons:
+#Summary -number of comparisons:
 nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$challenging_cor_reduced))) +
   nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$challenging_cor_reduced)))
 nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$challenging_cor_reduced)))
 nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$challenging_cor_reduced)))
 
-            
 
 
-#FinalFig
+#Fig. 5c sub-panel 2
 par(mar=c(4,8,16,4))
 plot(clusterA_clade2$stoperator_pwd_dist_euc,
      clusterA_clade2$defending_cor_reduced,
@@ -8677,7 +4729,7 @@ dev.copy(pdf,'clusterA_clade2_defCor_vs_stopEuc_subtypes.pdf')
 dev.off()
 
 
-#Number of comparisons:
+#Summary -number of comparisons:
 nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$defending_cor_reduced))) +
   nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$defending_cor_reduced)))
 nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$defending_cor_reduced)))
@@ -8688,7 +4740,7 @@ nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$defending_cor_reduc
 
 
 
-#Final correlations
+#Summary - correlations
 lm_immunity_def_cor_reduced <- lm(defending_cor_reduced ~
                                     stoperator_pwd_dist_euc,
                               data = clusterA_clade2)
@@ -8711,35 +4763,7 @@ summary(lm_immunity_chal_cor_reduced)
 
 
 
-
-
-
-
-
-par(mar=c(4,8,8,4))
-plot(clusterA_clade2$defending_cor_reduced,
-     clusterA_clade2$challenging_cor_reduced,
-     xlim=c(-1,1),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="orange")
-par(new=TRUE)
-plot(clusterA_clade2_diff$defending_cor_reduced,
-     clusterA_clade2_diff$challenging_cor_reduced,
-     xlim=c(-1,1),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-dev.copy(pdf,'clusterA_clade2_defCor_vs_chalCor_subtypes.pdf')
-dev.off()
-
-
-
-lm_immunity_cor_reduced <- lm(defending_cor_reduced ~
-                                challenging_cor_reduced,
-                              data = clusterA_clade2)
-summary(lm_immunity_cor_reduced)
-
-
-
 #Repressor size
-
-
-#By subcluster
 clusterA_clade2_myco_env_temp_rep <- subset(phage_metadata,
                                             phage_metadata$cluster == 'A' &
                                               phage_metadata$source == 'environment' &
@@ -8748,7 +4772,7 @@ clusterA_clade2_myco_env_temp_rep <- subset(phage_metadata,
                                               phage_metadata$gene_content_clade == 'clade2')
 
 
-#FinalFig
+#Fig. S1a
 par(mar=c(4,8,16,20))
 boxplot(clusterA_clade2_myco_env_temp_rep$repressor_length_full,las=1,cex.axis=2,ann=FALSE,main=NULL,outline=FALSE,ylim=c(150,250),col="light grey")
 par(new=TRUE)
@@ -8760,21 +4784,6 @@ dev.off()
 
 
 ### Whole genome metrics (regardless of immunity data) above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
