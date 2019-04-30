@@ -97,28 +97,12 @@ compute_comparisons <- function(table){
 }
 
 
-
-convert_immunity_scores_to_numeric <- function(table){
-  
-  table$scored_infection_strength <- as.numeric(as.character(table$scored_infection_strength))
-  table$scored_turbidity <- as.numeric(as.character(table$scored_turbidity))
-  table$scored_plaque_size <- as.numeric(as.character(table$scored_plaque_size))
-  table$scored_plaques <- as.numeric(as.character(table$scored_plaques))
-  table$scored_four_factors <- as.numeric(as.character(table$scored_four_factors))
-  table$rank6 <- as.numeric(as.character(table$rank6))
-  return(table)
-}
-
-convert_immunity_scores_to_factor <- function(table){
-  
-  table$scored_infection_strength <- factor(as.character(table$scored_infection_strength))
-  table$scored_turbidity <- factor(as.character(table$scored_turbidity))
-  table$scored_plaque_size <- factor(as.character(table$scored_plaque_size))
-  table$scored_plaques <- factor(as.character(table$scored_plaques))
-  table$scored_four_factors <- factor(as.character(table$scored_four_factors))
-  table$rank6 <- factor(as.character(table$rank6))
-  return(table)
-}
+#TODO I may not need this function
+# convert_immunity_scores_to_numeric <- function(table){
+#   
+#   table$rank6 <- as.numeric(as.character(table$rank6))
+#   return(table)
+# }
 
 
 
@@ -137,25 +121,25 @@ match_average_lysogen_and_clone_data <- function(lysogen_data,clone_data){
   
   lys_clone_compare <- merge(lysY_reduced,cloneY_reduced,by.x='lys_defending_challenging',by.y='clone_defending_challenging')
   
-  lys_clone_compare$lys_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$lys_averaged_infection_strength))
-  lys_clone_compare$lys_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$lys_averaged_turbidity))
-  lys_clone_compare$lys_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaque_size))
-  lys_clone_compare$lys_averaged_plaques <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaques))
+  #lys_clone_compare$lys_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$lys_averaged_infection_strength))
+  #lys_clone_compare$lys_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$lys_averaged_turbidity))
+  #lys_clone_compare$lys_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaque_size))
+  #lys_clone_compare$lys_averaged_plaques <- as.numeric(as.character(lys_clone_compare$lys_averaged_plaques))
   lys_clone_compare$lys_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$lys_averaged_rank6))
   
   
-  lys_clone_compare$clone_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$clone_averaged_infection_strength))
-  lys_clone_compare$clone_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$clone_averaged_turbidity))
-  lys_clone_compare$clone_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaque_size))
-  lys_clone_compare$clone_averaged_plaques <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaques))
+  #lys_clone_compare$clone_averaged_infection_strength <- as.numeric(as.character(lys_clone_compare$clone_averaged_infection_strength))
+  #lys_clone_compare$clone_averaged_turbidity <- as.numeric(as.character(lys_clone_compare$clone_averaged_turbidity))
+  #lys_clone_compare$clone_averaged_plaque_size <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaque_size))
+  #lys_clone_compare$clone_averaged_plaques <- as.numeric(as.character(lys_clone_compare$clone_averaged_plaques))
   lys_clone_compare$clone_averaged_rank6 <- as.numeric(as.character(lys_clone_compare$clone_averaged_rank6))
   
   
   
-  lys_clone_compare$infection_strength_diff <- lys_clone_compare$clone_averaged_infection_strength - lys_clone_compare$lys_averaged_infection_strength
-  lys_clone_compare$turbidity_diff <- lys_clone_compare$clone_averaged_turbidity - lys_clone_compare$lys_averaged_turbidity
-  lys_clone_compare$plaque_size_diff <- lys_clone_compare$clone_averaged_plaque_size - lys_clone_compare$lys_averaged_plaque_size
-  lys_clone_compare$plaque_diff <- lys_clone_compare$clone_averaged_plaques - lys_clone_compare$lys_averaged_plaques
+  #lys_clone_compare$infection_strength_diff <- lys_clone_compare$clone_averaged_infection_strength - lys_clone_compare$lys_averaged_infection_strength
+  #lys_clone_compare$turbidity_diff <- lys_clone_compare$clone_averaged_turbidity - lys_clone_compare$lys_averaged_turbidity
+  #lys_clone_compare$plaque_size_diff <- lys_clone_compare$clone_averaged_plaque_size - lys_clone_compare$lys_averaged_plaque_size
+  #lys_clone_compare$plaque_diff <- lys_clone_compare$clone_averaged_plaques - lys_clone_compare$lys_averaged_plaques
   lys_clone_compare$rank6_diff <- lys_clone_compare$clone_averaged_rank6 - lys_clone_compare$lys_averaged_rank6
   
   
@@ -466,6 +450,40 @@ plot_bargraph1 <- function(table1,value1,value2,y_range,filename){
 
 
 
+plot_bargraph2 <- function(table1,value1,y_range,filename){
+  
+  
+  par(mar=c(4,8,8,4))
+  barplot(summary(table1[,value1]),
+          ylim=y_range,
+          col="black",ann=FALSE,main=NULL,las=1)
+  dev.copy(pdf,filename)
+  dev.off()
+  
+}
+
+
+
+
+
+
+
+
+#Plot histograms
+plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
+  
+  par(mar=c(4,8,8,4))
+  hist(table1[,value1],
+       breaks=num_breaks,
+       xlim=x_range,
+       ylim=y_range,
+       main=NULL,ann=FALSE,las=1,cex.axis=2,col="black")
+  dev.copy(pdf,filename)
+  dev.off()
+
+  
+}
+
 
 ###End of functions
 
@@ -516,12 +534,14 @@ plot_bargraph1 <- function(table1,value1,value2,y_range,filename){
 # "observed_turbidity"
 # "observed_plaque_size"
 # "observed_plaques"
+# "rank6"
+
+#TODO remove all reference to these fields:
 # "scored_infection_strength"
 # "scored_turbidity"
 # "scored_plaque_size"
 # "scored_plaques"
 # "scored_four_factors"
-# "rank6"        
 
 
 immunity_data <- read.csv("immunity_data.csv",sep=",",header=TRUE)
@@ -531,11 +551,6 @@ immunity_data$notebook <- as.factor(immunity_data$notebook)
 immunity_data$page <- as.factor(immunity_data$page)
 immunity_data$lawn_reliability <- as.factor(immunity_data$lawn_reliability)
 immunity_data$phage_reliability <- as.factor(immunity_data$phage_reliability)
-immunity_data$scored_infection_strength <- as.factor(immunity_data$scored_infection_strength)
-immunity_data$scored_turbidity <- as.factor(immunity_data$scored_turbidity)
-immunity_data$scored_plaque_size <- as.factor(immunity_data$scored_plaque_size)
-immunity_data$scored_plaques <- as.factor(immunity_data$scored_plaques)
-immunity_data$scored_four_factors <- as.factor(immunity_data$scored_four_factors)
 immunity_data$rank6 <- as.factor(immunity_data$rank6)
 
 # Several fields contain 'unspecified' which can be converted to NA
@@ -544,13 +559,11 @@ immunity_data$rank6 <- as.factor(immunity_data$rank6)
 # repressor_clone
 # tested_titer
 # phage_reliability
-# scored_infection_strength
 immunity_data[immunity_data == "Unspecified"] <- NA
 immunity_data[immunity_data == "unspecified"] <- NA
 immunity_data$prophage <- factor(immunity_data$prophage)
 immunity_data$repressor_clone <- factor(immunity_data$repressor_clone)
 immunity_data$phage_reliability <- factor(immunity_data$phage_reliability)
-immunity_data$scored_infection_strength <- factor(immunity_data$scored_infection_strength)
 immunity_data$rank6 <- factor(immunity_data$rank6)
 
 #Convert titer to numeric
@@ -558,10 +571,10 @@ immunity_data$tested_titer <- as.numeric(as.character(immunity_data$tested_titer
 
 
 #These fields contain NA's, but these are descriptive columns so no need to conver them to Unspecified
-#observed_infection_strength = NA
-#observed_turbidity = NA
-#observed_plaque_size = NA
-#observed_plaques = NA
+#observed_infection_strength
+#observed_turbidity
+#observed_plaque_size
+#observed_plaques
 
 
 #Create identifiers
@@ -611,13 +624,6 @@ genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRU
 # "cluster"
 # "subcluster"
 # "size"
-# "status"
-# "author"
-# "datelastmodified"
-# "mode_approx_80_percent"
-# "network005_interaction_tally"
-# "network005_group"
-# "network005_group_tally"
 # "lysogen_type"
 # "pham_integrase"
 # "pham_para" (imported as int)
@@ -625,7 +631,6 @@ genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRU
 # "parent"
 # "cluster_a_functional_repressor_predicted"
 # "cluster_a_temperate_empirical"
-# "maxgcdgap_all"
 # "repressor_hth_domain_sequence"
 # "repressor_length_full" (imported as factor)
 # "repressor_length_nterm" (imported as factor)
@@ -637,6 +642,18 @@ genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRU
 # "genome_center_alignment_reference"
 
 
+#TODO remove all reference to these fields
+# "status"
+# "author"
+# "datelastmodified"
+# "mode_approx_80_percent"
+# "network005_interaction_tally"
+# "network005_group"
+# "network005_group_tally"
+# "maxgcdgap_all"
+
+
+
 phage_metadata <- read.csv("phage_metadata.csv",sep=",",header=TRUE)
 phage_metadata$pham_para <- as.factor(phage_metadata$pham_para)
 phage_metadata$pham_parb <- as.factor(phage_metadata$pham_parb)
@@ -644,7 +661,6 @@ phage_metadata$pham_parb <- as.factor(phage_metadata$pham_parb)
 
 
 #Several fields contain variants of 'unspecified'
-#datelastmodified = Unspecified
 #subcluster = Unspecified
 #pham_integrase = ""
 #cluster_a_functional_repressor_predicted = "not_applicable"
@@ -657,7 +673,6 @@ phage_metadata$subcluster <- factor(phage_metadata$subcluster)
 phage_metadata$pham_integrase <- factor(phage_metadata$pham_integrase)
 phage_metadata$cluster_a_functional_repressor_predicted <- factor(phage_metadata$cluster_a_functional_repressor_predicted)
 phage_metadata$cluster_a_temperate_empirical <- factor(phage_metadata$cluster_a_temperate_empirical)
-phage_metadata$datelastmodified <- factor(phage_metadata$datelastmodified)
 phage_metadata$gene_content_clade <- factor(phage_metadata$gene_content_clade)
 phage_metadata$repressor_length_full <- as.numeric(as.character(phage_metadata$repressor_length_full))
 phage_metadata$repressor_length_nterm <- as.numeric(as.character(phage_metadata$repressor_length_nterm))
@@ -665,6 +680,11 @@ phage_metadata$repressor_length_cterm <- as.numeric(as.character(phage_metadata$
 phage_metadata$pleft_alignment_reference <- as.numeric(as.character(phage_metadata$pleft_alignment_reference))
 phage_metadata$immunity_repressor_alignment_reference <- as.numeric(as.character(phage_metadata$immunity_repressor_alignment_reference))
 phage_metadata$genome_center_alignment_reference <- as.numeric(as.character(phage_metadata$genome_center_alignment_reference))
+#TODO remove
+# phage_metadata$datelastmodified <- factor(phage_metadata$datelastmodified)
+
+
+
 
 
 
@@ -678,7 +698,7 @@ phage_metadata$genome_center_alignment_reference <- as.numeric(as.character(phag
 # "phage1_phage2"
 # "repressor_muscle_bionj_distances"
 # "repressor_prank_phyml_distances"
-repressor_distance_data <- read.csv("repressor_distance_data.csv",sep=",",header=TRUE)
+# repressor_distance_data <- read.csv("repressor_distance_data.csv",sep=",",header=TRUE)
 
 
 
@@ -697,7 +717,7 @@ repressor_distance_data <- read.csv("repressor_distance_data.csv",sep=",",header
 # "phage1_phage2"
 # "portal_muscle_bionj_distances"
 # "portal_prank_phyml_distances"
-portal_distance_data <- read.csv("portal_distance_data.csv",sep=",",header=TRUE)
+# portal_distance_data <- read.csv("portal_distance_data.csv",sep=",",header=TRUE)
 
 
 # TODO I can probably delete this dataset.
@@ -708,7 +728,7 @@ portal_distance_data <- read.csv("portal_distance_data.csv",sep=",",header=TRUE)
 # "phage1_phage2"
 # "recb_muscle_bionj_distances"
 # "recb_prank_phyml_distances"
-recb_distance_data <- read.csv("recb_distance_data.csv",sep=",",header=TRUE)
+# recb_distance_data <- read.csv("recb_distance_data.csv",sep=",",header=TRUE)
 
 
 
@@ -936,16 +956,27 @@ setwd("~/scratch/immunity_analysis/output/")
 
 #Fig. S1e
 par(mar=c(4,8,4,4))
-hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
+hist(stop88_clade2_env_self$site_pleft_dist,
+     main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
 dev.copy(pdf,'clade2_env_self_sites_near_pleft2.pdf')
 dev.off()
 
 
 #Fig. 3d
-par(mar=c(4,8,8,4))
-hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2500,xlim=c(-2000,500),ylim=c(0,100))
-dev.copy(pdf,'clade2_env_self_sites_near_pleft.pdf')
-dev.off()
+plot_hist1(stop88_clade2_env_self,
+           "site_pleft_dist",
+           2500,
+           c(-2000,500),
+           c(0,100),
+           "clade2_env_self_sites_near_pleft.pdf")
+
+
+# par(mar=c(4,8,8,4))
+# hist(stop88_clade2_env_self$site_pleft_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2500,xlim=c(-2000,500),ylim=c(0,100))
+# dev.copy(pdf,'clade2_env_self_sites_near_pleft.pdf')
+# dev.off()
+
+
 
 #Summary
 nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_pleft_dist > -1000))/nrow(stop88_clade2_env_self)
@@ -959,10 +990,19 @@ nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_pleft_dist > -100
 
 
 #Fig. 3b
-par(mar=c(4,8,8,4))
-hist(stop88_clade2_env_self$site_rep_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2000,xlim=c(-4000,1000),ylim=c(0,50))
-dev.copy(pdf,'clade2_env_self_sites_near_repressor2.pdf')
-dev.off()
+plot_hist1(stop88_clade2_env_self,
+           "site_rep_dist",
+           2000,
+           c(-4000,1000),
+           c(0,50),
+           "clade2_env_self_sites_near_repressor2.pdf")
+
+
+
+# par(mar=c(4,8,8,4))
+# hist(stop88_clade2_env_self$site_rep_dist,main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=2000,xlim=c(-4000,1000),ylim=c(0,50))
+# dev.copy(pdf,'clade2_env_self_sites_near_repressor2.pdf')
+# dev.off()
 
 
 
@@ -977,12 +1017,20 @@ names(stop88_clade2_env_self_freq) <- c("phage","frequency")
 setwd("~/scratch/immunity_analysis/output/")
 
 #Fig. S1b
-par(mar=c(4,8,8,4))
-hist(stop88_clade2_env_self_freq$frequency,col="black",breaks=50,xlim=c(0,50),ylim=c(0,15),main=NULL,ann=FALSE,las=1,cex.axis=2)
-dev.copy(pdf,'clade2_env_self_stops_per_genome.pdf')
-dev.off()
+plot_hist1(stop88_clade2_env_self_freq,
+           "frequency",
+           50,
+           c(0,50),
+           c(0,15),
+           "clade2_env_self_stops_per_genome.pdf")
 
 
+
+
+# par(mar=c(4,8,8,4))
+# hist(stop88_clade2_env_self_freq$frequency,col="black",breaks=50,xlim=c(0,50),ylim=c(0,15),main=NULL,ann=FALSE,las=1,cex.axis=2)
+# dev.copy(pdf,'clade2_env_self_stops_per_genome.pdf')
+# dev.off()
 
 
 
@@ -1138,22 +1186,6 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #Match the phage metadata
 phage_metadata_to_match <- phage_metadata
 names(phage_metadata_to_match) <- paste('defending','_',names(phage_metadata_to_match),sep="")
@@ -1186,15 +1218,21 @@ main_immunity_data <- merge(main_immunity_data,phage_metadata_to_match,by.x="cha
 #Match the genomic distance data. Defending phages and challenging phages not in actino1321 will not be matched
 main_immunity_data <- merge(main_immunity_data,genomic_distance_data,by.x="defending_challenging",by.y="phage1_phage2")
 
+
+
+
+
 #Match the gene distance data. Many comparisons will not be matched
-main_immunity_data <- merge(main_immunity_data,repressor_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,portal_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,recb_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,repressor336_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,cas4311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,endovii306_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,dnapol311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,portal311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
+
+#TODO remove
+# main_immunity_data <- merge(main_immunity_data,repressor_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
+# main_immunity_data <- merge(main_immunity_data,portal_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
+# main_immunity_data <- merge(main_immunity_data,recb_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
 
 
 
@@ -1312,27 +1350,39 @@ hist(log(main_immunity_data$tested_titer,10),xlim=c(0,10),col='black',ann=FALSE,
 conf_to_average <- main_immunity_data
 conf_to_average$assay_strain_defending_challenging <- factor(conf_to_average$assay_strain_defending_challenging)
 conf_to_average$strain_defending_challenging <- factor(conf_to_average$strain_defending_challenging)
-conf_to_average <- convert_immunity_scores_to_numeric(conf_to_average)
+conf_to_average$rank6 <- as.numeric(as.character(conf_to_average$rank6))
+
+
+# conf_to_average <- convert_immunity_scores_to_numeric(conf_to_average)
 
 
 
 
 
 #Average infection scores for each unique assay_strain_defending_challenging identifier
-conf_assay_strain_def_chal_average <- aggregate(conf_to_average[,c('scored_infection_strength',
-                                                                   'scored_turbidity',
-                                                                   'scored_plaque_size',
-                                                                   'scored_plaques',
-                                                                   'scored_four_factors',
-                                                                   'rank6')],
+
+
+# conf_assay_strain_def_chal_average <- aggregate(conf_to_average[,c('scored_infection_strength',
+#                                                                    'scored_turbidity',
+#                                                                    'scored_plaque_size',
+#                                                                    'scored_plaques',
+#                                                                    'scored_four_factors',
+#                                                                    'rank6')],list(conf_to_average$assay_strain_defending_challenging),mean)
+
+
+# names(conf_assay_strain_def_chal_average) <- c('assay_strain_defending_challenging',
+#                                                'averaged_infection_strength',
+#                                                'averaged_turbidity',
+#                                                'averaged_plaque_size',
+#                                                'averaged_plaques',
+#                                                'averaged_four_factors',
+#                                                'averaged_rank6') 
+
+conf_assay_strain_def_chal_average <- aggregate(conf_to_average[,'rank6'],
                                                 list(conf_to_average$assay_strain_defending_challenging),mean)
 
+
 names(conf_assay_strain_def_chal_average) <- c('assay_strain_defending_challenging',
-                                               'averaged_infection_strength',
-                                               'averaged_turbidity',
-                                               'averaged_plaque_size',
-                                               'averaged_plaques',
-                                               'averaged_four_factors',
                                                'averaged_rank6') 
 
 conf_assay_strain_def_chal_average$assay_strain_defending_challenging <- factor(conf_assay_strain_def_chal_average$assay_strain_defending_challenging)
@@ -1342,40 +1392,59 @@ conf_assay_strain_def_chal_average$assay_strain_defending_challenging <- factor(
 #Compute the range of scores for each unique assay
 #First compute the minimum score and maximum score
 #Then compute the range
-conf_assay_strain_def_chal_min <- aggregate(conf_to_average[,c('scored_infection_strength',
-                                                               'scored_turbidity',
-                                                               'scored_plaque_size',
-                                                               'scored_plaques',
-                                                               'scored_four_factors',
-                                                               'rank6')],
+
+
+# conf_assay_strain_def_chal_min <- aggregate(conf_to_average[,c('scored_infection_strength',
+#                                                                'scored_turbidity',
+#                                                                'scored_plaque_size',
+#                                                                'scored_plaques',
+#                                                                'scored_four_factors',
+#                                                                'rank6')],
+#                                             list(conf_to_average$assay_strain_defending_challenging),min)
+# 
+# 
+# names(conf_assay_strain_def_chal_min) <- c('assay_strain_defending_challenging',
+#                                            'min_infection_strength',
+#                                            'min_turbidity',
+#                                            'min_plaque_size',
+#                                            'min_plaques',
+#                                            'min_four_factors',
+#                                            'min_rank6') 
+
+
+conf_assay_strain_def_chal_min <- aggregate(conf_to_average[,'rank6'],
                                             list(conf_to_average$assay_strain_defending_challenging),min)
 
 
 names(conf_assay_strain_def_chal_min) <- c('assay_strain_defending_challenging',
-                                               'min_infection_strength',
-                                               'min_turbidity',
-                                               'min_plaque_size',
-                                               'min_plaques',
-                                               'min_four_factors',
                                                'min_rank6') 
 
 conf_assay_strain_def_chal_min$assay_strain_defending_challenging <- factor(conf_assay_strain_def_chal_min$assay_strain_defending_challenging)
 
 
-conf_assay_strain_def_chal_max <- aggregate(conf_to_average[,c('scored_infection_strength',
-                                                               'scored_turbidity',
-                                                               'scored_plaque_size',
-                                                               'scored_plaques',
-                                                               'scored_four_factors',
-                                                               'rank6')],
+
+
+# conf_assay_strain_def_chal_max <- aggregate(conf_to_average[,c('scored_infection_strength',
+#                                                                'scored_turbidity',
+#                                                                'scored_plaque_size',
+#                                                                'scored_plaques',
+#                                                                'scored_four_factors',
+#                                                                'rank6')],
+#                                             list(conf_to_average$assay_strain_defending_challenging),max)
+# 
+# names(conf_assay_strain_def_chal_max) <- c('assay_strain_defending_challenging',
+#                                            'max_infection_strength',
+#                                            'max_turbidity',
+#                                            'max_plaque_size',
+#                                            'max_plaques',
+#                                            'max_four_factors',
+#                                            'max_rank6') 
+
+
+conf_assay_strain_def_chal_max <- aggregate(conf_to_average[,'rank6'],
                                             list(conf_to_average$assay_strain_defending_challenging),max)
 
 names(conf_assay_strain_def_chal_max) <- c('assay_strain_defending_challenging',
-                                           'max_infection_strength',
-                                           'max_turbidity',
-                                           'max_plaque_size',
-                                           'max_plaques',
-                                           'max_four_factors',
                                            'max_rank6') 
 
 conf_assay_strain_def_chal_max$assay_strain_defending_challenging <- factor(conf_assay_strain_def_chal_max$assay_strain_defending_challenging)
@@ -1392,29 +1461,37 @@ conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
                                             by.y="assay_strain_defending_challenging")
 
 
-conf_assay_strain_def_chal_average$range_infection_strength <- conf_assay_strain_def_chal_average$max_infection_strength - 
-  conf_assay_strain_def_chal_average$min_infection_strength
 
-conf_assay_strain_def_chal_average$range_turbidity <- conf_assay_strain_def_chal_average$max_turbidity - 
-  conf_assay_strain_def_chal_average$min_turbidity
 
-conf_assay_strain_def_chal_average$range_plaque_size <- conf_assay_strain_def_chal_average$max_plaque_size - 
-  conf_assay_strain_def_chal_average$min_plaque_size
-
-conf_assay_strain_def_chal_average$range_plaques <- conf_assay_strain_def_chal_average$max_plaques - 
-  conf_assay_strain_def_chal_average$min_plaques
-
-conf_assay_strain_def_chal_average$range_four_factors <- conf_assay_strain_def_chal_average$max_four_factors - 
-  conf_assay_strain_def_chal_average$min_four_factors
+# conf_assay_strain_def_chal_average$range_infection_strength <- conf_assay_strain_def_chal_average$max_infection_strength - 
+#   conf_assay_strain_def_chal_average$min_infection_strength
+# 
+# conf_assay_strain_def_chal_average$range_turbidity <- conf_assay_strain_def_chal_average$max_turbidity - 
+#   conf_assay_strain_def_chal_average$min_turbidity
+# 
+# conf_assay_strain_def_chal_average$range_plaque_size <- conf_assay_strain_def_chal_average$max_plaque_size - 
+#   conf_assay_strain_def_chal_average$min_plaque_size
+# 
+# conf_assay_strain_def_chal_average$range_plaques <- conf_assay_strain_def_chal_average$max_plaques - 
+#   conf_assay_strain_def_chal_average$min_plaques
+# 
+# conf_assay_strain_def_chal_average$range_four_factors <- conf_assay_strain_def_chal_average$max_four_factors - 
+#   conf_assay_strain_def_chal_average$min_four_factors
 
 conf_assay_strain_def_chal_average$range_rank6 <- conf_assay_strain_def_chal_average$max_rank6 - 
   conf_assay_strain_def_chal_average$min_rank6
 
-conf_assay_strain_def_chal_average$range_infection_strength <- as.factor(conf_assay_strain_def_chal_average$range_infection_strength)
-conf_assay_strain_def_chal_average$range_turbidity <- as.factor(conf_assay_strain_def_chal_average$range_turbidity)
-conf_assay_strain_def_chal_average$range_plaque_size <- as.factor(conf_assay_strain_def_chal_average$range_plaque_size)
-conf_assay_strain_def_chal_average$range_plaques <- as.factor(conf_assay_strain_def_chal_average$range_plaques)
-conf_assay_strain_def_chal_average$range_four_factors <- as.factor(conf_assay_strain_def_chal_average$range_four_factors)
+
+
+
+# conf_assay_strain_def_chal_average$range_infection_strength <- as.factor(conf_assay_strain_def_chal_average$range_infection_strength)
+# conf_assay_strain_def_chal_average$range_turbidity <- as.factor(conf_assay_strain_def_chal_average$range_turbidity)
+# conf_assay_strain_def_chal_average$range_plaque_size <- as.factor(conf_assay_strain_def_chal_average$range_plaque_size)
+# conf_assay_strain_def_chal_average$range_plaques <- as.factor(conf_assay_strain_def_chal_average$range_plaques)
+# conf_assay_strain_def_chal_average$range_four_factors <- as.factor(conf_assay_strain_def_chal_average$range_four_factors)
+
+
+
 conf_assay_strain_def_chal_average$range_rank6 <- as.factor(conf_assay_strain_def_chal_average$range_rank6)
 
 #Create table of immunity data metadata that will be added back to the averaged assay_strain_defending_challenging data
@@ -1494,21 +1571,27 @@ conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
                                             by.y="phage1_phage2")
 
 #Match the gene distance data. Many comparisons will not be matched
-conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
-                                            repressor_distance_data,
-                                            by.x="defending_challenging",
-                                            by.y="phage1_phage2",
-                                            all.x=TRUE)
-conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
-                                            portal_distance_data,
-                                            by.x="defending_challenging",
-                                            by.y="phage1_phage2",
-                                            all.x=TRUE)
-conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
-                                            recb_distance_data,
-                                            by.x="defending_challenging",
-                                            by.y="phage1_phage2",
-                                            all.x=TRUE)
+
+
+#TODO remove
+# conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
+#                                             repressor_distance_data,
+#                                             by.x="defending_challenging",
+#                                             by.y="phage1_phage2",
+#                                             all.x=TRUE)
+# conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
+#                                             portal_distance_data,
+#                                             by.x="defending_challenging",
+#                                             by.y="phage1_phage2",
+#                                             all.x=TRUE)
+# conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
+#                                             recb_distance_data,
+#                                             by.x="defending_challenging",
+#                                             by.y="phage1_phage2",
+#                                             all.x=TRUE)
+
+
+
 conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
                                             repressor336_distance_data,
                                             by.x="defending_challenging",
@@ -1609,33 +1692,46 @@ write.table(conf_assay_strain_def_chal_average,
 
 
 #Map averages back to main immunity table, subtract average from original values, then plot histogram of differences to show how reliable the dataset is
+
 conf_assay_strain_def_chal_average_reduced <- subset(conf_assay_strain_def_chal_average,
                                                      select = c("assay_strain_defending_challenging",
-                                                                "averaged_infection_strength",
-                                                                "averaged_turbidity",
-                                                                "averaged_plaque_size",
-                                                                "averaged_plaques",
-                                                                "averaged_four_factors",
                                                                 "averaged_rank6",
-                                                                "min_infection_strength",
-                                                                "min_turbidity",
-                                                                "min_plaque_size",
-                                                                "min_plaques",
-                                                                "min_four_factors",
                                                                 "min_rank6",
-                                                                "max_infection_strength",
-                                                                "max_turbidity",
-                                                                "max_plaque_size",
-                                                                "max_plaques",
-                                                                "max_four_factors",
                                                                 "max_rank6",
-                                                                "range_infection_strength",
-                                                                "range_turbidity",
-                                                                "range_plaque_size",
-                                                                "range_plaques",
-                                                                "range_four_factors",
                                                                 "range_rank6",
                                                                 "frequency"))
+
+
+
+
+#TODO remove
+# conf_assay_strain_def_chal_average_reduced <- subset(conf_assay_strain_def_chal_average,
+#                                                      select = c("assay_strain_defending_challenging",
+#                                                                 "averaged_infection_strength",
+#                                                                 "averaged_turbidity",
+#                                                                 "averaged_plaque_size",
+#                                                                 "averaged_plaques",
+#                                                                 "averaged_four_factors",
+#                                                                 "averaged_rank6",
+#                                                                 "min_infection_strength",
+#                                                                 "min_turbidity",
+#                                                                 "min_plaque_size",
+#                                                                 "min_plaques",
+#                                                                 "min_four_factors",
+#                                                                 "min_rank6",
+#                                                                 "max_infection_strength",
+#                                                                 "max_turbidity",
+#                                                                 "max_plaque_size",
+#                                                                 "max_plaques",
+#                                                                 "max_four_factors",
+#                                                                 "max_rank6",
+#                                                                 "range_infection_strength",
+#                                                                 "range_turbidity",
+#                                                                 "range_plaque_size",
+#                                                                 "range_plaques",
+#                                                                 "range_four_factors",
+#                                                                 "range_rank6",
+#                                                                 "frequency"))
 
 
 
@@ -1661,20 +1757,20 @@ main_immunity_data <- merge(main_immunity_data,conf_assay_strain_def_chal_averag
 
 
 
-main_immunity_data$assay_strain_averaged_infection_strength_diff <- as.numeric(as.character(main_immunity_data$scored_infection_strength)) - 
-  as.numeric(as.character(main_immunity_data$assay_strain_averaged_infection_strength))
-
-main_immunity_data$assay_strain_averaged_turbidity_diff <- as.numeric(as.character(main_immunity_data$scored_turbidity)) - 
-  as.numeric(as.character(main_immunity_data$assay_strain_averaged_turbidity))
-
-main_immunity_data$assay_strain_averaged_plaque_size_diff <- as.numeric(as.character(main_immunity_data$scored_plaque_size)) - 
-  as.numeric(as.character(main_immunity_data$assay_strain_averaged_plaque_size))
-
-main_immunity_data$assay_strain_averaged_plaques_diff <- as.numeric(as.character(main_immunity_data$scored_plaques)) - 
-  as.numeric(as.character(main_immunity_data$assay_strain_averaged_plaques))
-
-main_immunity_data$assay_strain_averaged_four_factors_diff <- as.numeric(as.character(main_immunity_data$scored_four_factors)) - 
-  as.numeric(as.character(main_immunity_data$assay_strain_averaged_four_factors))
+# main_immunity_data$assay_strain_averaged_infection_strength_diff <- as.numeric(as.character(main_immunity_data$scored_infection_strength)) - 
+#   as.numeric(as.character(main_immunity_data$assay_strain_averaged_infection_strength))
+# 
+# main_immunity_data$assay_strain_averaged_turbidity_diff <- as.numeric(as.character(main_immunity_data$scored_turbidity)) - 
+#   as.numeric(as.character(main_immunity_data$assay_strain_averaged_turbidity))
+# 
+# main_immunity_data$assay_strain_averaged_plaque_size_diff <- as.numeric(as.character(main_immunity_data$scored_plaque_size)) - 
+#   as.numeric(as.character(main_immunity_data$assay_strain_averaged_plaque_size))
+# 
+# main_immunity_data$assay_strain_averaged_plaques_diff <- as.numeric(as.character(main_immunity_data$scored_plaques)) - 
+#   as.numeric(as.character(main_immunity_data$assay_strain_averaged_plaques))
+# 
+# main_immunity_data$assay_strain_averaged_four_factors_diff <- as.numeric(as.character(main_immunity_data$scored_four_factors)) - 
+#   as.numeric(as.character(main_immunity_data$assay_strain_averaged_four_factors))
 
 main_immunity_data$assay_strain_averaged_rank6_diff <- as.numeric(as.character(main_immunity_data$rank6)) - 
   as.numeric(as.character(main_immunity_data$assay_strain_averaged_rank6))
@@ -1696,7 +1792,10 @@ main_immunity_data_assay_strain_reduced <- subset(main_immunity_data,
 
 
 
-
+conf_assay_strain_def_chal_average$frequency <- as.numeric(as.character(conf_assay_strain_def_chal_average$frequency))
+conf_assay_strain_def_chal_average$frequency2 <- ifelse(conf_assay_strain_def_chal_average$frequency > 10,11,conf_assay_strain_def_chal_average$frequency)
+conf_assay_strain_def_chal_average$frequency <- as.factor(conf_assay_strain_def_chal_average$frequency)
+conf_assay_strain_def_chal_average$frequency2 <- as.factor(conf_assay_strain_def_chal_average$frequency2)
 
 
 
@@ -1713,21 +1812,15 @@ main_immunity_data_assay_strain_reduced <- subset(main_immunity_data,
 #Plots
 setwd("~/scratch/immunity_analysis/output/")
 
-conf_assay_strain_def_chal_average$frequency <- as.numeric(as.character(conf_assay_strain_def_chal_average$frequency))
-conf_assay_strain_def_chal_average$frequency2 <- ifelse(conf_assay_strain_def_chal_average$frequency > 10,11,conf_assay_strain_def_chal_average$frequency)
-conf_assay_strain_def_chal_average$frequency <- as.factor(conf_assay_strain_def_chal_average$frequency)
-conf_assay_strain_def_chal_average$frequency2 <- as.factor(conf_assay_strain_def_chal_average$frequency2)
+plot_bargraph2(conf_assay_strain_def_chal_average,
+               "frequency",
+               c(0,800),
+               "conf_assay_strain_def_chal_ave_frequency.pdf")
 
-
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average$frequency),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,800))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_frequency.pdf')
-dev.off()
-
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average$frequency2),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,800))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_frequency_adjusted.pdf')
-dev.off()
+plot_bargraph2(conf_assay_strain_def_chal_average,
+               "frequency2",
+               c(0,800),
+               "conf_assay_strain_def_chal_ave_frequency_adjusted.pdf")
 
 
 
@@ -1736,10 +1829,10 @@ dev.off()
 #As of 1/17/2019, 48% of unique comparisons has > 1 replicate 
 
 
-par(mar=c(4,8,8,4))
-barplot(summary(conf_assay_strain_def_chal_average$range_rank6),col="black",ann=FALSE,main=NULL,las=1,ylim=c(0,1200))
-dev.copy(pdf,'conf_assay_strain_def_chal_ave_rank6_range.pdf')
-dev.off()
+plot_bargraph2(conf_assay_strain_def_chal_average,
+               "range_rank6",
+               c(0,1200),
+               "conf_assay_strain_def_chal_ave_rank6_range.pdf")
 #As of 11/16/2018, 92% of unique comparisons with > 1 replicate have a score range of < 2.
 
 
@@ -2713,13 +2806,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "defending_cluster"
 # "defending_subcluster"
 # "defending_size"
-# "defending_status"
-# "defending_author"
-# "defending_datelastmodified"
-# "defending_mode_approx_80_percent"
-# "defending_network005_interaction_tally"
-# "defending_network005_group"
-# "defending_network005_group_tally"
 # "defending_lysogen_type"
 # "defending_pham_integrase"
 # "defending_pham_para"
@@ -2727,7 +2813,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "defending_parent"
 # "defending_cluster_a_functional_repressor_predicted"
 # "defending_cluster_a_temperate_empirical"
-# "defending_maxgcdgap_all"
 # "defending_repressor_hth_domain_sequence"
 # "defending_repressor_length_full"
 # "defending_repressor_length_nterm"
@@ -2737,13 +2822,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "challenging_cluster"
 # "challenging_subcluster"
 # "challenging_size"
-# "challenging_status"
-# "challenging_author"
-# "challenging_datelastmodified"
-# "challenging_mode_approx_80_percent"
-# "challenging_network005_interaction_tally"
-# "challenging_network005_group"
-# "challenging_network005_group_tally"
 # "challenging_lysogen_type"
 # "challenging_pham_integrase"
 # "challenging_pham_para"
@@ -2751,7 +2829,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "challenging_parent"
 # "challenging_cluster_a_functional_repressor_predicted"
 # "challenging_cluster_a_temperate_empirical"
-# "challenging_maxgcdgap_all"
 # "challenging_repressor_hth_domain_sequence"
 # "challenging_repressor_length_full"
 # "challenging_repressor_length_nterm"
@@ -2789,6 +2866,24 @@ plot_bargraph1(clade2_binned_frequency,
 
 
 
+#TODO these fields have been removed
+# "defending_status"
+# "defending_author"
+# "defending_datelastmodified"
+# "defending_mode_approx_80_percent"
+# "defending_network005_interaction_tally"
+# "defending_network005_group"
+# "defending_network005_group_tally"
+# "defending_maxgcdgap_all"
+# "challenging_status"
+# "challenging_author"
+# "challenging_datelastmodified"
+# "challenging_mode_approx_80_percent"
+# "challenging_network005_interaction_tally"
+# "challenging_network005_group"
+# "challenging_network005_group_tally"
+# "challenging_maxgcdgap_all"
+
 
 
 
@@ -2804,13 +2899,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "defending_cluster"
 # "defending_subcluster"
 # "defending_size"
-# "defending_status"
-# "defending_author"
-# "defending_datelastmodified"
-# "defending_mode_approx_80_percent"
-# "defending_network005_interaction_tally"
-# "defending_network005_group"
-# "defending_network005_group_tally"
 # "defending_lysogen_type"
 # "defending_pham_integrase"
 # "defending_pham_para"
@@ -2818,7 +2906,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "defending_parent"
 # "defending_cluster_a_functional_repressor_predicted"
 # "defending_cluster_a_temperate_empirical"
-# "defending_maxgcdgap_all"
 # "defending_repressor_hth_domain_sequence"
 # "defending_repressor_length_full"
 # "defending_repressor_length_nterm"
@@ -2828,13 +2915,6 @@ plot_bargraph1(clade2_binned_frequency,
 # "challenging_cluster"
 # "challenging_subcluster"
 # "challenging_size"
-# "challenging_status"
-# "challenging_author"
-# "challenging_datelastmodified"
-# "challenging_mode_approx_80_percent"
-# "challenging_network005_interaction_tally"
-# "challenging_network005_group"
-# "challenging_network005_group_tally"
 # "challenging_lysogen_type"
 # "challenging_pham_integrase"
 # "challenging_pham_para"
@@ -2842,13 +2922,30 @@ plot_bargraph1(clade2_binned_frequency,
 # "challenging_parent"
 # "challenging_cluster_a_functional_repressor_predicted"
 # "challenging_cluster_a_temperate_empirical"
-# "challenging_maxgcdgap_all"
 # "challenging_repressor_hth_domain_sequence"
 # "challenging_repressor_length_full"
 # "challenging_repressor_length_nterm"
 # "challenging_repressor_length_cterm"
 # "challenging_pham_parb"
 
+
+#TODO fields that have been removed
+# "defending_status"
+# "defending_author"
+# "defending_datelastmodified"
+# "defending_mode_approx_80_percent"
+# "defending_network005_interaction_tally"
+# "defending_network005_group"
+# "defending_network005_group_tally"
+# "defending_maxgcdgap_all"
+# "challenging_status"
+# "challenging_author"
+# "challenging_datelastmodified"
+# "challenging_mode_approx_80_percent"
+# "challenging_network005_interaction_tally"
+# "challenging_network005_group"
+# "challenging_network005_group_tally"
+# "challenging_maxgcdgap_all"
 
 
 
@@ -2944,16 +3041,28 @@ vectored_column_names <- c("assay_strain_defending_challenging",
                            "defending_challenging",
                            "defending_phage",
                            "challenging_phage",
-                           "averaged_infection_strength",
-                           "averaged_turbidity",
-                           "averaged_plaque_size",
-                           "averaged_plaques",
-                           "averaged_four_factors",
                            "averaged_rank6",
                            "strain_defending_challenging",
                            "assay_type",
                            "frequency"
 )
+
+
+
+# vectored_column_names <- c("assay_strain_defending_challenging",
+#                            "defending_challenging",
+#                            "defending_phage",
+#                            "challenging_phage",
+#                            "averaged_infection_strength",
+#                            "averaged_turbidity",
+#                            "averaged_plaque_size",
+#                            "averaged_plaques",
+#                            "averaged_four_factors",
+#                            "averaged_rank6",
+#                            "strain_defending_challenging",
+#                            "assay_type",
+#                            "frequency"
+# )
 
 
 
@@ -2993,10 +3102,11 @@ reciprocal_data <- merge(reciprocal_data,vector2_data,by.x='vector2_defending_ch
 
 
 #Compute difference in infection profiles
-reciprocal_data$averaged_infection_strength_diff <- abs(reciprocal_data$vector1_averaged_infection_strength - reciprocal_data$vector2_averaged_infection_strength)
-reciprocal_data$averaged_four_factors_diff <- abs(reciprocal_data$vector1_averaged_four_factors - reciprocal_data$vector2_averaged_four_factors)
 reciprocal_data$averaged_rank6_diff <- abs(reciprocal_data$vector1_averaged_rank6 - reciprocal_data$vector2_averaged_rank6)
 
+
+# reciprocal_data$averaged_infection_strength_diff <- abs(reciprocal_data$vector1_averaged_infection_strength - reciprocal_data$vector2_averaged_infection_strength)
+# reciprocal_data$averaged_four_factors_diff <- abs(reciprocal_data$vector1_averaged_four_factors - reciprocal_data$vector2_averaged_four_factors)
 
 
 
@@ -3369,16 +3479,28 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
 clone_match_columns <- c('defending_challenging',
                          'defending_phage',
                          'challenging_phage',
-                         'averaged_infection_strength',
-                         'averaged_turbidity',
-                         'averaged_plaque_size',
-                         'averaged_plaques',
                          'averaged_rank6',
                          'modified_mash_distance',
                          'pham_pham_dissimilarity',
                          'repressor_cterm_mafft_dist_uncorrected',
                          'stoperator_pwd_dist_euc',
                          'gene_content_clade_compare')
+
+
+
+# clone_match_columns <- c('defending_challenging',
+#                          'defending_phage',
+#                          'challenging_phage',
+#                          'averaged_infection_strength',
+#                          'averaged_turbidity',
+#                          'averaged_plaque_size',
+#                          'averaged_plaques',
+#                          'averaged_rank6',
+#                          'modified_mash_distance',
+#                          'pham_pham_dissimilarity',
+#                          'repressor_cterm_mafft_dist_uncorrected',
+#                          'stoperator_pwd_dist_euc',
+#                          'gene_content_clade_compare')
 
 
 
@@ -3622,14 +3744,23 @@ plot_tricolor_scatter3(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterot
 l5_columns <- c('defending_challenging',
                 'defending_phage',
                 'challenging_phage',
-                'averaged_infection_strength',
-                'averaged_turbidity',
-                'averaged_plaque_size',
-                'averaged_plaques',
                 'averaged_rank6',
                 'modified_mash_distance',
                 'pham_pham_dissimilarity',
                 'repressor_cterm_mafft_dist_uncorrected')
+
+
+# l5_columns <- c('defending_challenging',
+#                 'defending_phage',
+#                 'challenging_phage',
+#                 'averaged_infection_strength',
+#                 'averaged_turbidity',
+#                 'averaged_plaque_size',
+#                 'averaged_plaques',
+#                 'averaged_rank6',
+#                 'modified_mash_distance',
+#                 'pham_pham_dissimilarity',
+#                 'repressor_cterm_mafft_dist_uncorrected')
 
 
 ave_multiY_confY_lysY <- subset(conf_assay_strain_def_chal_average,
@@ -3939,9 +4070,11 @@ mutant_analysis <- merge(mutant_data,parent_data,by.x="parent_defending_challeng
 
 #Compute difference in infection profiles
 #Mutant phenotype should be stronger than parent, so don't use absolute value
-mutant_analysis$averaged_infection_strength_diff <- mutant_analysis$mutant_averaged_infection_strength - mutant_analysis$parent_averaged_infection_strength
-mutant_analysis$averaged_four_factors_diff <- mutant_analysis$mutant_averaged_four_factors - mutant_analysis$parent_averaged_four_factors
 mutant_analysis$averaged_rank6_diff <- mutant_analysis$mutant_averaged_rank6 - mutant_analysis$parent_averaged_rank6
+
+
+# mutant_analysis$averaged_infection_strength_diff <- mutant_analysis$mutant_averaged_infection_strength - mutant_analysis$parent_averaged_infection_strength
+# mutant_analysis$averaged_four_factors_diff <- mutant_analysis$mutant_averaged_four_factors - mutant_analysis$parent_averaged_four_factors
 
 
 
@@ -3966,7 +4099,13 @@ write.table(mutant_analysis,
 
 
 #QC
-hist(mutant_analysis$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10)
+plot_hist1(mutant_analysis,
+           "averaged_rank6_diff",
+           10,
+           c(-1,4),
+           c(0,80),
+           "mutant_averaged_rank6_diff.pdf")
+
 
 
 
@@ -4181,10 +4320,10 @@ mutant_rep_analysis <- merge(mutant_data_rep,parent_data_rep,by.x="parent_defend
 
 #Compute difference in infection profiles
 #Mutant phenotype should be stronger than parent, so don't use absolute value
-mutant_rep_analysis$averaged_infection_strength_diff <- mutant_rep_analysis$mutant_averaged_infection_strength - mutant_rep_analysis$parent_averaged_infection_strength
-mutant_rep_analysis$averaged_four_factors_diff <- mutant_rep_analysis$mutant_averaged_four_factors - mutant_rep_analysis$parent_averaged_four_factors
 mutant_rep_analysis$averaged_rank6_diff <- mutant_rep_analysis$mutant_averaged_rank6 - mutant_rep_analysis$parent_averaged_rank6
 
+# mutant_rep_analysis$averaged_infection_strength_diff <- mutant_rep_analysis$mutant_averaged_infection_strength - mutant_rep_analysis$parent_averaged_infection_strength
+# mutant_rep_analysis$averaged_four_factors_diff <- mutant_rep_analysis$mutant_averaged_four_factors - mutant_rep_analysis$parent_averaged_four_factors
 
 
 
@@ -4296,11 +4435,7 @@ distance_metrics <- subset(distance_metrics,distance_metrics$alpha_ordered == TR
 
 
 #Match the genome/gene distance data. Many comparisons will not be matched
-
 distance_metrics <- merge(distance_metrics,genomic_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
-distance_metrics <- merge(distance_metrics,repressor_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
-distance_metrics <- merge(distance_metrics,portal_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
-distance_metrics <- merge(distance_metrics,recb_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 distance_metrics <- merge(distance_metrics,repressor336_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 distance_metrics <- merge(distance_metrics,cas4311_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 distance_metrics <- merge(distance_metrics,endovii306_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
@@ -4309,6 +4444,11 @@ distance_metrics <- merge(distance_metrics,portal311_distance_data,by.x="phage1_
 distance_metrics <- merge(distance_metrics,stoperator_pwm_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 distance_metrics <- merge(distance_metrics,immunity_correlation_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 
+
+#TODO remove
+# distance_metrics <- merge(distance_metrics,repressor_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
+# distance_metrics <- merge(distance_metrics,portal_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
+# distance_metrics <- merge(distance_metrics,recb_distance_data,by.x="phage1_phage2",by.y="phage1_phage2",all.x=TRUE)
 
 
 
@@ -4533,21 +4673,24 @@ plot_tricolor_scatter2(clusterA_clade2,
 
 
 #Repressor size
-clusterA_clade2_myco_env_temp_rep <- subset(phage_metadata,
-                                            phage_metadata$cluster == 'A' &
-                                              phage_metadata$source == 'environment' &
-                                              phage_metadata$host == 'Mycobacterium' &
-                                              phage_metadata$cluster_a_functional_repressor_predicted == 'yes' &
-                                              phage_metadata$gene_content_clade == 'clade2')
+clusterA_subset <- subset(phage_metadata,
+                          phage_metadata$cluster == 'A' &
+                            phage_metadata$source == 'environment' &
+                            phage_metadata$host == 'Mycobacterium' &
+                            phage_metadata$cluster_a_functional_repressor_predicted == 'yes' &
+                            phage_metadata$gene_content_clade == 'clade2')
 
 
 #Fig. S1a
 par(mar=c(4,8,16,20))
-boxplot(clusterA_clade2_myco_env_temp_rep$repressor_length_full,las=1,cex.axis=2,ann=FALSE,main=NULL,outline=FALSE,ylim=c(150,250),col="light grey")
+boxplot(clusterA_subset$repressor_length_full,
+        las=1,cex.axis=2,ann=FALSE,main=NULL,outline=FALSE,ylim=c(150,250),
+        col="light grey")
 par(new=TRUE)
-stripchart(clusterA_clade2_myco_env_temp_rep$repressor_length_full,
-           vertical=TRUE,las=1,cex.axis=2,pch=16,method="jitter",cex=1,ann=FALSE,main=NULL,ylim=c(150,250))
-dev.copy(pdf,'clusterA_clade2_myco_env_temp_repFull_sizes.pdf')
+stripchart(clusterA_subset$repressor_length_full,
+           vertical=TRUE,las=1,cex.axis=2,pch=16,method="jitter",cex=1,
+           ann=FALSE,main=NULL,ylim=c(150,250))
+dev.copy(pdf,"clusterA_subset_repFull_sizes.pdf")
 dev.off()
 
 
