@@ -177,7 +177,8 @@ plot_tricolor_scatter1 <- function(table1,
                                   x_data,
                                   y_data,
                                   x_range,
-                                  y_range){
+                                  y_range,
+                                  filename){
   
   #For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
@@ -215,6 +216,8 @@ plot_tricolor_scatter1 <- function(table1,
        pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=x_range,ylim=y_range,col="black")
   abline(0,1)
   
+  dev.copy(pdf,filename)
+  dev.off()
   
 }
 
@@ -226,7 +229,8 @@ plot_tricolor_scatter2 <- function(table1,
                                    x_data,
                                    y_data,
                                    x_range,
-                                   y_range){
+                                   y_range,
+                                   filename){
   
   #For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
@@ -263,6 +267,8 @@ plot_tricolor_scatter2 <- function(table1,
        table3[,y_data],
        xlim=x_range,ylim=y_range,pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
   
+  dev.copy(pdf,filename)
+  dev.off()
   
   
   lm_gcd <- lm(table1[,x_data] ~ table1[,y_data],data = table1)
@@ -287,7 +293,8 @@ plot_tricolor_scatter3 <- function(table1,
                                    x_data,
                                    y_data,
                                    x_range,
-                                   y_range){
+                                   y_range,
+                                   filename){
   
   #For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
@@ -325,6 +332,10 @@ plot_tricolor_scatter3 <- function(table1,
        xlim=x_range,ylim=y_range,pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
   abline(h=0)
   
+  dev.copy(pdf,filename)
+  dev.off()
+  
+  
   
   lm_gcd <- lm(table1[,x_data] ~ table1[,y_data],data = table1)
   summary(lm_gcd)
@@ -346,7 +357,8 @@ plot_bicolor_scatter1 <- function(table1,
                                   x_data,
                                   y_data,
                                   x_range,
-                                  y_range){
+                                  y_range,
+                                  filename){
   
   #For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
@@ -374,8 +386,66 @@ plot_bicolor_scatter1 <- function(table1,
        table2[,y_data],
        xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
   
+  dev.copy(pdf,filename)
+  dev.off()
+  
   
 }
+
+
+
+
+
+
+#Plot to compare genome metrics with abline
+plot_bicolor_scatter2 <- function(table1,
+                                  table2,
+                                  x_data,
+                                  y_data,
+                                  x_range,
+                                  y_range,
+                                  filename){
+  
+  #For each table, remove all rows with missing values.
+  table1 <- subset(table1,select = c(x_data,y_data))
+  table1 <- na.omit(table1)
+  
+  table2 <- subset(table2,select = c(x_data,y_data))
+  table2 <- na.omit(table2)
+  
+  
+  #For each table, report number of data points plotted.
+  print(paste("Number of data points in first table: ",nrow(table1)))
+  print(paste("Columns plotted in first table: ",names(table1)))
+  
+  print(paste("Number of data pointsin second table: ",nrow(table2)))
+  print(paste("Columns plotted in first table: ",names(table2)))
+  
+  
+  #Plot data
+  par(mar=c(4,8,8,4))
+  plot(table1[,x_data],
+       table1[,y_data],
+       xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
+  par(new=TRUE)
+  plot(table2[,x_data],
+       table2[,y_data],
+       xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
+  abline(0,1)
+  dev.copy(pdf,filename)
+  dev.off()
+  
+  
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1133,13 +1203,13 @@ main_immunity_data <- merge(main_immunity_data,stoperator_pwm_data,by.x="defendi
 
 
 
-#TODO in progress
+#TODO in progress - I no longer use tfbs88 data, so can probably delete this.
 #Match stoperator site prediction data. Contains site tallies at five score thresholds (80, 85, 90, 95, 1), 
 #actino1319 = between 248 PWMs and all 325 actino1319 Cluster A genomes
 #actino1321 = between 264 PWMs and all 327 actino1321 Cluster A genomes
 #TODO: update stoperator prediction data for phiTM1 and phiTM33, now in actino1321
 #Need to keep all rows. phiTM41 and phiTM6 PWMs are not in the stoperator data, so this data would be lost otherwise. 
-main_immunity_data <- merge(main_immunity_data,stoperator_tally,by.x="defending_challenging",by.y="tfbs88_motif_target",all.x=TRUE)
+#main_immunity_data <- merge(main_immunity_data,stoperator_tally,by.x="defending_challenging",by.y="tfbs88_motif_target",all.x=TRUE)
 
 
 
@@ -1469,11 +1539,15 @@ conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
                                             by.x="defending_challenging",
                                             by.y="phage1_phage2",
                                             all.x=TRUE)
-conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
-                                            stoperator_tally,
-                                            by.x="defending_challenging",
-                                            by.y="tfbs88_motif_target",
-                                            all.x=TRUE)
+
+
+
+#TODO can probably delete
+# conf_assay_strain_def_chal_average <- merge(conf_assay_strain_def_chal_average,
+#                                             stoperator_tally,
+#                                             by.x="defending_challenging",
+#                                             by.y="tfbs88_motif_target",
+#                                             all.x=TRUE)
 
 
 
@@ -1798,36 +1872,6 @@ immunity_correlation_data <- merge(defending_cor_reduced_df,
 
 
 
-
-
-
-
-#TODO I think this can be deleted
-#Immunity correlation analysis
-setwd("~/scratch/immunity_analysis/output/")
-
-# par(mar=c(4,8,4,4))
-# plot(immunity_correlation_data$defending_cor_reduced,
-#      immunity_correlation_data$challenging_cor_reduced,
-#      xlim=c(-1,1),ylim=c(-1,1),pch=1,cex=3,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# abline(0,1)
-# dev.copy(pdf,'immunity_correlation_reduced.pdf')
-# dev.off()
-# 
-# 
-# lm_immunity_cor_reduced <- lm(defending_cor_reduced ~
-#                                 challenging_cor_reduced,
-#                               data = immunity_correlation_data)
-# summary(lm_immunity_cor_reduced)
-
-
-
-
-
-
-
-
-
 ###Compute immunity profile correlation coefficients above in progress
 
 
@@ -1914,8 +1958,6 @@ conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic <- subset(c
 
 
 
-
-
 #Fig. 5b sub-panel 1
 plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic,
                        conf_assay_strain_ave_lys_multi_env_temp_rep_interclade,
@@ -1923,29 +1965,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "repressor_full_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repFull.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_full_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_full_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repFull.pdf')
-# dev.off()
-
-
-
-
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repFull.pdf")
 
 
 #Fig. 5b sub-panel 2
@@ -1955,25 +1976,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_stopEuc.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_stopEuc.pdf')
-# dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_stopEuc.pdf")
 
 
 
@@ -1987,25 +1991,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "pham_pham_dissimilarity",
                        "averaged_rank6",
                        c(0,1),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_gcd.pdf')
-dev.off()
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$pham_pham_dissimilarity,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$pham_pham_dissimilarity,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$pham_pham_dissimilarity,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_gcd.pdf')
-# dev.off()
-
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_gcd.pdf")
 
 
 
@@ -2019,27 +2006,9 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "modified_mash_distance",
                        "averaged_rank6",
                        c(0,0.5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_mash.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_mash.pdf")
 
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$modified_mash_distance,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,0.5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$modified_mash_distance,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,0.5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$modified_mash_distance,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,0.5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_mash.pdf')
-# dev.off()
-#
 
 
 
@@ -2050,25 +2019,11 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "portal_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_portal.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_portal.pdf")
 
 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$portal_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$portal_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$portal_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_portal.pdf')
-# dev.off()
+
 
 
 
@@ -2079,25 +2034,9 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "dnapol_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_dnapol.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_dnapol.pdf")
 
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$dnapol_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$dnapol_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$dnapol_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_dnapol.pdf')
-# dev.off()
 
 
 
@@ -2112,27 +2051,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "endovii_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_endovii.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$endovii_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$endovii_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$endovii_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_endovii.pdf')
-# dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_endovii.pdf")
 
 
 
@@ -2147,26 +2067,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "cas4_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_cas4.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$cas4_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$cas4_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$cas4_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_cas4.pdf')
-# dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_cas4.pdf")
 
 
 
@@ -2177,26 +2079,10 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "repressor_nterm_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repNterm.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repNterm.pdf")
 
 
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_nterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_nterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_nterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repNterm.pdf')
-# dev.off()
 
 
 
@@ -2207,25 +2093,10 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "repressor_hth_compare",
                        "averaged_rank6",
                        c(0,10),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repHTH.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repHTH.pdf")
 
 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_hth_compare,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,10),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_hth_compare,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,10),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_hth_compare,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,10),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repHTH.pdf')
-# dev.off()
 
 
 #Fig. 9b sub-panel 3
@@ -2235,99 +2106,10 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
                        "repressor_cterm_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repCterm.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repCterm.pdf")
 
 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$repressor_cterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$repressor_cterm_mafft_dist_uncorrected,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_interclade$averaged_rank6,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_subtypes_by_repCterm.pdf')
-# dev.off()
-
-
-
-
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic) +
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic) +
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_interclade)
-
-
-
-
-
-
-# #Summary - plot correlations
-# lm_gcd <- lm(averaged_rank6 ~
-#                repressor_full_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                cas4_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                endovii_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                dnapol_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                portal_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                stoperator_pwd_dist_euc,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                repressor_cterm_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                pham_pham_dissimilarity,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                modified_mash_distance,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                repressor_nterm_mafft_dist_uncorrected,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
-# 
-# lm_gcd <- lm(averaged_rank6 ~
-#                repressor_hth_compare,
-#              data = conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic)
-# summary(lm_gcd)
 
 
 
@@ -2534,32 +2316,10 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPh
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_stopEuc_subtypes.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_stopEuc_subtypes.pdf")
 
 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_heterotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_homotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntSame_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_homotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_intraclade2_heterotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamSame_interclade)
 
 
 
@@ -2573,28 +2333,9 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPh
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_stopEuc_subtypes.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_stopEuc_subtypes.pdf")
 
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntIntDiff_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_intraclade2)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntInt_IntPhamDiff_interclade)
 
 
 
@@ -2607,39 +2348,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_int
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
-# 
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_intraclade2)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_interclade)
-# 
-# 
-
-
-
-
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_IntExtra_stopEuc_subtypes.pdf")
 
 
 
@@ -2657,36 +2367,9 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_P
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_stopEuc_subtypes.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_stopEuc_subtypes.pdf")
 
-
-# 
-# 
-# 
-# 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_heterotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_heterotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_homotypic$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_homotypic$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="black")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraSame_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_homotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_intraclade2_heterotypic)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBSame_interclade)
 
 
 
@@ -2702,33 +2385,11 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_P
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_stopEuc_subtypes.pdf')
-dev.off()
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_stopEuc_subtypes.pdf")
 
 
 
-# 
-# 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtraDiff_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_intraclade2)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraExtra_ParBDiff_interclade)
-# 
-
-#
 
 
 
@@ -2740,44 +2401,8 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_int
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-
-# 
-# par(mar=c(4,8,16,4))
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$stoperator_pwd_dist_euc,
-#      conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade$averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays:
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2) + 
-#   nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
-# 
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_intraclade2)
-# nrow(conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_interclade)
-# 
-# 
-
-
-
-
-
-
-
-
-
-
-
+                       c(0,6),
+                       "conf_assay_strain_ave_lys_multi_env_temp_rep_ExtraInt_stopEuc_subtypes.pdf")
 
 
 
@@ -3000,17 +2625,7 @@ plot_bargraph1(clade2_binned_frequency,
                "defending_percent",
                "bin",
                c(0,1),
-               'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_defending.pdf')
-
-# par(mar=c(4,8,4,4))
-# barplot(clade2_binned_frequency$defending_percent,
-#         names.arg=clade2_binned_frequency$bin,
-#         col='black',ylim=c(0,1))
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_defending.pdf')
-# dev.off()
-
-
-
+               "conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_defending.pdf")
 
 
 #Fig. S4a sub-panel 2
@@ -3018,20 +2633,7 @@ plot_bargraph1(clade2_binned_frequency,
                "challenging_percent",
                "bin",
                c(0,1),
-               'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_challenging.pdf')
-
-
-
-
-# par(mar=c(4,8,4,4))
-# barplot(clade2_binned_frequency$challenging_percent,
-#         names.arg=clade2_binned_frequency$bin,
-#         col='black',ylim=c(0,1))
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_challenging.pdf')
-# dev.off()
-
-
-
+               "conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_challenging.pdf")
 
 
 
@@ -3040,20 +2642,7 @@ plot_bargraph1(clade2_binned_frequency,
                "total_assays_percent",
                "bin",
                c(0,0.3),
-               'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_total.pdf')
-
-
-# par(mar=c(4,8,4,4))
-# barplot(clade2_binned_frequency$total_assays_percent,
-#         names.arg=clade2_binned_frequency$bin,
-#         col='black',ylim=c(0,0.3))
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_total.pdf')
-# dev.off()
-
-
-
-
-
+               "conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_total.pdf")
 
 
 #Fig. S4b sub-panel 1
@@ -3061,16 +2650,7 @@ plot_bargraph1(clade2_binned_frequency,
                "inter_subcluster_percent",
                "bin",
                c(0,0.5),
-               'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intersubcluster.pdf')
-
-# par(mar=c(4,8,4,4))
-# barplot(clade2_binned_frequency$inter_subcluster_percent,
-#         names.arg=clade2_binned_frequency$bin,
-#         col='black',ylim=c(0,0.50))
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intersubcluster.pdf')
-# dev.off()
-
-
+               "conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intersubcluster.pdf")
 
 
 
@@ -3079,16 +2659,7 @@ plot_bargraph1(clade2_binned_frequency,
                "intra_subcluster_percent",
                "bin",
                c(0,0.5),
-               'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intrasubcluster.pdf')
-
-
-# par(mar=c(4,8,4,4))
-# barplot(clade2_binned_frequency$intra_subcluster_percent,
-#         names.arg=clade2_binned_frequency$bin,
-#         col='black',ylim=c(0,0.50))
-# dev.copy(pdf,'conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intrasubcluster.pdf')
-# dev.off()
-
+               "conf_assay_strain_ave_lys_multi_clade2_env_binned_percent_intrasubcluster.pdf")
 
 
 
@@ -3573,17 +3144,10 @@ plot_bargraph1(reciprocal_binned_freq,
                "freq_percent",
                "bin",
                c(0,0.5),
-               'reciprocal_unique_env_binned_freq_percent.pdf')
+               "reciprocal_unique_env_binned_freq_percent.pdf")
 
 
 
-
-# par(mar=c(4,8,4,4))
-# barplot(reciprocal_binned_freq$freq_percent,
-#         names.arg=reciprocal_binned_freq$bin,
-#         col='black',ylim=c(0,0.5))
-# dev.copy(pdf,'reciprocal_unique_env_binned_freq_percent.pdf')
-# dev.off()
 
 #Binning above
 
@@ -3641,30 +3205,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "repressor_full_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repFull.pdf')
-dev.off()
-
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_full_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$repressor_full_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repFull.pdf')
-# dev.off()
-
-
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_repFull.pdf")
 
 
 
@@ -3675,25 +3217,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6_diff",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_stopEuc.pdf')
-dev.off()
-
-
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$stoperator_pwd_dist_euc,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$stoperator_pwd_dist_euc,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_stopEuc.pdf')
-# dev.off()
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_stopEuc.pdf")
 
 
 
@@ -3707,28 +3232,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "pham_pham_dissimilarity",
                        "averaged_rank6_diff",
                        c(0,1),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_gcd.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$pham_pham_dissimilarity,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$pham_pham_dissimilarity,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,1),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_gcd.pdf')
-# dev.off()
-
-
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_gcd.pdf")
 
 
 #Fig. S5a sub-panel 4
@@ -3738,27 +3243,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "modified_mash_distance",
                        "averaged_rank6_diff",
                        c(0,0.5),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_mash.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$modified_mash_distance,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,0.5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$modified_mash_distance,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,0.5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_mash.pdf')
-# dev.off()
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_mash.pdf")
 
 
 
@@ -3769,24 +3255,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "portal_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_portal.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$portal_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$portal_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_portal.pdf')
-# dev.off()
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_portal.pdf")
 
 
 
@@ -3799,25 +3269,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "dnapol_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_dnapol.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$dnapol_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$dnapol_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_dnapol.pdf')
-# dev.off()
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_dnapol.pdf")
 
 
 #Fig. S5d sub-panel 7
@@ -3827,25 +3280,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "endovii_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_endovii.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$endovii_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$endovii_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_endovii.pdf')
-# dev.off()
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_endovii.pdf")
 
 
 
@@ -3857,30 +3293,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "cas4_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_cas4.pdf')
-dev.off()
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$cas4_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$cas4_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_cas4.pdf')
-# dev.off()
-
-
-
-
-
-
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_cas4.pdf")
 
 
 
@@ -3891,25 +3305,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "repressor_nterm_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repNterm.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_nterm_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$repressor_nterm_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repNterm.pdf')
-# dev.off()
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_repNterm.pdf")
 
 
 
@@ -3920,21 +3317,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "repressor_hth_compare",
                        "averaged_rank6_diff",
                        c(0,10),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repHTH.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_hth_compare,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,10),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$repressor_hth_compare,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,10),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repHTH.pdf')
-# dev.off()
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_repHTH.pdf")
 
 
 
@@ -3947,40 +3331,8 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        "repressor_cterm_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
-                       c(0,6))
-dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repCterm.pdf')
-dev.off()
-
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(reciprocal_unique_envY_intraclade2_heterotypic$repressor_cterm_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_intraclade2_heterotypic$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(reciprocal_unique_envY_interclade$repressor_cterm_mafft_dist_uncorrected,
-#      reciprocal_unique_envY_interclade$averaged_rank6_diff,
-#      xlim=c(0,70),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'reciprocal_unique_envY_subtypes_by_repCterm.pdf')
-# dev.off()
-
-
-
-
-
-# #Summary - number of assays used:
-# nrow(reciprocal_unique_envY_intraclade2_heterotypic) +
-#   nrow(reciprocal_unique_envY_interclade)
-# nrow(reciprocal_unique_envY_intraclade2_heterotypic)
-# nrow(reciprocal_unique_envY_interclade)
-# 
-# #
-
-
-
-
+                       c(0,6),
+                       "reciprocal_unique_envY_subtypes_by_repCterm.pdf")
 
 
 
@@ -3988,6 +3340,16 @@ dev.off()
 
 
 ###Reciprocal analysis above
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4185,53 +3547,8 @@ plot_tricolor_scatter1(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_
                        ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic,
                        "lys_averaged_rank6","clone_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6compare_subtypes.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,8,4))
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$lys_averaged_rank6,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade$lys_averaged_rank6,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_interclade$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# par(new=TRUE)
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic$lys_averaged_rank6,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-# abline(0,1)
-# dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6compare_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays used:
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic) +
-#   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade) +
-#   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
-
-
-
-
+                       c(0,6),
+                       "ave_multi_conf_env_rep_emp_lys_clone_matched_rank6compare_subtypes.pdf")
 
 
 
@@ -4242,40 +3559,8 @@ plot_tricolor_scatter1(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterot
                        ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic,
                        "lys_averaged_rank6","clone_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$lys_averaged_rank6,
-#      ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(ave_multi_conf_envN_lys_clone_matched_interclade$lys_averaged_rank6,
-#      ave_multi_conf_envN_lys_clone_matched_interclade$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# par(new=TRUE)
-# plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic$lys_averaged_rank6,
-#      ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic$clone_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="black")
-# abline(0,1)
-# dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6compare_subtypes.pdf')
-# dev.off()
-# 
-# 
-# #Summary - number of assays used:
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
-#   nrow(ave_multi_conf_envN_lys_clone_matched_interclade) +
-#   nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic)
-# nrow(ave_multi_conf_envN_lys_clone_matched_interclade)
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
-
-#
-
-
-
-
+                       c(0,6),
+                       "ave_multi_conf_envN_lys_clone_matched_rank6compare_subtypes.pdf")
 
 
 
@@ -4287,52 +3572,8 @@ plot_tricolor_scatter3(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_
                        "lys_stoperator_pwd_dist_euc",
                        "rank6_diff",
                        c(0,5),
-                       c(-4,4))
-dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="red")
-# par(new=TRUE)
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_interclade$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="grey")
-# par(new=TRUE)
-# plot(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-# abline(h=0)
-# dev.copy (pdf,'ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary - number of assays used:
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic) +
-#   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade) +
-#   nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_heterotypic)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_interclade)
-# nrow(ave_multi_conf_env_rep_emp_lys_clone_matched_intraclade2_homotypic)
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                       c(-4,4),
+                       "ave_multi_conf_env_rep_emp_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf")
 
 
 
@@ -4343,36 +3584,9 @@ plot_tricolor_scatter3(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterot
                        "lys_stoperator_pwd_dist_euc",
                        "rank6_diff",
                        c(0,5),
-                       c(-4,4))
-dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf')
-dev.off()
+                       c(-4,4),
+                       "ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf")
 
-
-
-# par(mar=c(4,8,16,4))
-# plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="red")
-# par(new=TRUE)
-# plot(ave_multi_conf_envN_lys_clone_matched_interclade$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_envN_lys_clone_matched_interclade$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="grey")
-# par(new=TRUE)
-# plot(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic$lys_stoperator_pwd_dist_euc,
-#      ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic$rank6_diff,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(-4,4),col="black")
-# abline(h=0)
-# dev.copy (pdf,'ave_multi_conf_envN_lys_clone_matched_rank6diff_vs_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# 
-# #Summary - number of assays used:
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
-#   nrow(ave_multi_conf_envN_lys_clone_matched_interclade) +
-#   nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic)
-# nrow(ave_multi_conf_envN_lys_clone_matched_interclade)
-# nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_homotypic)
 
 
 
@@ -4508,35 +3722,8 @@ plot_tricolor_scatter2(chal_l5_assays_clade2_phitm1heterotypic,
                        "l5_stoperator_pwd_dist_euc",
                        "phitm1_averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy (pdf,'chal_phitm1_rank6_vs_stopEuc_by_subtype.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(chal_l5_assays_clade2_phitm1heterotypic$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_clade2_phitm1heterotypic$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# par(mar=c(4,8,16,4))
-# plot(chal_l5_assays_clade2_phitm1homotypic$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_clade2_phitm1homotypic$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="black")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_nonclade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="grey")
-# dev.copy (pdf,'chal_phitm1_rank6_vs_stopEuc_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
-# nrow(chal_l5_assays_clade2_phitm1homotypic)
-# nrow(chal_l5_assays_clade2_phitm1heterotypic)
+                       c(0,6),
+                       "chal_phitm1_rank6_vs_stopEuc_by_subtype.pdf")
 
 
 
@@ -4552,27 +3739,9 @@ plot_tricolor_scatter2(chal_l5_assays_clade2,
                        "l5_stoperator_pwd_dist_euc",
                        "phitm4_averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy (pdf,'chal_phitm4_rank6_vs_stopEuc_by_subtype.pdf')
-dev.off()
+                       c(0,6),
+                       "chal_phitm4_rank6_vs_stopEuc_by_subtype.pdf")
 
-
-# par(mar=c(4,8,16,4))
-# plot(chal_l5_assays_clade2$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_clade2$phitm4_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_stoperator_pwd_dist_euc,
-#      chal_l5_assays_nonclade2$phitm4_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,5),ylim=c(0,6),col="grey")
-# dev.copy (pdf,'chal_phitm4_rank6_vs_stopEuc_by_subtype.pdf')
-# dev.off()
-# 
-# 
-# #Summary - number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm4_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm4_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm4_averaged_rank6)))
 
 
 
@@ -4586,27 +3755,10 @@ plot_tricolor_scatter1(chal_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm41_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'chal_l5_phitm41_rank6_by_subtype.pdf')
-dev.off()
+                       c(0,6),
+                       "chal_l5_phitm41_rank6_by_subtype.pdf")
 
 
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays_clade2$l5_averaged_rank6,
-#      chal_l5_assays_clade2$phitm41_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-#      chal_l5_assays_nonclade2$phitm41_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'chal_l5_phitm41_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm41_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm41_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm41_averaged_rank6)))
 
 
 
@@ -4618,33 +3770,8 @@ plot_tricolor_scatter1(chal_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm6_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'chal_l5_phitm6_rank6_by_subtype.pdf')
-dev.off()
-
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays_clade2$l5_averaged_rank6,
-#      chal_l5_assays_clade2$phitm6_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-#      chal_l5_assays_nonclade2$phitm6_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'chal_l5_phitm6_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm6_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm6_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm6_averaged_rank6)))
-
-
-
-
+                       c(0,6),
+                       "chal_l5_phitm6_rank6_by_subtype.pdf")
 
 
 
@@ -4656,36 +3783,8 @@ plot_tricolor_scatter1(chal_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm1_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'chal_l5_phitm1_rank6_by_subtype.pdf')
-dev.off()
-
-# par(mar=c(4,8,8,4))
-# plot(chal_l5_assays_clade2$l5_averaged_rank6,
-#      chal_l5_assays_clade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(chal_l5_assays_nonclade2$l5_averaged_rank6,
-#      chal_l5_assays_nonclade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'chal_l5_phitm1_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(chal_l5_assays,!is.na(chal_l5_assays$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_clade2,!is.na(chal_l5_assays_clade2$phitm1_averaged_rank6)))
-# nrow(subset(chal_l5_assays_nonclade2,!is.na(chal_l5_assays_nonclade2$phitm1_averaged_rank6)))
-# 
-
-
-
-
-
-
-
-
-
+                       c(0,6),
+                       "chal_l5_phitm1_rank6_by_subtype.pdf")
 
 
 
@@ -4753,27 +3852,8 @@ plot_tricolor_scatter1(def_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm41_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'def_l5_phitm41_rank6_by_subtype.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,8,4))
-# plot(def_l5_assays_clade2$l5_averaged_rank6,
-#      def_l5_assays_clade2$phitm41_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(def_l5_assays_nonclade2$l5_averaged_rank6,
-#      def_l5_assays_nonclade2$phitm41_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'def_l5_phitm41_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm41_averaged_rank6)))
-# nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm41_averaged_rank6)))
-# nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm41_averaged_rank6)))
+                       c(0,6),
+                       "def_l5_phitm41_rank6_by_subtype.pdf")
 
 
 
@@ -4785,27 +3865,9 @@ plot_tricolor_scatter1(def_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm6_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'def_l5_phitm6_rank6_by_subtype.pdf')
-dev.off()
+                       c(0,6),
+                       "def_l5_phitm6_rank6_by_subtype.pdf")
 
-
-# par(mar=c(4,8,8,4))
-# plot(def_l5_assays_clade2$l5_averaged_rank6,
-#      def_l5_assays_clade2$phitm6_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(def_l5_assays_nonclade2$l5_averaged_rank6,
-#      def_l5_assays_nonclade2$phitm6_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'def_l5_phitm6_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm6_averaged_rank6)))
-# nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm6_averaged_rank6)))
-# nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm6_averaged_rank6)))
 
 
 
@@ -4817,27 +3879,9 @@ plot_tricolor_scatter1(def_l5_assays_clade2,
                        "l5_averaged_rank6",
                        "phitm1_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy (pdf,'def_l5_phitm1_rank6_by_subtype.pdf')
-dev.off()
+                       c(0,6),
+                       "def_l5_phitm1_rank6_by_subtype.pdf")
 
-
-# par(mar=c(4,8,8,4))
-# plot(def_l5_assays_clade2$l5_averaged_rank6,
-#      def_l5_assays_clade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="red")
-# par(new=TRUE)
-# plot(def_l5_assays_nonclade2$l5_averaged_rank6,
-#      def_l5_assays_nonclade2$phitm1_averaged_rank6,
-#      pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,xlim=c(0,6),ylim=c(0,6),col="grey")
-# abline(0,1)
-# dev.copy (pdf,'def_l5_phitm1_rank6_by_subtype.pdf')
-# dev.off()
-# 
-# #Summary - number of assays
-# nrow(subset(def_l5_assays,!is.na(def_l5_assays$phitm1_averaged_rank6)))
-# nrow(subset(def_l5_assays_clade2,!is.na(def_l5_assays_clade2$phitm1_averaged_rank6)))
-# nrow(subset(def_l5_assays_nonclade2,!is.na(def_l5_assays_nonclade2$phitm1_averaged_rank6)))
 
 
 
@@ -4921,7 +3965,7 @@ write.table(mutant_analysis,
 
 
 
-#TODO Not published but valuable
+#QC
 hist(mutant_analysis$averaged_rank6_diff,col='black',ann=FALSE,main=NULL,las=1,breaks=10)
 
 
@@ -5045,26 +4089,8 @@ plot_tricolor_scatter1(escape_mutant_analysis_intraclade2,
                        "parent_averaged_rank6",
                        "mutant_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy(pdf,'ave_rank6_parent_vs_mutant_subtypes.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,8,4))
-# plot(escape_mutant_analysis_intraclade2$parent_averaged_rank6,
-#      escape_mutant_analysis_intraclade2$mutant_averaged_rank6,
-#      xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_interclade$parent_averaged_rank6,
-#      escape_mutant_analysis_interclade$mutant_averaged_rank6,
-#      xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# abline(0,1)
-# dev.copy(pdf,'ave_rank6_parent_vs_mutant_subtypes.pdf')
-# dev.off()
-
-
-
-
+                       c(0,6),
+                       "ave_rank6_parent_vs_mutant_subtypes.pdf")
 
 
 
@@ -5075,30 +4101,8 @@ plot_tricolor_scatter2(escape_mutant_analysis_intraclade2_parentheterotypic,
                        "parent_stoperator_pwd_dist_euc",
                        "parent_averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'ave_rank6_parent_vs_parent_stopEuc.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(escape_mutant_analysis_intraclade2_parentheterotypic$parent_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2_parentheterotypic$parent_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_intraclade2_parenthomotypic$parent_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2_parenthomotypic$parent_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_interclade$parent_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_interclade$parent_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# dev.copy(pdf,'ave_rank6_parent_vs_parent_stopEuc.pdf')
-# dev.off()
-
-
-
-
+                       c(0,6),
+                       "ave_rank6_parent_vs_parent_stopEuc.pdf")
 
 
 
@@ -5110,72 +4114,24 @@ plot_tricolor_scatter2(escape_mutant_analysis_intraclade2_mutantheterotypic,
                        "mutant_stoperator_pwd_dist_euc",
                        "mutant_averaged_rank6",
                        c(0,5),
-                       c(0,6))
-dev.copy(pdf,'ave_rank6_mutant_vs_mutant_stopEuc.pdf')
-dev.off()
-
-
-# par(mar=c(4,8,16,4))
-# plot(escape_mutant_analysis_intraclade2_mutantheterotypic$mutant_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2_mutantheterotypic$mutant_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_intraclade2_mutanthomotypic$mutant_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_intraclade2_mutanthomotypic$mutant_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='black')
-# par(new=TRUE)
-# plot(escape_mutant_analysis_interclade$mutant_stoperator_pwd_dist_euc,
-#      escape_mutant_analysis_interclade$mutant_averaged_rank6,
-#      xlim=c(0,5),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# dev.copy(pdf,'ave_rank6_mutant_vs_mutant_stopEuc.pdf')
-# dev.off()
-
-
-
-
-#Summary - number of assays used:
-# nrow(escape_mutant_analysis_intraclade2) +
-#   nrow(escape_mutant_analysis_interclade)
-# nrow(escape_mutant_analysis_intraclade2)
-# nrow(escape_mutant_analysis_interclade)
-# nrow(escape_mutant_analysis_intraclade2_parentheterotypic)
-# nrow(escape_mutant_analysis_intraclade2_parenthomotypic)
-# nrow(escape_mutant_analysis_intraclade2_mutantheterotypic)
-# nrow(escape_mutant_analysis_intraclade2_mutanthomotypic)
-# 
-# 
-# 
-# 
-# 
-# 
-# #Summary - correlations
-# lm_stop_vs_averank6_parent <- lm(parent_averaged_rank6 ~
-#                                    parent_stoperator_pwd_dist_euc,
-#                                  data = escape_mutant_analysis_intraclade2_parentheterotypic)
-# summary(lm_stop_vs_averank6_parent)
-# 
-# lm_stop_vs_averank6_mutant <- lm(mutant_averaged_rank6 ~
-#                                    mutant_stoperator_pwd_dist_euc,
-#                                  data = escape_mutant_analysis_intraclade2_mutantheterotypic)
-# summary(lm_stop_vs_averank6_mutant)
-
+                       c(0,6),
+                       "ave_rank6_mutant_vs_mutant_stopEuc.pdf")
 
 
 
 
 
 #TODO do I need this variables?
-escape_mutant_analysis_repN <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage != "phitm41")
-escape_mutant_analysis_repY <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage == "phitm41")
-
-
-escape_mutant_analysis_repN_intraclade2 <- subset(escape_mutant_analysis_repN,escape_mutant_analysis_repN$parent_gene_content_clade_compare == "clade2")
-escape_mutant_analysis_repN_interclade <- subset(escape_mutant_analysis_repN,escape_mutant_analysis_repN$parent_gene_content_clade_compare == "different")
-
-
-escape_mutant_analysis_repY_intraclade2 <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "clade2")
-escape_mutant_analysis_repY_interclade <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "different")
-
+# escape_mutant_analysis_repN <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage != "phitm41")
+# escape_mutant_analysis_repY <- subset(escape_mutant_analysis,escape_mutant_analysis$mutant_challenging_phage == "phitm41")
+# 
+# 
+# escape_mutant_analysis_repN_intraclade2 <- subset(escape_mutant_analysis_repN,escape_mutant_analysis_repN$parent_gene_content_clade_compare == "clade2")
+# escape_mutant_analysis_repN_interclade <- subset(escape_mutant_analysis_repN,escape_mutant_analysis_repN$parent_gene_content_clade_compare == "different")
+# 
+# 
+# escape_mutant_analysis_repY_intraclade2 <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "clade2")
+# escape_mutant_analysis_repY_interclade <- subset(escape_mutant_analysis_repY,escape_mutant_analysis_repY$parent_gene_content_clade_compare == "different")
 
 
 
@@ -5270,7 +4226,7 @@ escape_mutant_rep_analysis_intraclade2_empty <- subset(escape_mutant_rep_analysi
                                                  escape_mutant_rep_analysis$parent_gene_content_clade_compare == "empty")
 
 
-
+#QC
 nrow(escape_mutant_rep_analysis_intraclade2_empty)
 
 
@@ -5283,29 +4239,10 @@ plot_tricolor_scatter1(escape_mutant_rep_analysis_intraclade2,
                        "parent_averaged_rank6",
                        "mutant_averaged_rank6",
                        c(0,6),
-                       c(0,6))
-dev.copy(pdf,'ave_rank6_parent_vs_mutant_rep_subtypes.pdf')
-dev.off()
+                       c(0,6),
+                       "ave_rank6_parent_vs_mutant_rep_subtypes.pdf")
 
 
-
-# par(mar=c(4,8,8,4))
-# plot(escape_mutant_rep_analysis_intraclade2$parent_averaged_rank6,
-#      escape_mutant_rep_analysis_intraclade2$mutant_averaged_rank6,
-#      xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='red')
-# par(new=TRUE)
-# plot(escape_mutant_rep_analysis_interclade$parent_averaged_rank6,
-#      escape_mutant_rep_analysis_interclade$mutant_averaged_rank6,
-#      xlim=c(0,6),ylim=c(0,6),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col='grey')
-# abline(0,1)
-# dev.copy(pdf,'ave_rank6_parent_vs_mutant_rep_subtypes.pdf')
-# dev.off()
-# 
-# #Summary -number of assays used:
-# nrow(escape_mutant_rep_analysis_intraclade2) +
-#   nrow(escape_mutant_rep_analysis_interclade)
-# nrow(escape_mutant_rep_analysis_intraclade2)
-# nrow(escape_mutant_rep_analysis_interclade)
 
 
 
@@ -5486,6 +4423,7 @@ clusterA_clade2_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_co
 #Used as a dummy table for plotting. "empty" is not a valid clade_comparison.
 clusterA_clade2_empty <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "empty")
 
+#QC
 nrow(clusterA_clade2_empty)
 
 
@@ -5513,26 +4451,8 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "modified_mash_distance",
                       "pham_pham_dissimilarity",
                       c(0,0.5),
-                      c(0,1))
-dev.copy(pdf,'mash_vs_gcd_clade2.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(clusterA_clade2_diff$modified_mash_distance,
-#      clusterA_clade2_diff$pham_pham_dissimilarity,
-#      xlim=c(0,0.5),ylim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# par(new=TRUE)
-# plot(clusterA_clade2$modified_mash_distance,
-#      clusterA_clade2$pham_pham_dissimilarity,
-#      xlim=c(0,0.5),ylim=c(0,1),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# dev.copy(pdf,'mash_vs_gcd_clade2.pdf')
-# dev.off()
-
-
-
-
+                      c(0,1),
+                      "mash_vs_gcd_clade2.pdf")
 
 
 #Fig. 2d
@@ -5541,30 +4461,9 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "pham_pham_dissimilarity",
                       "repressor_full_mafft_dist_uncorrected",
                       c(0,1),
-                      c(0,70))
-dev.copy(pdf,'gcd_vs_repFullMafUn_clade2.pdf')
-dev.off()
+                      c(0,70),
+                      "gcd_vs_repFullMafUn_clade2.pdf")
 
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-#      clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
-#      xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# par(new=TRUE)
-# plot(clusterA_clade2$pham_pham_dissimilarity,
-#      clusterA_clade2$repressor_full_mafft_dist_uncorrected,
-#      xlim=c(0,1),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# dev.copy(pdf,'gcd_vs_repFullMafUn_clade2.pdf')
-# dev.off()
-# 
-# #Summary -number of comparisons:
-# nrow(clusterA_clade2_diff) +
-#   nrow(clusterA_clade2)
-# nrow(clusterA_clade2_diff)
-# nrow(clusterA_clade2)
-#
 
 
 
@@ -5576,22 +4475,9 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "pham_pham_dissimilarity",
                       "stoperator_pwd_dist_euc",
                       c(0,1),
-                      c(0,5))
-dev.copy(pdf,'gcd_vs_stopEuc_clade2.pdf')
-dev.off()
+                      c(0,5),
+                      "gcd_vs_stopEuc_clade2.pdf")
 
-
-
-# par(mar=c(4,8,8,4))
-# plot(clusterA_clade2_diff$pham_pham_dissimilarity,
-#      clusterA_clade2_diff$stoperator_pwd_dist_euc,
-#      xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# par(new=TRUE)
-# plot(clusterA_clade2$pham_pham_dissimilarity,
-#      clusterA_clade2$stoperator_pwd_dist_euc,
-#      xlim=c(0,1),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# dev.copy(pdf,'gcd_vs_stopEuc_clade2.pdf')
-# dev.off()
 
 
 
@@ -5602,55 +4488,19 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "repressor_full_mafft_dist_uncorrected",
                       "stoperator_pwd_dist_euc",
                       c(0,70),
-                      c(0,5))
-dev.copy(pdf,'repMafftUn_vs_stopEuc_clade2.pdf')
-dev.off()
+                      c(0,5),
+                      "repMafftUn_vs_stopEuc_clade2.pdf")
 
-
-
-# par(mar=c(4,8,8,4))
-# plot(clusterA_clade2_diff$repressor_full_mafft_dist_uncorrected,
-#      clusterA_clade2_diff$stoperator_pwd_dist_euc,
-#      xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# par(new=TRUE)
-# plot(clusterA_clade2$repressor_full_mafft_dist_uncorrected,
-#      clusterA_clade2$stoperator_pwd_dist_euc,
-#      xlim=c(0,70),ylim=c(0,5),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# dev.copy(pdf,'repMafftUn_vs_stopEuc_clade2.pdf')
-# dev.off()
 
 
 #Fig. 9a
-plot_bicolor_scatter1(clusterA_clade2_diff,
+plot_bicolor_scatter2(clusterA_clade2_diff,
                       clusterA_clade2,
                       "repressor_nterm_mafft_dist_uncorrected",
                       "repressor_cterm_mafft_dist_uncorrected",
                       c(0,70),
-                      c(0,70))
-abline(0,1)
-dev.copy(pdf,'repNtermMafftUn_vs_repCtermMaffUn_clade2.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,8,4))
-# plot(clusterA_clade2_diff$repressor_nterm_mafft_dist_uncorrected,
-#      clusterA_clade2_diff$repressor_cterm_mafft_dist_uncorrected,
-#      xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# par(new=TRUE)
-# plot(clusterA_clade2$repressor_nterm_mafft_dist_uncorrected,
-#      clusterA_clade2$repressor_cterm_mafft_dist_uncorrected,
-#      xlim=c(0,70),ylim=c(0,70),pch=1,cex=1,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# abline(0,1)
-# dev.copy(pdf,'repNtermMafftUn_vs_repCtermMaffUn_clade2.pdf')
-# dev.off()
-
-
-
-
-
-
-
+                      c(0,70),
+                      "repNtermMafftUn_vs_repCtermMaffUn_clade2.pdf")
 
 
 
@@ -5661,37 +4511,8 @@ plot_tricolor_scatter2(clusterA_clade2,
                        "stoperator_pwd_dist_euc",
                        "challenging_cor_reduced",
                        c(0,5),
-                       c(-1,1))
-dev.copy(pdf,'clusterA_clade2_challCor_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-# 
-# par(mar=c(4,8,16,4))
-# plot(clusterA_clade2$stoperator_pwd_dist_euc,
-#      clusterA_clade2$challenging_cor_reduced,
-#      xlim=c(0,5),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(clusterA_clade2_diff$stoperator_pwd_dist_euc,
-#      clusterA_clade2_diff$challenging_cor_reduced,
-#      xlim=c(0,5),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'clusterA_clade2_challCor_vs_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# #Summary -number of comparisons:
-# nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$challenging_cor_reduced))) +
-#   nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$challenging_cor_reduced)))
-# nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$challenging_cor_reduced)))
-# nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$challenging_cor_reduced)))
-
-
-
-
-
-
-
-
+                       c(-1,1),
+                       "clusterA_clade2_challCor_vs_stopEuc_subtypes.pdf")
 
 
 
@@ -5703,52 +4524,8 @@ plot_tricolor_scatter2(clusterA_clade2,
                        "stoperator_pwd_dist_euc",
                        "defending_cor_reduced",
                        c(0,5),
-                       c(-1,1))
-dev.copy(pdf,'clusterA_clade2_defCor_vs_stopEuc_subtypes.pdf')
-dev.off()
-
-
-
-# par(mar=c(4,8,16,4))
-# plot(clusterA_clade2$stoperator_pwd_dist_euc,
-#      clusterA_clade2$defending_cor_reduced,
-#      xlim=c(0,5),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="red")
-# par(new=TRUE)
-# plot(clusterA_clade2_diff$stoperator_pwd_dist_euc,
-#      clusterA_clade2_diff$defending_cor_reduced,
-#      xlim=c(0,5),ylim=c(-1,1),pch=16,cex=2,cex.axis=2,ann=FALSE,main=NULL,las=1,col="grey")
-# dev.copy(pdf,'clusterA_clade2_defCor_vs_stopEuc_subtypes.pdf')
-# dev.off()
-# 
-# 
-# #Summary -number of comparisons:
-# nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$defending_cor_reduced))) +
-#   nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$defending_cor_reduced)))
-# nrow(subset(clusterA_clade2,!is.na(clusterA_clade2$defending_cor_reduced)))
-# nrow(subset(clusterA_clade2_diff,!is.na(clusterA_clade2_diff$defending_cor_reduced)))
-# 
-# 
-# 
-# 
-# 
-# 
-# #Summary - correlations
-# lm_immunity_def_cor_reduced <- lm(defending_cor_reduced ~
-#                                     stoperator_pwd_dist_euc,
-#                               data = clusterA_clade2)
-# summary(lm_immunity_def_cor_reduced)
-# 
-# lm_immunity_chal_cor_reduced <- lm(challenging_cor_reduced ~
-#                                     stoperator_pwd_dist_euc,
-#                                   data = clusterA_clade2)
-# summary(lm_immunity_chal_cor_reduced)
-
-
-
-
-
-
-
+                       c(-1,1),
+                       "clusterA_clade2_defCor_vs_stopEuc_subtypes.pdf")
 
 
 
