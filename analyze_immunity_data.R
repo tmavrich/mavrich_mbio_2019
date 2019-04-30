@@ -21,10 +21,11 @@ library(stringdist)
 
 
 
-### Set working directory
-# The current code assumes a specific working directory structure.
 
-setwd("~/scratch/immunity_analysis/input/")
+### Set working directory variables.
+# The current code assumes a specific working directory structure.
+DIR_INPUT = "~/scratch/immunity_analysis/input/"
+DIR_OUTPUT = "~/scratch/immunity_analysis/output/"
 
 
 
@@ -39,54 +40,93 @@ setwd("~/scratch/immunity_analysis/input/")
 # Compute comparison fields
 compute_comparisons <- function(table){
 
-  table$subcluster_compare <- ifelse(table$defending_subcluster == table$challenging_subcluster,
-                                     as.character(table$defending_subcluster),"different")
+  table$subcluster_compare <-
+    ifelse(
+      table$defending_subcluster == table$challenging_subcluster,
+      as.character(table$defending_subcluster),
+      "different"
+    )
   
-  table$source_compare <- ifelse(table$defending_source==table$challenging_source,
-                                        as.character(table$defending_source),
-                                        "different")
+  table$source_compare <-
+    ifelse(
+      table$defending_source == table$challenging_source,
+      as.character(table$defending_source),
+      "different"
+    )
   
-  table$temperate_empirical_compare <- ifelse(table$defending_cluster_a_temperate_empirical==table$challenging_cluster_a_temperate_empirical,
-                                                     as.character(table$defending_cluster_a_temperate_empirical),
-                                                     "different")
+  table$temperate_empirical_compare <-
+    ifelse(
+      table$defending_temperate_empirical == table$challenging_temperate_empirical,
+      as.character(table$defending_temperate_empirical),
+      "different"
+    )
   
-  table$functional_repressor_compare <- ifelse(table$defending_cluster_a_functional_repressor_predicted==table$challenging_cluster_a_functional_repressor_predicted,
-                                                     as.character(table$defending_cluster_a_functional_repressor_predicted),
-                                                     "different")
+  table$functional_repressor_compare <-
+    ifelse(
+      table$defending_repressor_functional == table$challenging_repressor_functional,
+      as.character(table$defending_repressor_functional),
+      "different"
+    )
   
-  table$lysogen_type_compare <- ifelse(table$defending_lysogen_type==table$challenging_lysogen_type,
-                                              as.character(table$defending_lysogen_type),
-                                              "different")
+  table$lysogen_type_compare <-
+    ifelse(
+      table$defending_lysogen_type == table$challenging_lysogen_type,
+      as.character(table$defending_lysogen_type),
+      "different"
+    )
   
-  table$integrase_compare <- ifelse(table$defending_pham_integrase==table$challenging_pham_integrase,
-                                           as.character(table$defending_pham_integrase),
-                                           "different")
-
-  table$parb_compare <- ifelse(table$defending_pham_parb==table$challenging_pham_parb,
-                                    as.character(table$defending_pham_parb),
-                                    "different")
+  table$integrase_compare <-
+    ifelse(
+      table$defending_pham_integrase == table$challenging_pham_integrase,
+      as.character(table$defending_pham_integrase),
+      "different"
+    )
   
-  table$repressor_hth_compare <- stringdist(as.character(table$defending_repressor_hth_domain_sequence),
-                                            as.character(table$challenging_repressor_hth_domain_sequence),
-                                            method="hamming")
+  table$parb_compare <-
+    ifelse(
+      table$defending_pham_parb == table$challenging_pham_parb,
+      as.character(table$defending_pham_parb),
+      "different"
+    )
   
-  table$repressor_length_full_compare <- abs(table$defending_repressor_length_full - table$challenging_repressor_length_full)
-  table$repressor_length_nterm_compare <- abs(table$defending_repressor_length_nterm - table$challenging_repressor_length_nterm)
-  table$repressor_length_cterm_compare <- abs(table$defending_repressor_length_cterm - table$challenging_repressor_length_cterm)
+  table$repressor_hth_compare <-
+    stringdist(
+      as.character(table$defending_repressor_hth),
+      as.character(table$challenging_repressor_hth),
+      method = "hamming"
+    )
   
-  table$gene_content_clade_compare <- ifelse(table$defending_gene_content_clade==table$challenging_gene_content_clade,
-                               as.character(table$defending_gene_content_clade),
-                               "different")
+  table$repressor_length_full_compare <-
+    abs(table$defending_repressor_length_full - table$challenging_repressor_length_full)
+  table$repressor_length_nterm_compare <-
+    abs(
+      table$defending_repressor_length_nterm - table$challenging_repressor_length_nterm
+    )
+  table$repressor_length_cterm_compare <-
+    abs(
+      table$defending_repressor_length_cterm - table$challenging_repressor_length_cterm
+    )
+  
+  table$gene_content_clade_compare <-
+    ifelse(
+      table$defending_gene_content_clade == table$challenging_gene_content_clade,
+      as.character(table$defending_gene_content_clade),
+      "different"
+    )
   
   table$subcluster_compare <- as.factor(table$subcluster_compare)
   table$source_compare <- as.factor(table$source_compare)
-  table$temperate_empirical_compare <- as.factor(table$temperate_empirical_compare)
-  table$functional_repressor_compare <- as.factor(table$functional_repressor_compare)
-  table$lysogen_type_compare <- as.factor(table$lysogen_type_compare)
+  table$temperate_empirical_compare <-
+    as.factor(table$temperate_empirical_compare)
+  table$functional_repressor_compare <-
+    as.factor(table$functional_repressor_compare)
+  table$lysogen_type_compare <-
+    as.factor(table$lysogen_type_compare)
   table$integrase_compare <- as.factor(table$integrase_compare)
-  table$parb_compare <- as.factor(table$parb_compare)  
-  table$gene_content_clade_compare <- as.factor(table$gene_content_clade_compare)  
-
+  table$parb_compare <- as.factor(table$parb_compare)
+  table$gene_content_clade_compare <-
+    as.factor(table$gene_content_clade_compare)
+  
   return(table)
 }
 
@@ -403,30 +443,31 @@ plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
 
 ### Import datasets
 
+setwd(DIR_INPUT)
 
 
 # Expected structure of immunity data:
-# "immunity_assay_id"
+# "immunity_assay_id" (unique identifier)
 # "immunity_set"
 # "date"
 # "notebook"
 # "page"
-# "strain"
+# "strain" (systematic strain name)
 # "prophage"
 # "repressor_clone"
-# "strain_type"
+# "strain_type" (lysogen or repressor_clone)
 # "defending_phage"
 # "challenging_phage"
-# "assay_type"
+# "assay_type" (multiple_titer or single_titer)
 # "lawn_notes"
-# "lawn_reliability"
+# "lawn_reliability" (0 = unreliable; 3 = reliable)
 # "tested_titer"
-# "phage_reliability"
+# "phage_reliability" (0 = unreliable; 3 = reliable)
 # "observed_infection_strength"
 # "observed_turbidity"
 # "observed_plaque_size"
 # "observed_plaques"
-# "rank6"
+# "rank6" (systematically scored infection phenotype)
 
 immunity_data <- read.csv("immunity_data.csv",sep=",",header=TRUE)
 immunity_data$immunity_assay_id <- as.factor(immunity_data$immunity_assay_id)
@@ -437,12 +478,12 @@ immunity_data$lawn_reliability <- as.factor(immunity_data$lawn_reliability)
 immunity_data$phage_reliability <- as.factor(immunity_data$phage_reliability)
 immunity_data$rank6 <- as.factor(immunity_data$rank6)
 
-# Several fields contain 'unspecified' which can be converted to NA
-# Afterwards, re-factor
-# prophage
-# repressor_clone
-# tested_titer
-# phage_reliability
+# Several fields contain 'unspecified' which can be converted to NA and
+# then need to be re-factored:
+# "prophage"
+# "repressor_clone"
+# "tested_titer"
+# "phage_reliability"
 immunity_data[immunity_data == "Unspecified"] <- NA
 immunity_data[immunity_data == "unspecified"] <- NA
 immunity_data$prophage <- factor(immunity_data$prophage)
@@ -450,18 +491,19 @@ immunity_data$repressor_clone <- factor(immunity_data$repressor_clone)
 immunity_data$phage_reliability <- factor(immunity_data$phage_reliability)
 immunity_data$rank6 <- factor(immunity_data$rank6)
 
-#Convert titer to numeric
+# Convert titer to numeric
 immunity_data$tested_titer <- as.numeric(as.character(immunity_data$tested_titer))
 
 
-#These fields contain NA's, but these are descriptive columns so no need to conver them to Unspecified
-#observed_infection_strength
-#observed_turbidity
-#observed_plaque_size
-#observed_plaques
+# These fields contain NA's, but these are descriptive columns so no need to
+# convert them to Unspecified:
+# "observed_infection_strength"
+# "observed_turbidity"
+# "observed_plaque_size"
+# "observed_plaques"
 
 
-#Create identifiers
+# Create identifiers
 immunity_data$defending_challenging <- paste(immunity_data$defending_phage,"_",immunity_data$challenging_phage,sep="")
 immunity_data$defending_challenging <- as.factor(immunity_data$defending_challenging)
 immunity_data$assay_strain_defending_challenging <- paste(immunity_data$assay_type,
@@ -489,14 +531,19 @@ immunity_data$strain_defending_challenging <- as.factor(immunity_data$strain_def
 
 
 # TODO confirm how this data was re-generated.
-#mash genomic distance data
-#all actino1321 phages 
-#reciprocal data and self-comparison data
+# Mmash genomic distance data for all actino1321 phages, including all
+# reciprocal data and self-comparison data.
+# Data structure:
 # "phage1_phage2"
-# "modified_mash_distance"
-# "pham_pham_dissimilarity"
+# "modified_mash_distance" (whole genome nucleotide distance, nuc_dist)
+# "pham_pham_dissimilarity" (gene content dissimilarity, gcd)
 genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRUE)
 
+
+#Change column names for better readability
+names(genomic_distance_data) <- c("phage1_phage2",
+                                "nuc_dist",
+                                "gcd")
 
 
 #Use Actino1321 data, in which escape mutants have been added
@@ -506,22 +553,24 @@ genomic_distance_data <- read.csv("genomic_distance_data.csv",sep=",",header=TRU
 # "cluster"
 # "subcluster"
 # "size"
-# "lysogen_type"
+# "lysogen_type" (extrachromosomal, integration, none)
 # "pham_integrase"
 # "pham_para" (imported as int)
-# "source"
+# "source" (environment or lab)
 # "parent"
-# "cluster_a_functional_repressor_predicted"
-# "cluster_a_temperate_empirical"
-# "repressor_hth_domain_sequence"
+# "repressor_functional" (yes, no, NA; For Cluster A phages, 
+  #is the immunity repressor predicted to be functional?)
+# "temperate_empirical" (no, unknown, yes, NA; For Cluster A phages,
+  #can a lysogen be generated?)
+# "repressor_hth"
 # "repressor_length_full" (imported as factor)
 # "repressor_length_nterm" (imported as factor)
 # "repressor_length_cterm" (imported as factor)
 # "pham_parb" (imported as int)
-# "gene_content_clade"
-# "pleft_alignment_reference"
-# "immunity_repressor_alignment_reference"
-# "genome_center_alignment_reference"
+# "gene_content_clade" (clade2 = the "L5 clade")
+# "coordinate_pleft" (coordinate for manual alignment)
+# "coordinate_repressor" (coordinate for manual alignment)
+# "coordinate_genome_center" (coordinate for manual alignment)
 
 phage_metadata <- read.csv("phage_metadata.csv",sep=",",header=TRUE)
 phage_metadata$pham_para <- as.factor(phage_metadata$pham_para)
@@ -529,35 +578,49 @@ phage_metadata$pham_parb <- as.factor(phage_metadata$pham_parb)
 
 
 
+
+
+
+
 #Several fields contain variants of 'unspecified'
 #subcluster = Unspecified
 #pham_integrase = ""
-#cluster_a_functional_repressor_predicted = "not_applicable"
-#cluster_a_temperate_empirical = "not_applicable"
+#repressor_functional = "not_applicable"
+#temperate_empirical = "not_applicable"
 
 phage_metadata[phage_metadata == "Unspecified"] <- NA
 phage_metadata[phage_metadata == "unspecified"] <- NA
 phage_metadata[phage_metadata == ""] <- NA
 phage_metadata[phage_metadata == "not_applicable"] <- NA
 phage_metadata$subcluster <- factor(phage_metadata$subcluster)
-phage_metadata$pham_integrase <- factor(phage_metadata$pham_integrase)
-phage_metadata$cluster_a_functional_repressor_predicted <- factor(phage_metadata$cluster_a_functional_repressor_predicted)
-phage_metadata$cluster_a_temperate_empirical <- factor(phage_metadata$cluster_a_temperate_empirical)
-phage_metadata$gene_content_clade <- factor(phage_metadata$gene_content_clade)
-phage_metadata$repressor_length_full <- as.numeric(as.character(phage_metadata$repressor_length_full))
-phage_metadata$repressor_length_nterm <- as.numeric(as.character(phage_metadata$repressor_length_nterm))
-phage_metadata$repressor_length_cterm <- as.numeric(as.character(phage_metadata$repressor_length_cterm))
-phage_metadata$pleft_alignment_reference <- as.numeric(as.character(phage_metadata$pleft_alignment_reference))
-phage_metadata$immunity_repressor_alignment_reference <- as.numeric(as.character(phage_metadata$immunity_repressor_alignment_reference))
-phage_metadata$genome_center_alignment_reference <- as.numeric(as.character(phage_metadata$genome_center_alignment_reference))
+phage_metadata$pham_integrase <-
+  factor(phage_metadata$pham_integrase)
+phage_metadata$repressor_functional <-
+  factor(phage_metadata$repressor_functional)
+phage_metadata$temperate_empirical <-
+  factor(phage_metadata$temperate_empirical)
+phage_metadata$gene_content_clade <-
+  factor(phage_metadata$gene_content_clade)
+phage_metadata$repressor_length_full <-
+  as.numeric(as.character(phage_metadata$repressor_length_full))
+phage_metadata$repressor_length_nterm <-
+  as.numeric(as.character(phage_metadata$repressor_length_nterm))
+phage_metadata$repressor_length_cterm <-
+  as.numeric(as.character(phage_metadata$repressor_length_cterm))
+phage_metadata$coordinate_pleft <-
+  as.numeric(as.character(phage_metadata$coordinate_pleft))
+phage_metadata$coordinate_repressor <-
+  as.numeric(as.character(phage_metadata$coordinate_repressor))
+phage_metadata$coordinate_genome_center <-
+  as.numeric(as.character(phage_metadata$coordinate_genome_center))
 
 
 
-#actino1321 cluster a repressor protein distance data
-#reciprocal data and self-comparison data
-#336 repressors
-#no data for escape mutants
-#no data for parent phages that are natural mutants (e.g. d29, misswhite, jeffabunny) with no repressor annotated
+# Aactino1321 Immunity Repressor protein distance data, including
+# reciprocal data and self-comparison data for 336 homologs. There is no
+# data for escape mutant or for parent phages that are natural mutants
+# (e.g. d29, misswhite, jeffabunny) with no repressor annotated.
+# Data structure:
 # "phage1_phage2"
 # "repressor_full_mafft_phyml_dist"
 # "repressor_nterm_mafft_phyml_dist"
@@ -565,60 +628,77 @@ phage_metadata$genome_center_alignment_reference <- as.numeric(as.character(phag
 # "repressor_full_mafft_dist_uncorrected"
 # "repressor_nterm_mafft_dist_uncorrected"
 # "repressor_cterm_mafft_dist_uncorrected"
-repressor336_distance_data <- read.csv("repressor336_distance_data.csv",sep=",",header=TRUE)
+repressor336_distance_data <-
+  read.csv("repressor336_distance_data.csv",
+           sep = ",",
+           header = TRUE)
 
 
-#actino1321 cas4 protein mafft distance data
-#reciprocal data and self-comparison data
-#only Cluster A parent phages used in immunity assays
-#no data for escape mutants
+# Aactino1321 Cas4-family protein mafft distance data, including
+# reciprocal data and self-comparison data for 311 homologs present 
+# in Cluster A parent phages. There is no data for escape mutants.
+# Data structure:
 # "phage1_phage2"
 # "cas4_mafft_dist_uncorrected"
-cas4311_distance_data <- read.csv("cas4311_distance_data.csv",sep=",",header=TRUE)
+cas4311_distance_data <-
+  read.csv("cas4311_distance_data.csv",
+           sep = ",",
+           header = TRUE)
 
 
-#actino1321 endoVII protein mafft distance data
-#reciprocal data and self-comparison data
-#only Cluster A parent phages used in immunity assays
-#no data for escape mutants
+# Actino1321 EndoVII protein mafft distance data, including
+# reciprocal data and self-comparison data for 306 homologs present
+# in Cluster A parent phages. There is not data escape mutants.
+# Data structure:
 # "phage1_phage2"
 # "endovii_mafft_dist_uncorrected"
-endovii306_distance_data <- read.csv("endovii306_distance_data.csv",sep=",",header=TRUE)
+endovii306_distance_data <-
+  read.csv("endovii306_distance_data.csv",
+           sep = ",",
+           header = TRUE)
 
 
-#actino1321 DNA Polymerase protein mafft distance data
-#reciprocal data and self-comparison data
-#only Cluster A parent phages used in immunity assays
-#no data for escape mutants
+# Actino1321 DNA Polymerase protein mafft distance data, including 
+# reciprocal data and self-comparison data for 311 homologs present
+# in Cluster A parent phages. There is no data for escape mutants.
+# Data structure:
 # "phage1_phage2"
 # "dnapol_mafft_dist_uncorrected"
-dnapol311_distance_data <- read.csv("dnapol311_distance_data.csv",sep=",",header=TRUE)
+dnapol311_distance_data <-
+  read.csv("dnapol311_distance_data.csv",
+           sep = ",",
+           header = TRUE)
 
 
-#actino1321 portal protein mafft distance data
-#reciprocal data and self-comparison data
-#only Cluster A parent phages used in immunity assays
-#no data for escape mutants
+# Actino1321 Portal protein mafft distance data, including
+# reciprocal data and self-comparison data for 311 homologs present
+# in Cluster A parent phages. There is no data for escape mutants.
+# Data structure:
 # "phage1_phage2"
 # "portal_mafft_dist_uncorrected"
-portal311_distance_data <- read.csv("portal311_distance_data.csv",sep=",",header=TRUE)
+portal311_distance_data <-
+  read.csv("portal311_distance_data.csv",
+           sep = ",",
+           header = TRUE)
 
 
-#stoperator327 position weight matrix data
-#contains reciprocal data and self-comparison data
-#stoperator248 = does NOT contain data for escape mutants
-#stoperator264 = DOES contain data for escape mutants
-#stoperator327 = contains stoperator data for all 327 Cluster A phage genomes (including escape mutants) from actino1321 database
-#phage1
-#phage2
-#dist_pearson
-#dist_euc
+# Position weight matrix distance data, including reciprocal data
+# and self-comparison data for all 327 Cluster A phage genomes 
+# (including escape mutants) from Actino1321 database.
+# Data structure:
+# "phage1"
+# "phage2"
+# "dist_pearson" (Pairwise distance using Pearson metric)
+# "dist_euc" (Pairwise distance using Euclidean metric)
 stoperator_pwm_data <- read.csv("stoperator_pwm_data.csv",sep=",",header=TRUE)
+
 stoperator_pwm_data$phage1_phage2 <- paste(stoperator_pwm_data$phage1,
                                            "_",
                                            stoperator_pwm_data$phage2,
                                            sep="")
-stoperator_pwm_data$phage1_phage2 <- as.factor(stoperator_pwm_data$phage1_phage2)
+stoperator_pwm_data$phage1_phage2 <-
+  as.factor(stoperator_pwm_data$phage1_phage2)
+
 names(stoperator_pwm_data) <- c("phage1",
                                 "phage2",
                                 "stoperator_pwd_dist_pearson",
@@ -631,382 +711,123 @@ stoperator_pwm_data <- subset(stoperator_pwm_data,
                                        "stoperator_pwd_dist_euc"))
 
 
-#stoperator327 site prediction
-#contains list of prediction stoperator sites in all 327 Cluster A genomes from actino1321, for each of the 327 stoperaotr PWMs
-#An 88% relative score cutoff was used
-# "tfbs88_stop_site_id"
-# "tfbs88_motif_target"
-# "tfbs88_stoperator_target"
-# "tfbs88_stoperator_motif"
-# "tfbs88_site_start" (regardless of orientation)
-# "tfbs88_site_end" (regardless of orientation)
-# "tfbs88_site_strand2"
-# "tfbs88_site_seq"
-# "tfbs88_site_abs_score"
-# "tfbs88_site_rel_score"
-# "tfbs88_site_self"
-stoperator_site_predictions88 <- read.csv("stoperator_site_predictions.csv",sep=",",header=TRUE)
 
+#TODO stoperator site analysis was removed from here. Confirm code still works fine.
 
 
-#actino1319 = 248 PWMs * 325 target genomes = 80,600 combinations. This list only contains 80,165 levels.
-#This likely reflects the fact that target genomes may not contain any predicted sites.
 
-#actino1321 = 264 PWMs * 327 target genomes = 86,238 combinations. 
-#actino1321 = 327 PWMs * 327 target genomes = 106,929 combinations. This list only contains 58690 levels.
-#This likely reflects that for TFBS88 dataset, since I have removed a lot of low quality data (<88% score),
-#not all target genomes contain predicted sites for all PWMs.
-
-
-all_levels <- expand.grid(tfbs88_stoperator_target = as.character(levels(stoperator_site_predictions88$tfbs88_stoperator_target)),
-                          tfbs88_stoperator_motif = as.character(levels(stoperator_site_predictions88$tfbs88_stoperator_motif)))
-
-all_levels$tfbs88_motif_target <- paste(all_levels$tfbs88_stoperator_motif,
-                                 "_",
-                                 all_levels$tfbs88_stoperator_target,
-                                 sep="")
-
-all_levels$tfbs88_motif_target <- as.factor(all_levels$tfbs88_motif_target)
-
-
-#Re-factor tfbs88_motif_target using all possible pairwise combinations.
-#This will enable quantification for all combinations, even those that are missing.
-stoperator_site_predictions88$tfbs88_motif_target <- factor(stoperator_site_predictions88$tfbs88_motif_target,levels(all_levels$tfbs88_motif_target))
-
-
-
-
-
-
-
-#Match up phage metadata to stoperator site data
-metadata_to_match <- phage_metadata
-
-names(metadata_to_match) <- paste("target_",names(metadata_to_match),sep="")
-
-stoperator_site_predictions88 <- merge(stoperator_site_predictions88,
-                                       metadata_to_match,
-                                       by.x = "tfbs88_stoperator_target",
-                                       by.y = "target_phageid",
-                                       all.x=TRUE)
-
-
-
-#Compute the middle coordinate for each stoperator.
-#The start is always the smaller of the two coordinates, so just add 6.
-stoperator_site_predictions88$tfbs88_site_middle <- stoperator_site_predictions88$tfbs88_site_start + 6
-
-
-#Now compute how far each site is from the alignment point
-stoperator_site_predictions88$site_pleft_dist <- stoperator_site_predictions88$tfbs88_site_middle - stoperator_site_predictions88$target_pleft_alignment_reference
-stoperator_site_predictions88$site_right_end_dist <- stoperator_site_predictions88$tfbs88_site_middle - stoperator_site_predictions88$target_size
-stoperator_site_predictions88$site_rep_dist <- stoperator_site_predictions88$tfbs88_site_middle - stoperator_site_predictions88$target_immunity_repressor_alignment_reference
-stoperator_site_predictions88$site_center_dist <- stoperator_site_predictions88$tfbs88_site_middle - stoperator_site_predictions88$target_genome_center_alignment_reference
-
-
-#Analyze distribution of sites
-
-stop88_clade2_env_self <- subset(stoperator_site_predictions88,
-                                 as.character(stoperator_site_predictions88$tfbs88_stoperator_target) == as.character(stoperator_site_predictions88$tfbs88_stoperator_motif) &
-                                   stoperator_site_predictions88$target_source == "environment" &
-                                   stoperator_site_predictions88$target_gene_content_clade == "clade2" &
-                                   stoperator_site_predictions88$target_host == "Mycobacterium")
-
-
-stop88_clade2_env_self$tfbs88_motif_target <- factor(stop88_clade2_env_self$tfbs88_motif_target)
-stop88_clade2_env_self$tfbs88_stoperator_target <- factor(stop88_clade2_env_self$tfbs88_stoperator_target)
-stop88_clade2_env_self$tfbs88_stoperator_motif <- factor(stop88_clade2_env_self$tfbs88_stoperator_motif)
-stop88_clade2_env_self$target_host <- factor(stop88_clade2_env_self$target_host)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Distance from Pleft
-setwd("~/scratch/immunity_analysis/output/")
-
-
-
-#Fig. 3b - distance from repressor
-plot_hist1(stop88_clade2_env_self,
-           "site_rep_dist",
-           2000,
-           c(-4000,1000),
-           c(0,50),
-           "stoperators_near_repressor.pdf")
-
-#Fig. 3d - distance from Pleft
-plot_hist1(stop88_clade2_env_self,
-           "site_pleft_dist",
-           2500,
-           c(-2000,500),
-           c(0,100),
-           "stoperators_near_pleft.pdf")
-
-#Summary
-nrow(subset(stop88_clade2_env_self,stop88_clade2_env_self$site_pleft_dist > -1000))/nrow(stop88_clade2_env_self)
-
-
-
-
-#Fig. S1e
-par(mar=c(4,8,4,4))
-hist(stop88_clade2_env_self$site_pleft_dist,
-     main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
-dev.copy(pdf,'stoperators_across_genome.pdf')
-dev.off()
-
-
-
-#Examine # of stoperators per genome
-stop88_clade2_env_self_freq <- as.data.frame(table(stop88_clade2_env_self$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_freq) <- c("phage","frequency")
-
-
-#Fig. S1b
-plot_hist1(stop88_clade2_env_self_freq,
-           "frequency",
-           50,
-           c(0,50),
-           c(0,15),
-           "stoperators_per_genome.pdf")
-
-
-
-
-
-
-
-
-
-
-
-
-#Site orientation
-#Tally # of stoperators on each strand of each side of genome center
-stop88_clade2_env_self_left_sites <- subset(stop88_clade2_env_self,
-                                            stop88_clade2_env_self$site_center_dist < 0)
-
-stop88_clade2_env_self_right_sites <- subset(stop88_clade2_env_self,
-                                             stop88_clade2_env_self$site_center_dist >= 0)
-
-
-
-
-stop88_clade2_env_self_left_sites_forward <- subset(stop88_clade2_env_self_left_sites,
-                                                    stop88_clade2_env_self_left_sites$tfbs88_site_strand2 == "forward")
-stop88_clade2_env_self_left_sites_reverse <- subset(stop88_clade2_env_self_left_sites,
-                                                    stop88_clade2_env_self_left_sites$tfbs88_site_strand2 == "reverse")
-
-stop88_clade2_env_self_right_sites_forward <- subset(stop88_clade2_env_self_right_sites,
-                                                     stop88_clade2_env_self_right_sites$tfbs88_site_strand2 == "forward")
-stop88_clade2_env_self_right_sites_reverse <- subset(stop88_clade2_env_self_right_sites,
-                                                     stop88_clade2_env_self_right_sites$tfbs88_site_strand2 == "reverse")
-
-
-#QC: should equal 0
-nrow(stop88_clade2_env_self) - nrow(stop88_clade2_env_self_left_sites) - nrow(stop88_clade2_env_self_right_sites)
-nrow(stop88_clade2_env_self_left_sites) - nrow(stop88_clade2_env_self_left_sites_forward) - nrow(stop88_clade2_env_self_left_sites_reverse)
-nrow(stop88_clade2_env_self_right_sites) - nrow(stop88_clade2_env_self_right_sites_forward) - nrow(stop88_clade2_env_self_right_sites_reverse)
-
-
-
-
-
-
-#Create frequency tables
-stop88_clade2_env_self_left_sites_freq <- as.data.frame(table(stop88_clade2_env_self_left_sites$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_left_sites_freq) <- c("phage","left_sites_freq")
-
-stop88_clade2_env_self_left_sites_forward_freq <- as.data.frame(table(stop88_clade2_env_self_left_sites_forward$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_left_sites_forward_freq) <- c("phage","left_sites_forward_freq")
-
-stop88_clade2_env_self_left_sites_reverse_freq <- as.data.frame(table(stop88_clade2_env_self_left_sites_reverse$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_left_sites_reverse_freq) <- c("phage","left_sites_reverse_freq")
-
-
-
-stop88_clade2_env_self_right_sites_freq <- as.data.frame(table(stop88_clade2_env_self_right_sites$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_right_sites_freq) <- c("phage","right_sites_freq")
-
-stop88_clade2_env_self_right_sites_forward_freq <- as.data.frame(table(stop88_clade2_env_self_right_sites_forward$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_right_sites_forward_freq) <- c("phage","right_sites_forward_freq")
-
-stop88_clade2_env_self_right_sites_reverse_freq <- as.data.frame(table(stop88_clade2_env_self_right_sites_reverse$tfbs88_stoperator_target))
-names(stop88_clade2_env_self_right_sites_reverse_freq) <- c("phage","right_sites_reverse_freq")
-
-
-nrow(stop88_clade2_env_self_freq)
-nrow(stop88_clade2_env_self_left_sites_freq)
-nrow(stop88_clade2_env_self_left_sites_forward_freq)
-nrow(stop88_clade2_env_self_left_sites_reverse_freq)
-nrow(stop88_clade2_env_self_right_sites_freq)
-nrow(stop88_clade2_env_self_right_sites_forward_freq)
-nrow(stop88_clade2_env_self_right_sites_reverse_freq)
-
-
-
-#Combine site tally data
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq,
-                                             stop88_clade2_env_self_left_sites_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq_summary,
-                                             stop88_clade2_env_self_left_sites_forward_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq_summary,
-                                             stop88_clade2_env_self_left_sites_reverse_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq_summary,
-                                             stop88_clade2_env_self_right_sites_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq_summary,
-                                             stop88_clade2_env_self_right_sites_forward_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-stop88_clade2_env_self_freq_summary <- merge(stop88_clade2_env_self_freq_summary,
-                                             stop88_clade2_env_self_right_sites_reverse_freq,
-                                             by.x="phage",
-                                             by.y="phage")
-
-
-#QC should equal 0
-stop88_clade2_env_self_freq_summary$check_total_sites <- stop88_clade2_env_self_freq_summary$frequency - stop88_clade2_env_self_freq_summary$right_sites_freq - stop88_clade2_env_self_freq_summary$left_sites_freq
-stop88_clade2_env_self_freq_summary$check_left_sites <- stop88_clade2_env_self_freq_summary$left_sites_freq - stop88_clade2_env_self_freq_summary$left_sites_forward_freq - stop88_clade2_env_self_freq_summary$left_sites_reverse_freq
-stop88_clade2_env_self_freq_summary$check_right_sites <- stop88_clade2_env_self_freq_summary$right_sites_freq - stop88_clade2_env_self_freq_summary$right_sites_forward_freq - stop88_clade2_env_self_freq_summary$right_sites_reverse_freq
-summary(stop88_clade2_env_self_freq_summary$check_total_sites)
-summary(stop88_clade2_env_self_freq_summary$check_left_sites)
-summary(stop88_clade2_env_self_freq_summary$check_right_sites)
-
-
-
-
-
-
-stop88_clade2_env_self_freq_summary$left_sites_percent <- stop88_clade2_env_self_freq_summary$left_sites_freq/stop88_clade2_env_self_freq_summary$frequency
-stop88_clade2_env_self_freq_summary$right_sites_percent <- stop88_clade2_env_self_freq_summary$right_sites_freq/stop88_clade2_env_self_freq_summary$frequency
-
-
-stop88_clade2_env_self_freq_summary$left_sites_forward_percent <- stop88_clade2_env_self_freq_summary$left_sites_forward_freq/stop88_clade2_env_self_freq_summary$left_sites_freq
-stop88_clade2_env_self_freq_summary$left_sites_reverse_percent <- stop88_clade2_env_self_freq_summary$left_sites_reverse_freq/stop88_clade2_env_self_freq_summary$left_sites_freq
-
-
-stop88_clade2_env_self_freq_summary$right_sites_forward_percent <- stop88_clade2_env_self_freq_summary$right_sites_forward_freq/stop88_clade2_env_self_freq_summary$right_sites_freq
-stop88_clade2_env_self_freq_summary$right_sites_reverse_percent <- stop88_clade2_env_self_freq_summary$right_sites_reverse_freq/stop88_clade2_env_self_freq_summary$right_sites_freq
-
-
-#QC
-stop88_clade2_env_self_freq_summary$check_left_percent <- stop88_clade2_env_self_freq_summary$left_sites_forward_percent + stop88_clade2_env_self_freq_summary$left_sites_reverse_percent
-stop88_clade2_env_self_freq_summary$check_right_percent <- stop88_clade2_env_self_freq_summary$right_sites_forward_percent + stop88_clade2_env_self_freq_summary$right_sites_reverse_percent
-summary(stop88_clade2_env_self_freq_summary$check_left_percent)
-summary(stop88_clade2_env_self_freq_summary$check_right_percent)
-
-
-
-
-
-setwd("~/scratch/immunity_analysis/output/")
-
-#Fig. S1c
-par(mar=c(4,8,8,4))
-plot(stop88_clade2_env_self_freq_summary$right_sites_reverse_percent,
-     stop88_clade2_env_self_freq_summary$left_sites_forward_percent,
-     xlim=c(0,1),ylim=c(0,1),
-     cex.axis=2,ann=FALSE,main=NULL,las=1,
-     col="black",pch=16,cex=2)
-abline(0,1)
-dev.copy(pdf,'stoperators_percent_syn_orientation.pdf')
-dev.off()
-
-
-
-
-
-
-#Match the phage metadata
+# Match the phage metadata to the defending phage in each immunity assay.
+# There are 2 defending phages in the immunity dataset that are not in
+# the Actino1321 database = 'l5_gp71-flag' and 'redrock_bxb1'. Retain only
+# the immunity data involving phages that are present in Actino1321.
 phage_metadata_to_match <- phage_metadata
-names(phage_metadata_to_match) <- paste('defending','_',names(phage_metadata_to_match),sep="")
+names(phage_metadata_to_match) <- paste('defending',
+                                        '_',
+                                        names(phage_metadata_to_match),
+                                        sep="")
+
+main_immunity_data <- merge(immunity_data,
+                            phage_metadata_to_match,
+                            by.x="defending_phage",
+                            by.y="defending_phageid")
 
 
 
-#There are 2 defending phages not in actino1321 = 'l5_gp71-flag' and 'redrock_bxb1'. 
-#Retain only data for phages present in actino1321
-#main_immunity_data <- merge(immunity_data,phage_metadata_to_match,by.x="defending_phage",by.y="defending_phageid",all.x=TRUE)
-main_immunity_data <- merge(immunity_data,phage_metadata_to_match,by.x="defending_phage",by.y="defending_phageid")
-
+# Match the phage metadata to the superinfecting phage in each immunity assay.
+# There are several superinfecting phages that are not in the Actino1321
+# database = 'd29_mutant','l5_flag1-1','l5_ha1','l5_ha2','l5_ha3','l5_ha3_hazy'.
+# Retain only data for phages present in actino1321
 phage_metadata_to_match <- phage_metadata
-names(phage_metadata_to_match) <- paste('challenging','_',names(phage_metadata_to_match),sep="")
+names(phage_metadata_to_match) <- paste('challenging',
+                                        '_',
+                                        names(phage_metadata_to_match),
+                                        sep="")
 
+main_immunity_data <- merge(main_immunity_data,
+                            phage_metadata_to_match,
+                            by.x="challenging_phage",
+                            by.y="challenging_phageid")
 
-#There are several challenging phages not in actino1321 = 'd29_mutant','l5_flag1-1','l5_ha1','l5_ha2','l5_ha3','l5_ha3_hazy'.
-#Retain only data for phages present in actino1321
-#main_immunity_data <- merge(main_immunity_data,phage_metadata_to_match,by.x="challenging_phage",by.y="challenging_phageid",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,phage_metadata_to_match,by.x="challenging_phage",by.y="challenging_phageid")
-
-
-
-
-
-
-###At this point, all data in main_immunity_data is derived from phages present in actino1321 database###
-
-
-
-#Match the genomic distance data. Defending phages and challenging phages not in actino1321 will not be matched
-main_immunity_data <- merge(main_immunity_data,genomic_distance_data,by.x="defending_challenging",by.y="phage1_phage2")
+# At this point, all data in main_immunity_data is derived from phages 
+# that are also present in the Actino1321 database.
 
 
 
+# Match the genomic distance data. Defending phages and superinfecting phages
+# not in Actino1321 will not be matched.
+main_immunity_data <- merge(main_immunity_data,
+                            genomic_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2")
 
 
-#Match the gene distance data. Many comparisons will not be matched
-main_immunity_data <- merge(main_immunity_data,repressor336_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,cas4311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,endovii306_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,dnapol311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-main_immunity_data <- merge(main_immunity_data,portal311_distance_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
+# Match the gene distance data. Many comparisons will not be matched.
+main_immunity_data <- merge(main_immunity_data,
+                            repressor336_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
+main_immunity_data <- merge(main_immunity_data,
+                            cas4311_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
+main_immunity_data <- merge(main_immunity_data,
+                            endovii306_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
+main_immunity_data <- merge(main_immunity_data,
+                            dnapol311_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
+main_immunity_data <- merge(main_immunity_data,
+                            portal311_distance_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
+
+
+# Match PWM distance data. Contains PWM data for 327 Cluster A phages.
+main_immunity_data <- merge(main_immunity_data,
+                            stoperator_pwm_data,
+                            by.x="defending_challenging",
+                            by.y="phage1_phage2",
+                            all.x=TRUE)
 
 
 
-#Match PWM distance data. Contains PWM data for 264 phages.
-main_immunity_data <- merge(main_immunity_data,stoperator_pwm_data,by.x="defending_challenging",by.y="phage1_phage2",all.x=TRUE)
-
-
-
-#Compute comparison fields
+# Compute comparison fields.
 main_immunity_data <- compute_comparisons(main_immunity_data)
 
 
 
 
-
-#Retain only confident data, and discard questionable data
+# Some immunity assays contain data that is not as reliable as others. 
+# Retain only confident data, and discard questionable data.
 main_immunity_data_unreduced <- main_immunity_data
 
 main_immunity_data <- subset(main_immunity_data,
-                          main_immunity_data$lawn_reliability != 1 &
-                            main_immunity_data$phage_reliability != 1)
+                             main_immunity_data$lawn_reliability != 1 &
+                               main_immunity_data$phage_reliability != 1)
 
 
 
+# Some immunity assay data was derived from single-titer assays. These will
+# not be used for this analysis, so they can be removed.
 
-# QC Summary - histogram of titers to assess the range of titers used
-# Useful to compute multiplicity of infection
+#TODO add code to remove single-titer data here instead of later?
+
+
+
+# QC Summary 
+# Number of assays.
+nrow(main_immunity_data)
+
+
+# Histogram of titers to assess the range of titers used, which can be used to
+# compute multiplicity of infection.
 par(mar=c(4,8,8,4))
 hist(log(main_immunity_data$tested_titer,10),xlim=c(0,10),
      main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",
@@ -1015,13 +836,8 @@ dev.copy(pdf,"tested_titers.pdf")
 dev.off()
 
 
-###At this point, all data in main_immunity_data is derived from phages present in actino1321 database AND only confident data###
-
-
-
-
-
-
+### At this point, all data in main_immunity_data is derived from phages 
+# that are present in the Actino1321 database AND only confident data.
 
 
 
@@ -1032,10 +848,9 @@ dev.off()
 
 
 
-#For certain analyses, I need averaged non-duplicated immunity comparisons. 
-#Averages can be computed by unique assay_strain_defending_challenging identifier, 
-#or by unique strain_defending_challenging identifier (which merges multiple-titer and single-titer data)
-
+# For most analyses, the averaged non-duplicated immunity data is needed. 
+# Averages can be computed by unique assay_strain_defending_challenging 
+# identifier.
 
 conf_to_average <- main_immunity_data
 conf_to_average$assay_strain_defending_challenging <- factor(conf_to_average$assay_strain_defending_challenging)
@@ -1224,7 +1039,7 @@ conf_assay_strain_def_chal_average$frequency <- as.factor(conf_assay_strain_def_
 
 
 #Export averaged data
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 #All averaged data
@@ -1328,7 +1143,8 @@ conf_assay_strain_def_chal_average$frequency2 <- as.factor(conf_assay_strain_def
 
 
 #Plots
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
+
 
 
 #QC - assess how many replicates there are for each unique assay
@@ -1408,7 +1224,7 @@ nrow(subset(conf_assay_strain_def_chal_average_multi_reps,conf_assay_strain_def_
 
 
 ###Compute immunity profile correlation coefficients 
-setwd("~/scratch/immunity_analysis/input/")
+setwd(DIR_INPUT)
 
 
 
@@ -1514,7 +1330,7 @@ immunity_correlation_data <- merge(defending_cor_reduced_df,
 
 
 #Below: averaged data
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 conf_assay_strain_ave_lys_multi_env_temp_rep <- subset(conf_assay_strain_def_chal_average,
@@ -1597,7 +1413,7 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
 plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic,
                        conf_assay_strain_ave_lys_multi_env_temp_rep_interclade,
                        conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic,
-                       "pham_pham_dissimilarity",
+                       "gcd",
                        "averaged_rank6",
                        c(0,1),
                        c(0,6),
@@ -1608,7 +1424,7 @@ plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_
 plot_tricolor_scatter2(conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_heterotypic,
                        conf_assay_strain_ave_lys_multi_env_temp_rep_interclade,
                        conf_assay_strain_ave_lys_multi_env_temp_rep_intraclade2_homotypic,
-                       "modified_mash_distance",
+                       "nuc_dist",
                        "averaged_rank6",
                        c(0,0.5),
                        c(0,6),
@@ -2262,9 +2078,9 @@ plot_bargraph1(clade2_binned_frequency,
 # "defending_pham_para"
 # "defending_source"
 # "defending_parent"
-# "defending_cluster_a_functional_repressor_predicted"
-# "defending_cluster_a_temperate_empirical"
-# "defending_repressor_hth_domain_sequence"
+# "defending_repressor_functional"
+# "defending_temperate_empirical"
+# "defending_repressor_hth"
 # "defending_repressor_length_full"
 # "defending_repressor_length_nterm"
 # "defending_repressor_length_cterm"
@@ -2278,9 +2094,9 @@ plot_bargraph1(clade2_binned_frequency,
 # "challenging_pham_para"
 # "challenging_source"
 # "challenging_parent"
-# "challenging_cluster_a_functional_repressor_predicted"
-# "challenging_cluster_a_temperate_empirical"
-# "challenging_repressor_hth_domain_sequence"
+# "challenging_repressor_functional"
+# "challenging_temperate_empirical"
+# "challenging_repressor_hth"
 # "challenging_repressor_length_full"
 # "challenging_repressor_length_nterm"
 # "challenging_repressor_length_cterm"
@@ -2291,8 +2107,8 @@ plot_bargraph1(clade2_binned_frequency,
 # Data specific to both phages used in immunity 
 # but not impacted by vector orientation:
 
-# "modified_mash_distance"
-# "pham_pham_dissimilarity"
+# "nuc_dist"
+# "gcd"
 # "repressor_muscle_bionj_distances"
 # "repressor_prank_phyml_distances"
 # "portal_muscle_bionj_distances"
@@ -2379,7 +2195,7 @@ reciprocal_data_alpha_ordered <- subset(reciprocal_data,reciprocal_data$vector1_
 
 
 #Output the reciprocal dataset
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 write.table(reciprocal_data_alpha_ordered,
             "reciprocal_immunity_data.csv",
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
@@ -2487,7 +2303,7 @@ sum(reciprocal_binned_freq$freq) - nrow(reciprocal_unique_envY)
 
 
 #Plot data
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 
@@ -2559,7 +2375,7 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
 plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        reciprocal_unique_envY_interclade,
                        reciprocal_unique_envY_intraclade2_homotypic,
-                       "pham_pham_dissimilarity",
+                       "gcd",
                        "averaged_rank6_diff",
                        c(0,1),
                        c(0,6),
@@ -2570,7 +2386,7 @@ plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
 plot_tricolor_scatter2(reciprocal_unique_envY_intraclade2_heterotypic,
                        reciprocal_unique_envY_interclade,
                        reciprocal_unique_envY_intraclade2_homotypic,
-                       "modified_mash_distance",
+                       "nuc_dist",
                        "averaged_rank6_diff",
                        c(0,0.5),
                        c(0,6),
@@ -2682,8 +2498,8 @@ clone_match_columns <- c('defending_challenging',
                          'defending_phage',
                          'challenging_phage',
                          'averaged_rank6',
-                         'modified_mash_distance',
-                         'pham_pham_dissimilarity',
+                         'nuc_dist',
+                         'gcd',
                          'repressor_cterm_mafft_dist_uncorrected',
                          'stoperator_pwd_dist_euc',
                          'gene_content_clade_compare')
@@ -2832,7 +2648,7 @@ nrow(ave_multi_conf_envN_lys_clone_matched_intraclade2_heterotypic) +
 
 
 #Plots
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 #Fig. 6c
@@ -2901,8 +2717,8 @@ l5_columns <- c('defending_challenging',
                 'defending_phage',
                 'challenging_phage',
                 'averaged_rank6',
-                'modified_mash_distance',
-                'pham_pham_dissimilarity',
+                'nuc_dist',
+                'gcd',
                 'repressor_cterm_mafft_dist_uncorrected')
 
 
@@ -2978,7 +2794,7 @@ nrow(chal_l5_assays_clade2_empty)
 
 
 #Plots
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 #Fig. 10d sub-panel 1
@@ -3186,8 +3002,7 @@ mutant_analysis$averaged_rank6_diff <- mutant_analysis$mutant_averaged_rank6 - m
 
 
 
-
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 write.table(mutant_analysis,
             "mutant_analysis.csv",
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
@@ -3544,12 +3359,12 @@ distance_metrics$source_compare <- ifelse(distance_metrics$phage1_source==distan
                                           as.character(distance_metrics$phage1_source),
                                           "different")
 
-distance_metrics$temperate_empirical_compare <- ifelse(distance_metrics$phage1_cluster_a_temperate_empirical==distance_metrics$phage2_cluster_a_temperate_empirical,
-                                                       as.character(distance_metrics$phage1_cluster_a_temperate_empirical),
+distance_metrics$temperate_empirical_compare <- ifelse(distance_metrics$phage1_temperate_empirical==distance_metrics$phage2_temperate_empirical,
+                                                       as.character(distance_metrics$phage1_temperate_empirical),
                                                        "different")
 
-distance_metrics$functional_repressor_compare <- ifelse(distance_metrics$phage1_cluster_a_functional_repressor_predicted==distance_metrics$phage2_cluster_a_functional_repressor_predicted,
-                                                        as.character(distance_metrics$phage1_cluster_a_functional_repressor_predicted),
+distance_metrics$functional_repressor_compare <- ifelse(distance_metrics$phage1_repressor_functional==distance_metrics$phage2_repressor_functional,
+                                                        as.character(distance_metrics$phage1_repressor_functional),
                                                         "different")
 
 distance_metrics$lysogen_type_compare <- ifelse(distance_metrics$phage1_lysogen_type==distance_metrics$phage2_lysogen_type,
@@ -3564,8 +3379,8 @@ distance_metrics$parb_compare <- ifelse(distance_metrics$phage1_pham_parb==dista
                                         as.character(distance_metrics$phage1_pham_parb),
                                         "different")
 
-distance_metrics$repressor_hth_compare <- stringdist(as.character(distance_metrics$phage1_repressor_hth_domain_sequence),
-                                                     as.character(distance_metrics$phage2_repressor_hth_domain_sequence),
+distance_metrics$repressor_hth_compare <- stringdist(as.character(distance_metrics$phage1_repressor_hth),
+                                                     as.character(distance_metrics$phage2_repressor_hth),
                                                      method="hamming")
 
 distance_metrics$repressor_length_full_compare <- abs(distance_metrics$phage1_repressor_length_full - distance_metrics$phage2_repressor_length_full)
@@ -3612,21 +3427,33 @@ distance_metrics$gene_content_clade_compare2 <- factor(distance_metrics$gene_con
 
 #Keep only Mycobacteriophage data and drop Gordonia phages
 #Do not include escape mutants.
-clusterA_data <- subset(distance_metrics,
-                        distance_metrics$cluster_compare == "A" &
-                          distance_metrics$source_compare == "environment" &
-                          distance_metrics$phage1_host == "Mycobacterium" &
-                          distance_metrics$phage2_host == "Mycobacterium")
+clusterA_data <- subset(
+  distance_metrics,
+  distance_metrics$cluster_compare == "A" &
+    distance_metrics$source_compare == "environment" &
+    distance_metrics$phage1_host == "Mycobacterium" &
+    distance_metrics$phage2_host == "Mycobacterium"
+)
 
 
-clusterA_clade2 <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "clade2")
+clusterA_clade2 <-
+  subset(clusterA_data,
+         clusterA_data$gene_content_clade_compare == "clade2")
 
-clusterA_clade2_diff <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "different" &
-                                 (clusterA_data$phage1_gene_content_clade == 'clade2' |
-                                    clusterA_data$phage2_gene_content_clade == 'clade2'))
+clusterA_clade2_diff <-
+  subset(
+    clusterA_data,
+    clusterA_data$gene_content_clade_compare == "different" &
+      (
+        clusterA_data$phage1_gene_content_clade == 'clade2' |
+          clusterA_data$phage2_gene_content_clade == 'clade2'
+      )
+  )
 
 #Used as a dummy table for plotting. "empty" is not a valid clade_comparison.
-clusterA_clade2_empty <- subset(clusterA_data,clusterA_data$gene_content_clade_compare == "empty")
+clusterA_clade2_empty <-
+  subset(clusterA_data,
+         clusterA_data$gene_content_clade_compare == "empty")
 
 #QC
 nrow(clusterA_clade2_empty)
@@ -3639,14 +3466,14 @@ nrow(clusterA_clade2_empty)
 
 
 #Plots
-setwd("~/scratch/immunity_analysis/output/")
+setwd(DIR_OUTPUT)
 
 
 #Fig. 2c
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_clade2,
-                      "modified_mash_distance",
-                      "pham_pham_dissimilarity",
+                      "nuc_dist",
+                      "gcd",
                       c(0,0.5),
                       c(0,1),
                       "nuc_vs_gcd.pdf")
@@ -3655,7 +3482,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
 #Fig. 2d
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_clade2,
-                      "pham_pham_dissimilarity",
+                      "gcd",
                       "repressor_full_mafft_dist_uncorrected",
                       c(0,1),
                       c(0,70),
@@ -3665,7 +3492,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
 #Fig. 2f sub-panel 1
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_clade2,
-                      "pham_pham_dissimilarity",
+                      "gcd",
                       "stoperator_pwd_dist_euc",
                       c(0,1),
                       c(0,5),
@@ -3716,12 +3543,14 @@ plot_tricolor_scatter2(clusterA_clade2,
 
 
 #Repressor size
-clusterA_subset <- subset(phage_metadata,
-                          phage_metadata$cluster == 'A' &
-                            phage_metadata$source == 'environment' &
-                            phage_metadata$host == 'Mycobacterium' &
-                            phage_metadata$cluster_a_functional_repressor_predicted == 'yes' &
-                            phage_metadata$gene_content_clade == 'clade2')
+clusterA_subset <- subset(
+  phage_metadata,
+  phage_metadata$cluster == 'A' &
+    phage_metadata$source == 'environment' &
+    phage_metadata$host == 'Mycobacterium' &
+    phage_metadata$repressor_functional == 'yes' &
+    phage_metadata$gene_content_clade == 'clade2'
+)
 
 
 #Fig. S1a
@@ -3739,6 +3568,370 @@ dev.off()
 
 
 ### Whole genome metrics (regardless of immunity data) above
+
+
+
+
+
+
+
+
+
+
+#TODO Stoperator site data move to another section
+
+# Stoperator site prediction data, containing a list of predicted stoperator
+# sites in all 327 Cluster A genomes (including escape mutants) from the
+# Actino1321 database, for each of the 327 stoperator PWMs derived from all
+# Cluster A genomes. An 88% relative score cutoff was used.
+# Data structure:
+# "tfbs88_stop_site_id"
+# "tfbs88_motif_target"
+# "tfbs88_stoperator_target"
+# "tfbs88_stoperator_motif"
+# "tfbs88_site_start" (regardless of orientation)
+# "tfbs88_site_end" (regardless of orientation)
+# "tfbs88_site_strand2"
+# "tfbs88_site_seq"
+# "tfbs88_site_abs_score"
+# "tfbs88_site_rel_score"
+# "tfbs88_site_self"
+stoperator_sites <-  read.csv("stoperator_site_predictions.csv",
+                              sep = ",",
+                              header = TRUE)
+
+# In the Actino1321 database, there are expected to be 
+# 327 PWMs * 327 target genomes = 106,929 combinations. This list only
+# contains 58,690 levels. This likely reflects that for TFBS88 dataset, since
+# low quality data has been removed (using the <88% cutoff score), not all
+# target genomes contain predicted sites for all PWMs.
+
+# Create a list of all possible pairwise combinations.
+all_levels <-
+  expand.grid(
+    tfbs88_stoperator_target = as.character(levels(
+      stoperator_sites$tfbs88_stoperator_target
+    )),
+    tfbs88_stoperator_motif = as.character(levels(
+      stoperator_sites$tfbs88_stoperator_motif
+    ))
+  )
+
+all_levels$tfbs88_motif_target <- paste(all_levels$tfbs88_stoperator_motif,
+                                        "_",
+                                        all_levels$tfbs88_stoperator_target,
+                                        sep="")
+
+all_levels$tfbs88_motif_target <- as.factor(all_levels$tfbs88_motif_target)
+
+
+# Re-factor tfbs88_motif_target using all possible pairwise combinations.This
+# will enable quantification for all combinations, even those that are missing.
+stoperator_sites$tfbs88_motif_target <-
+  factor(stoperator_sites$tfbs88_motif_target,
+         levels(all_levels$tfbs88_motif_target))
+
+
+
+
+
+
+
+# Match up phage metadata to stoperator site data
+metadata_to_match <- phage_metadata
+
+names(metadata_to_match) <- paste("target_",names(metadata_to_match),sep="")
+
+stoperator_sites <- merge(stoperator_sites,
+                          metadata_to_match,
+                          by.x = "tfbs88_stoperator_target",
+                          by.y = "target_phageid",
+                          all.x=TRUE)
+
+
+
+# Compute the middle coordinate for each stoperator. The start is always the
+# smaller of the two coordinates, so just add 6.
+stoperator_sites$tfbs88_site_middle <- stoperator_sites$tfbs88_site_start + 6
+
+
+# Now compute how far each site is from the alignment point.
+stoperator_sites$site_pleft_dist <- stoperator_sites$tfbs88_site_middle - 
+  stoperator_sites$target_coordinate_pleft
+
+stoperator_sites$site_right_end_dist <- stoperator_sites$tfbs88_site_middle -
+  stoperator_sites$target_size
+
+stoperator_sites$site_rep_dist <- stoperator_sites$tfbs88_site_middle - 
+  stoperator_sites$target_coordinate_repressor
+
+stoperator_sites$site_center_dist <- stoperator_sites$tfbs88_site_middle - 
+  stoperator_sites$target_coordinate_genome_center
+
+
+# Analyze distribution of endogenous sites within each genome.
+# Use only phages that infect Mycobacterium, are in Cluster A, and are
+# isolated from the environment.
+
+stops_endogenous <- subset(
+  stoperator_sites,
+  as.character(stoperator_sites$tfbs88_stoperator_target) ==
+    as.character(stoperator_sites$tfbs88_stoperator_motif) &
+    stoperator_sites$target_source == "environment" &
+    stoperator_sites$target_gene_content_clade == "clade2" &
+    stoperator_sites$target_host == "Mycobacterium"
+)
+
+
+stops_endogenous$tfbs88_motif_target <-
+  factor(stops_endogenous$tfbs88_motif_target)
+
+stops_endogenous$tfbs88_stoperator_target <-
+  factor(stops_endogenous$tfbs88_stoperator_target)
+
+stops_endogenous$tfbs88_stoperator_motif <-
+  factor(stops_endogenous$tfbs88_stoperator_motif)
+
+stops_endogenous$target_host <- 
+  factor(stops_endogenous$target_host)
+
+
+
+# Number of stoperators per genome
+stops_endo_freq <-
+  as.data.frame(table(stops_endogenous$tfbs88_stoperator_target))
+
+names(stops_endo_freq) <- c("phage","frequency")
+
+
+
+
+
+
+
+
+# Distance from Pleft
+setwd(DIR_OUTPUT)
+
+
+
+# Fig. 3b - distance from repressor
+plot_hist1(stops_endogenous,
+           "site_rep_dist",
+           2000,
+           c(-4000,1000),
+           c(0,50),
+           "stoperators_near_repressor.pdf")
+
+# Fig. 3d - distance from Pleft
+plot_hist1(stops_endogenous,
+           "site_pleft_dist",
+           2500,
+           c(-2000,500),
+           c(0,100),
+           "stoperators_near_pleft.pdf")
+
+# Summary - 22% of all sites are positioned towards the right end of the genome.
+nrow(subset(stops_endogenous, stops_endogenous$site_pleft_dist > -1000)) /
+  nrow(stops_endogenous)
+
+
+# Fig. S1e
+par(mar=c(4,8,4,4))
+hist(stops_endogenous$site_pleft_dist,
+     main=NULL,ann=FALSE,las=1,cex.axis=2,col="black",breaks=100)
+dev.copy(pdf,'stoperators_across_genome.pdf')
+dev.off()
+
+
+# Fig. S1b
+plot_hist1(stops_endo_freq,
+           "frequency",
+           50,
+           c(0,50),
+           c(0,15),
+           "stoperators_per_genome.pdf")
+
+
+
+
+
+
+
+
+# Compute site orientation. Tally the number of stoperators on each strand
+# of each side of genome center.
+
+stops_left <- subset(stops_endogenous,
+                     stops_endogenous$site_center_dist < 0)
+stops_right <- subset(stops_endogenous,
+                      stops_endogenous$site_center_dist >= 0)
+
+stops_left_for <- subset(stops_left,
+                         stops_left$tfbs88_site_strand2 == "forward")
+stops_left_rev <- subset(stops_left,
+                         stops_left$tfbs88_site_strand2 == "reverse")
+
+stops_right_for <- subset(stops_right,
+                          stops_right$tfbs88_site_strand2 == "forward")
+stops_right_rev <- subset(stops_right,
+                          stops_right$tfbs88_site_strand2 == "reverse")
+
+
+# QC: should equal 0
+nrow(stops_endogenous) - nrow(stops_left) - nrow(stops_right)
+nrow(stops_left) - nrow(stops_left_for) - nrow(stops_left_rev)
+nrow(stops_right) - nrow(stops_right_for) - nrow(stops_right_rev)
+
+
+
+
+
+
+#Create frequency tables
+stops_left_freq <-
+  as.data.frame(table(stops_left$tfbs88_stoperator_target))
+names(stops_left_freq) <- c("phage","left_sites_freq")
+
+stops_left_for_freq <-
+  as.data.frame(table(stops_left_for$tfbs88_stoperator_target))
+names(stops_left_for_freq) <- c("phage","left_sites_forward_freq")
+
+stops_left_rev_freq <-
+  as.data.frame(table(stops_left_rev$tfbs88_stoperator_target))
+names(stops_left_rev_freq) <- c("phage","left_sites_reverse_freq")
+
+
+
+stops_right_freq <-
+  as.data.frame(table(stops_right$tfbs88_stoperator_target))
+names(stops_right_freq) <- c("phage","right_sites_freq")
+
+stops_right_for_freq <-
+  as.data.frame(table(stops_right_for$tfbs88_stoperator_target))
+names(stops_right_for_freq) <- c("phage","right_sites_forward_freq")
+
+stops_right_rev_freq <-
+  as.data.frame(table(stops_right_rev$tfbs88_stoperator_target))
+names(stops_right_rev_freq) <- c("phage","right_sites_reverse_freq")
+
+
+#QC: all shoudl have the same number of rows.
+nrow(stops_endo_freq)
+nrow(stops_left_freq)
+nrow(stops_left_for_freq)
+nrow(stops_left_rev_freq)
+nrow(stops_right_freq)
+nrow(stops_right_for_freq)
+nrow(stops_right_rev_freq)
+
+
+
+# Combine site tally data
+stops_freq_summary <- merge(stops_endo_freq,
+                            stops_left_freq,
+                            by.x="phage",
+                            by.y="phage")
+stops_freq_summary <- merge(stops_freq_summary,
+                            stops_left_for_freq,
+                            by.x="phage",
+                            by.y="phage")
+stops_freq_summary <- merge(stops_freq_summary,
+                            stops_left_rev_freq,
+                            by.x="phage",
+                            by.y="phage")
+stops_freq_summary <- merge(stops_freq_summary,
+                            stops_right_freq,
+                            by.x="phage",
+                            by.y="phage")
+stops_freq_summary <- merge(stops_freq_summary,
+                            stops_right_for_freq,
+                            by.x="phage",
+                            by.y="phage")
+stops_freq_summary <- merge(stops_freq_summary,
+                            stops_right_rev_freq,
+                            by.x="phage",
+                            by.y="phage")
+
+
+# QC: all should equal 0.
+stops_freq_summary$check_total_sites <-
+  stops_freq_summary$frequency - 
+  stops_freq_summary$right_sites_freq - 
+  stops_freq_summary$left_sites_freq
+
+stops_freq_summary$check_left_sites <-
+  stops_freq_summary$left_sites_freq - 
+  stops_freq_summary$left_sites_forward_freq - 
+  stops_freq_summary$left_sites_reverse_freq
+
+stops_freq_summary$check_right_sites <-
+  stops_freq_summary$right_sites_freq - 
+  stops_freq_summary$right_sites_forward_freq - 
+  stops_freq_summary$right_sites_reverse_freq
+
+summary(stops_freq_summary$check_total_sites)
+summary(stops_freq_summary$check_left_sites)
+summary(stops_freq_summary$check_right_sites)
+
+
+
+
+# Compute percentage of total sites
+stops_freq_summary$left_sites_forward_percent <-
+  stops_freq_summary$left_sites_forward_freq / 
+  stops_freq_summary$left_sites_freq
+
+stops_freq_summary$left_sites_reverse_percent <-
+  stops_freq_summary$left_sites_reverse_freq / 
+  stops_freq_summary$left_sites_freq
+
+stops_freq_summary$right_sites_forward_percent <-
+  stops_freq_summary$right_sites_forward_freq / 
+  stops_freq_summary$right_sites_freq
+
+stops_freq_summary$right_sites_reverse_percent <-
+  stops_freq_summary$right_sites_reverse_freq / 
+  stops_freq_summary$right_sites_freq
+
+
+# QC: all should equal 1.
+stops_freq_summary$check_left_percent <-
+  stops_freq_summary$left_sites_forward_percent + 
+  stops_freq_summary$left_sites_reverse_percent
+
+stops_freq_summary$check_right_percent <-
+  stops_freq_summary$right_sites_forward_percent + 
+  stops_freq_summary$right_sites_reverse_percent
+
+summary(stops_freq_summary$check_left_percent)
+summary(stops_freq_summary$check_right_percent)
+
+
+
+
+
+
+
+# Plots
+setwd(DIR_OUTPUT)
+
+
+
+
+# Fig. S1c
+par(mar=c(4,8,8,4))
+plot(stops_freq_summary$right_sites_reverse_percent,
+     stops_freq_summary$left_sites_forward_percent,
+     xlim=c(0,1),ylim=c(0,1),
+     cex.axis=2,ann=FALSE,main=NULL,las=1,
+     col="black",pch=16,cex=2)
+abline(0,1)
+dev.copy(pdf,"stoperators_percent_syn_orientation.pdf")
+dev.off()
+
+###Above stoperator site analysis
+#TODO move stoperator site section
 
 
 
