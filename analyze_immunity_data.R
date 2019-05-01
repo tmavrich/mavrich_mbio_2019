@@ -1,33 +1,41 @@
-# R script to perform misc. data analyses for Mavrich & Hatfull, mBio, 2017.
+# R script to perform misc. data analyses for Mavrich & Hatfull, mBio, 2019.
 # Travis Mavrich.
 # Note: this code merges and analyzes various input data sets 
 # prepared by other tools including Python and Excel.
 # Distinct analyses and code blocks separated by "###".
 
+### 1. Prepare environment.
+### 2. Define functions.
+### 3. Import datasets.
+### 4. Average immunity data.
+### 5. Compare variability between replicates.
+### 6. Misc. general analyses of averaged immunity data.
+### 7. Compare reciprocal infection assays.
+### 8. Compare lysogen and cloned-repressor strains.
+### 9. Compare L5 and L5-derivative phages.
+### 10. Compare escape mutants and parent phages.
+### 11. Compute immunity profile correlations.
+### 12. Analyze misc. phage genome metrics.
+### 13. Compare stoperator site data.
 
 
+### 1. Prepare environment.
 
+# Install dependencies
 
-### Install dependencies
-
-# The melt function of reshape2 package is needed to convert matrix
+# The melt function of reshape2 package is needed to convert a matrix
 # to unique-pair table.
-#install.packages("reshape2")
+# install.packages("reshape2")
 library(reshape2)
 
-# Stringdist is needed to compute hamming distance between strings
+# Stringdist is needed to compute hamming distance between strings.
 # install.packages("stringdist")
 library(stringdist)
 
 
-
-
-### Set working directory variables.
-# The current code assumes a specific working directory structure.
+# Set working directory variables specific to local directory structure.
 DIR_INPUT = "~/scratch/immunity_analysis/input/"
 DIR_OUTPUT = "~/scratch/immunity_analysis/output/"
-
-
 
 #Set paths for all input files.
 IMMUNITY_DATA_FILENAME = 
@@ -44,23 +52,23 @@ PHAGE_METADATA_FILENAME =
         sep="")
 REPRESSOR_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "repressor336_distance_data.csv",
+        "repressor_336_distance_data.csv",
         sep="")
 CAS4_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "cas4311_distance_data.csv",
+        "cas4_311_distance_data.csv",
         sep="")
 ENDOVII_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "endovii306_distance_data.csv",
+        "endovii_306_distance_data.csv",
         sep="")
 DNAPOL_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "dnapol311_distance_data.csv",
+        "dnapol_311_distance_data.csv",
         sep="")
 PORTAL_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "portal311_distance_data.csv",
+        "portal_311_distance_data.csv",
         sep="")
 STOPERATOR_PWM_DATA_FILENAME = 
   paste(DIR_INPUT,
@@ -77,71 +85,62 @@ STOPERATOR_SITES_FILENAME =
 
 
 setwd(DIR_OUTPUT)
-
-
-###Define functions
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 2. Define functions.
 
 # Compute comparison fields
 compute_comparisons <- function(table){
 
   table$subcluster_compare <-
-    ifelse(
-      table$defending_subcluster == table$challenging_subcluster,
-      as.character(table$defending_subcluster),
-      "different"
-    )
+    ifelse(table$defending_subcluster == table$challenging_subcluster,
+           as.character(table$defending_subcluster),
+           "different")
   
   table$source_compare <-
-    ifelse(
-      table$defending_source == table$challenging_source,
-      as.character(table$defending_source),
-      "different"
-    )
+    ifelse(table$defending_source == table$challenging_source,
+           as.character(table$defending_source),
+           "different")
   
   table$temperate_empirical_compare <-
-    ifelse(
-      table$defending_temperate_empirical == 
-        table$challenging_temperate_empirical,
-      as.character(table$defending_temperate_empirical),
-      "different"
-    )
+    ifelse(table$defending_temperate_empirical == 
+             table$challenging_temperate_empirical,
+           as.character(table$defending_temperate_empirical),
+           "different")
   
   table$functional_repressor_compare <-
-    ifelse(
-      table$defending_repressor_functional == 
-        table$challenging_repressor_functional,
-      as.character(table$defending_repressor_functional),
-      "different"
-    )
+    ifelse(table$defending_repressor_functional == 
+             table$challenging_repressor_functional,
+           as.character(table$defending_repressor_functional),
+           "different")
   
   table$lysogen_type_compare <-
-    ifelse(
-      table$defending_lysogen_type == 
-        table$challenging_lysogen_type,
-      as.character(table$defending_lysogen_type),
-      "different"
-    )
+    ifelse(table$defending_lysogen_type == 
+             table$challenging_lysogen_type,
+           as.character(table$defending_lysogen_type),
+           "different")
   
   table$integrase_compare <-
-    ifelse(
-      table$defending_pham_integrase == table$challenging_pham_integrase,
-      as.character(table$defending_pham_integrase),
-      "different"
-    )
+    ifelse(table$defending_pham_integrase == table$challenging_pham_integrase,
+           as.character(table$defending_pham_integrase),
+           "different")
   
   table$parb_compare <-
-    ifelse(
-      table$defending_pham_parb == table$challenging_pham_parb,
-      as.character(table$defending_pham_parb),
-      "different"
-    )
+    ifelse(table$defending_pham_parb == table$challenging_pham_parb,
+           as.character(table$defending_pham_parb),
+           "different")
   
   table$repressor_hth_compare <-
-    stringdist(
-      as.character(table$defending_repressor_hth),
-      as.character(table$challenging_repressor_hth),
-      method = "hamming"
-    )
+    stringdist(as.character(table$defending_repressor_hth),
+               as.character(table$challenging_repressor_hth),
+               method = "hamming")
   
   table$repressor_length_full_compare <-
     abs(table$defending_repressor_length_full - 
@@ -152,17 +151,14 @@ compute_comparisons <- function(table){
           table$challenging_repressor_length_nterm)
 
   table$repressor_length_cterm_compare <-
-    abs(
-      table$defending_repressor_length_cterm - 
-        table$challenging_repressor_length_cterm)
+    abs(table$defending_repressor_length_cterm - 
+          table$challenging_repressor_length_cterm)
   
   table$gene_content_clade_compare <-
-    ifelse(
-      table$defending_gene_content_clade == 
-        table$challenging_gene_content_clade,
-      as.character(table$defending_gene_content_clade),
-      "different"
-    )
+    ifelse(table$defending_gene_content_clade == 
+             table$challenging_gene_content_clade,
+           as.character(table$defending_gene_content_clade),
+           "different")
   
   table$subcluster_compare <- 
     as.factor(table$subcluster_compare)
@@ -188,15 +184,15 @@ compute_comparisons <- function(table){
 
 match_lys_clone_data <- function(lysogen_data,clone_data){
   
-  clone_match_columns <- c('defending_challenging',
-                           'defending_phage',
-                           'challenging_phage',
-                           'averaged_rank6',
-                           'nuc_dist',
-                           'gcd',
-                           'repressor_cterm_mafft_dist_uncorrected',
-                           'stoperator_pwd_dist_euc',
-                           'gene_content_clade_compare')
+  clone_match_columns <- c("defending_challenging",
+                           "defending_phage",
+                           "challenging_phage",
+                           "averaged_rank6",
+                           "nuc_dist",
+                           "gcd",
+                           "repressor_cterm_mafft_dist_uncorrected",
+                           "stoperator_pwd_dist_euc",
+                           "gene_content_clade_compare")
   
   lysY_reduced <- subset(lysogen_data,select = c(clone_match_columns))
   names(lysY_reduced) <- paste('lys_',
@@ -238,14 +234,15 @@ subset_intraclade <- function(table,clade_column,clade){
   return(table_subset)
 }
 
-subset_homotypic <- function(table,phage1,phage2){
+
+subset_same <- function(table,phage1,phage2){
   table_subset <- subset(table,
                          as.character(table[,phage1]) ==
                            as.character(table[,phage2]))
   return(table_subset)
 }
 
-subset_heterotypic <- function(table,phage1,phage2){
+subset_diff <- function(table,phage1,phage2){
   table_subset <- subset(table,
                          as.character(table[,phage1]) !=
                            as.character(table[,phage2]))
@@ -253,10 +250,11 @@ subset_heterotypic <- function(table,phage1,phage2){
 }
 
 
-
-
-
 compute_binned_freq1 <- function(table,bin_num){
+  
+  table$defending_phage <- factor(table$defending_phage)
+  table$challenging_phage <- factor(table$challenging_phage)
+  
   output_table <- data.frame(bin_num,
                              nlevels(table$defending_phage),
                              nlevels(table$challenging_phage),
@@ -310,9 +308,7 @@ compute_binned_freq2 <- function(table1,bin_num,table2){
 
 
 
-
-
-#Plot to compare infection scores of two groups of phages
+# Plot to compare infection scores of two groups of phages
 plot_tricolor_scatter1 <- function(table1,
                                   table2,
                                   table3,
@@ -322,7 +318,7 @@ plot_tricolor_scatter1 <- function(table1,
                                   y_range,
                                   filename){
   
-  #For each table, remove all rows with missing values.
+  # For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
   table1 <- na.omit(table1)
   
@@ -332,12 +328,12 @@ plot_tricolor_scatter1 <- function(table1,
   table3 <- subset(table3,select = c(x_data,y_data))
   table3 <- na.omit(table3)
   
-  #For each table, report number of data points plotted.
+  # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
 
-  #Plot data
+  # Plot data
   par(mar=c(4,8,8,4))
   plot(table1[,x_data],
        table1[,y_data],
@@ -361,7 +357,7 @@ plot_tricolor_scatter1 <- function(table1,
 }
 
 
-#Plot to compare infection scores against a distance metric
+# Plot to compare infection scores against a distance metric
 plot_tricolor_scatter2 <- function(table1,
                                    table2,
                                    table3,
@@ -382,12 +378,12 @@ plot_tricolor_scatter2 <- function(table1,
   table3 <- subset(table3,select = c(x_data,y_data))
   table3 <- na.omit(table3)
   
-  #For each table, report number of data points plotted.
+  # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
 
-  #Plot data
+  # Plot data
   par(mar=c(4,8,16,4))
   plot(table1[,x_data],
        table1[,y_data],
@@ -412,8 +408,8 @@ plot_tricolor_scatter2 <- function(table1,
 }
 
 
-#Plot to compare infection scores against a distance metric
-#with h=0 line
+# Plot to compare infection scores against a distance metric
+# with h=0 line
 plot_tricolor_scatter3 <- function(table1,
                                    table2,
                                    table3,
@@ -423,7 +419,7 @@ plot_tricolor_scatter3 <- function(table1,
                                    y_range,
                                    filename){
   
-  #For each table, remove all rows with missing values.
+  # For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
   table1 <- na.omit(table1)
   
@@ -438,7 +434,7 @@ plot_tricolor_scatter3 <- function(table1,
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
 
-  #Plot data
+  # Plot data
   par(mar=c(4,8,16,4))
   plot(table1[,x_data],
        table1[,y_data],
@@ -464,7 +460,7 @@ plot_tricolor_scatter3 <- function(table1,
 }
 
 
-#Plot to compare genome metrics
+# Plot to compare genome metrics
 plot_bicolor_scatter1 <- function(table1,
                                   table2,
                                   x_data,
@@ -473,19 +469,19 @@ plot_bicolor_scatter1 <- function(table1,
                                   y_range,
                                   filename){
   
-  #For each table, remove all rows with missing values.
+  # For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
   table1 <- na.omit(table1)
   
   table2 <- subset(table2,select = c(x_data,y_data))
   table2 <- na.omit(table2)
   
-  #For each table, report number of data points plotted.
+  # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
 
   
-  #Plot data
+  # Plot data
   par(mar=c(4,8,8,4))
   plot(table1[,x_data],
        table1[,y_data],
@@ -502,7 +498,7 @@ plot_bicolor_scatter1 <- function(table1,
 }
 
 
-#Plot to compare genome metrics with abline
+# Plot to compare genome metrics with abline
 plot_bicolor_scatter2 <- function(table1,
                                   table2,
                                   x_data,
@@ -511,7 +507,7 @@ plot_bicolor_scatter2 <- function(table1,
                                   y_range,
                                   filename){
   
-  #For each table, remove all rows with missing values.
+  # For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
   table1 <- na.omit(table1)
   
@@ -519,12 +515,12 @@ plot_bicolor_scatter2 <- function(table1,
   table2 <- na.omit(table2)
   
   
-  #For each table, report number of data points plotted.
+  # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
 
   
-  #Plot data
+  # Plot data
   par(mar=c(4,8,8,4))
   plot(table1[,x_data],
        table1[,y_data],
@@ -541,31 +537,32 @@ plot_bicolor_scatter2 <- function(table1,
 }
 
 
-#Plot bargraph assessing binned frequencies
+# Plot bargraph assessing binned frequencies
 plot_bargraph1 <- function(table1,value1,value2,y_range,filename){
   
   par(mar=c(4,8,4,4))
   barplot(table1[,value1],
           names.arg=table1[,value2],
-          col='black',ylim=y_range)
+          ylim=y_range,
+          main=NULL,ann=FALSE,las=1,cex.axis=2,col="black")
   dev.copy(pdf,filename)
   dev.off()
 }
 
 
-#Plot bargraph
+# Plot bargraph
 plot_bargraph2 <- function(table1,value1,y_range,filename){
 
   par(mar=c(4,8,8,4))
   barplot(summary(table1[,value1]),
           ylim=y_range,
-          col="black",ann=FALSE,main=NULL,las=1)
+          main=NULL,ann=FALSE,las=1,cex.axis=2,col="black")
   dev.copy(pdf,filename)
   dev.off()
 }
 
 
-#Plot histograms
+# Plot histograms
 plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
   
   par(mar=c(4,8,8,4))
@@ -579,35 +576,16 @@ plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
 
   
 }
-
-
-###End of functions
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Import datasets
-
-#setwd(DIR_INPUT)
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 3. Import datasets.
 
 
 # Expected structure of immunity data:
@@ -693,9 +671,8 @@ immunity_data$experiment_id <- as.factor(immunity_data$experiment_id)
 
 
 
-# TODO confirm how this data was re-generated.
-# Mmash genomic distance data for all actino1321 phages, including all
-# reciprocal data and self-comparison data.
+# Mash genomic distance data for all phages in Actino1321 database,
+# including all reciprocal data and self-comparison data.
 # Data structure:
 # "phage1_phage2"
 # "modified_mash_distance" (whole genome nucleotide distance, nuc_dist)
@@ -793,7 +770,7 @@ phage_metadata$coordinate_genome_center <-
 # "repressor_full_mafft_dist_uncorrected"
 # "repressor_nterm_mafft_dist_uncorrected"
 # "repressor_cterm_mafft_dist_uncorrected"
-repressor336_distance_data <-
+repressor_distance_data <-
   read.csv(REPRESSOR_DISTANCE_DATA_FILENAME,
            sep = ",",
            header = TRUE)
@@ -805,7 +782,7 @@ repressor336_distance_data <-
 # Data structure:
 # "phage1_phage2"
 # "cas4_mafft_dist_uncorrected"
-cas4311_distance_data <-
+cas4_distance_data <-
   read.csv(CAS4_DISTANCE_DATA_FILENAME,
            sep = ",",
            header = TRUE)
@@ -817,7 +794,7 @@ cas4311_distance_data <-
 # Data structure:
 # "phage1_phage2"
 # "endovii_mafft_dist_uncorrected"
-endovii306_distance_data <-
+endovii_distance_data <-
   read.csv(ENDOVII_DISTANCE_DATA_FILENAME,
            sep = ",",
            header = TRUE)
@@ -829,7 +806,7 @@ endovii306_distance_data <-
 # Data structure:
 # "phage1_phage2"
 # "dnapol_mafft_dist_uncorrected"
-dnapol311_distance_data <-
+dnapol_distance_data <-
   read.csv(DNAPOL_DISTANCE_DATA_FILENAME,
            sep = ",",
            header = TRUE)
@@ -841,7 +818,7 @@ dnapol311_distance_data <-
 # Data structure:
 # "phage1_phage2"
 # "portal_mafft_dist_uncorrected"
-portal311_distance_data <-
+portal_distance_data <-
   read.csv(PORTAL_DISTANCE_DATA_FILENAME,
            sep = ",",
            header = TRUE)
@@ -926,27 +903,27 @@ main_immunity_data <- merge(main_immunity_data,
 
 # Match the gene distance data. Many comparisons will not be matched.
 main_immunity_data <- merge(main_immunity_data,
-                            repressor336_distance_data,
+                            repressor_distance_data,
                             by.x="defending_challenging",
                             by.y="phage1_phage2",
                             all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,
-                            cas4311_distance_data,
+                            cas4_distance_data,
                             by.x="defending_challenging",
                             by.y="phage1_phage2",
                             all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,
-                            endovii306_distance_data,
+                            endovii_distance_data,
                             by.x="defending_challenging",
                             by.y="phage1_phage2",
                             all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,
-                            dnapol311_distance_data,
+                            dnapol_distance_data,
                             by.x="defending_challenging",
                             by.y="phage1_phage2",
                             all.x=TRUE)
 main_immunity_data <- merge(main_immunity_data,
-                            portal311_distance_data,
+                            portal_distance_data,
                             by.x="defending_challenging",
                             by.y="phage1_phage2",
                             all.x=TRUE)
@@ -980,9 +957,6 @@ main_immunity_data <- subset(main_immunity_data,
 # Some immunity assay data was derived from single-titer assays. These will
 # not be used for this analysis, so they can be removed.
 
-#TODO add code to remove single-titer data here instead of later?
-
-
 
 # QC Summary 
 # Number of assays.
@@ -992,7 +966,6 @@ nrow(main_immunity_data)
 # Histogram of titers to assess the range of titers used, which can be used to
 # compute multiplicity of infection.
 
-#setwd(DIR_OUTPUT)
 
 par(mar=c(4,8,8,4))
 hist(log(main_immunity_data$tested_titer,10),xlim=c(0,10),
@@ -1002,14 +975,18 @@ dev.copy(pdf,"tested_titers.pdf")
 dev.off()
 
 
-### At this point, all data in main_immunity_data is derived from phages 
+# At this point, all data in main_immunity_data is derived from phages 
 # that are present in the Actino1321 database AND only confident data.
-
-
-
-
-
-### Average data
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 4. Average immunity data.
 
 
 
@@ -1024,7 +1001,7 @@ main_immunity_data$rank6 <- as.numeric(as.character(main_immunity_data$rank6))
 
 
 
-#Average infection scores for each unique experiment_id identifier
+# Average infection scores for each unique experiment_id identifier.
 
 immunity_average <- aggregate(main_immunity_data[,'rank6'],
                               list(main_immunity_data$experiment_id),mean)
@@ -1069,16 +1046,7 @@ immunity_average$range_rank6 <- as.factor(immunity_average$range_rank6)
 
 
 # Create table of immunity data metadata that will be added back to the
-# averaged experiment_id data.
-# Keep the following immunity data columns after averaging:
-# "experiment_id"
-# "defending_challenging"
-# "prophage"
-# "repressor_clone"
-# "strain_type"
-# "defending_phage"
-# "challenging_phage"
-# "assay_type"
+# averaged experiment_id data. Only retain the indicated columns.
 reduced_immunity_metadata1 <- subset(main_immunity_data,
                                      select=c('experiment_id',
                                               'defending_challenging',
@@ -1159,27 +1127,27 @@ immunity_average <- merge(immunity_average,
 
 # Match the gene distance data. Many comparisons will not be matched.
 immunity_average <- merge(immunity_average,
-                          repressor336_distance_data,
+                          repressor_distance_data,
                           by.x="defending_challenging",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 immunity_average <- merge(immunity_average,
-                          cas4311_distance_data,
+                          cas4_distance_data,
                           by.x="defending_challenging",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 immunity_average <- merge(immunity_average,
-                          endovii306_distance_data,
+                          endovii_distance_data,
                           by.x="defending_challenging",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 immunity_average <- merge(immunity_average,
-                          dnapol311_distance_data,
+                          dnapol_distance_data,
                           by.x="defending_challenging",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 immunity_average <- merge(immunity_average,
-                          portal311_distance_data,
+                          portal_distance_data,
                           by.x="defending_challenging",
                           by.y="phage1_phage2",
                           all.x=TRUE)
@@ -1211,21 +1179,13 @@ immunity_average$frequency <- as.factor(immunity_average$frequency)
 
 
 
-
-
-# Export averaged data
-#setwd(DIR_OUTPUT)
-
-
-# All averaged data
+# Export all averaged data
 write.table(immunity_average,
             paste(DIR_OUTPUT,"immunity_data_averaged.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 
-
-
-# Table S1
+# Export reduced data for Table S1
 output_fields <- c("strain_type",
                    "defending_phage",
                    "challenging_phage",
@@ -1262,18 +1222,16 @@ write.table(immunity_average_reduced_for_output,
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 
-# Create average experiment_id data above
-
-
-
-
-
-
-
-
-
-
-
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 5. Compare variability between replicates.
 # Map averages back to main immunity table, subtract average from original
 # values, then plot histogram of differences to show how reliable the
 # dataset is.
@@ -1285,8 +1243,6 @@ immunity_ave_to_match <- subset(immunity_average,
                                            "range_rank6",
                                            "frequency"))
 
-
-#TODO = confirm prefix change works okay
 names(immunity_ave_to_match) <- paste('ave_data',
                                       '_',
                                       names(immunity_ave_to_match),
@@ -1320,14 +1276,6 @@ immunity_average$frequency2 <-
 
 immunity_average$frequency <- as.factor(immunity_average$frequency)
 immunity_average$frequency2 <- as.factor(immunity_average$frequency2)
-
-
-
-
-
-
-# Plots
-#setwd(DIR_OUTPUT)
 
 
 
@@ -1388,141 +1336,16 @@ nrow(
 ) / nrow(immunity_ave_multi_reps)
 
 
-###End of data average step
-
-
-
-
-
-
-
-
-
-
-
-###Compute immunity profile correlation coefficients 
-#setwd(DIR_INPUT)
-
-
-
-
-
-# Import table of averaged data manipulated in Excel. This is a reduced dataset
-# consisting of a complete reciprocal matrix.
-infection_table_reduced <- read.csv(INFECTION_TABLE_REDUCED_FILENAME,
-                                    sep=",",
-                                    header=TRUE,
-                                    row.names=1,
-                                    na.strings="unspecified")
-
-
-infection_table_reduced_t <- as.data.frame(t(infection_table_reduced))
-
-
-
-# No data should be missing in this dataset.
-defending_cor_reduced <- cor(infection_table_reduced,
-                             method="pearson",
-                             use="complete.obs")
-challenging_cor_reduced <- cor(infection_table_reduced_t,
-                               method="pearson",
-                               use="complete.obs")
-
-
-
-# Convert to 3-column data frame
-# Resulting table contains reciprocal data and self-comparisons
-defending_cor_reduced_df <-melt(defending_cor_reduced)
-challenging_cor_reduced_df <-melt(challenging_cor_reduced)
-
-
-names(defending_cor_reduced_df) <- c("phage1",
-                                     "phage2",
-                                     "defending_cor_reduced")
-names(challenging_cor_reduced_df) <- c("phage1",
-                                       "phage2",
-                                       "challenging_cor_reduced")
-
-defending_cor_reduced_df$phage1_phage2 <- 
-  paste(defending_cor_reduced_df$phage1,
-        "_",
-        defending_cor_reduced_df$phage2,
-        sep="")
-
-challenging_cor_reduced_df$phage1_phage2 <- 
-  paste(challenging_cor_reduced_df$phage1,
-        "_",
-        challenging_cor_reduced_df$phage2,
-        sep="")
-
-
-defending_cor_reduced_df$phage1_phage2 <-
-  as.factor(defending_cor_reduced_df$phage1_phage2)
-
-challenging_cor_reduced_df$phage1_phage2 <-
-  as.factor(challenging_cor_reduced_df$phage1_phage2)
-
-defending_cor_reduced_df <- subset(defending_cor_reduced_df,
-                                   select=c("phage1_phage2",
-                                            "defending_cor_reduced"))
-challenging_cor_reduced_df <- subset(challenging_cor_reduced_df,
-                                     select=c("phage1_phage2",
-                                              "challenging_cor_reduced"))
-
-
-
-
-
-
-# Merge datasets
-
-
-
-
-# If not using cor_all_df data
-immunity_correlation_data <- merge(defending_cor_reduced_df,
-                                   challenging_cor_reduced_df,
-                                   by.x="phage1_phage2",
-                                   by.y="phage1_phage2",
-                                   all.x = TRUE,
-                                   all.y = TRUE)
-
-# This merged dataset contains reciprocal data and self-comparisons,
-# and can now be merged with other tables elsewhere in the analysis.
-
-
-
-
-###Compute immunity profile correlation coefficients above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Plot immunity phenotypes by genome metrics to assess all data
-
-
-
-
-
-
-# Below: averaged data
-#setwd(DIR_OUTPUT)
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 6. Misc. general analyses of averaged immunity data.
 
 immunity_ave_subset1 <- subset(
   immunity_average,
@@ -1545,48 +1368,33 @@ immunity_ave_subset1$challenging_phage <-
   factor(immunity_ave_subset1$challenging_phage)
 
 
-# Split data by clade and by homotypic/heterotypic.
-immunity_ave_subset1_interclade <- subset(
-  immunity_ave_subset1,
-  immunity_ave_subset1$gene_content_clade_compare == "different"
-)
+# Split data by clade and by identical (same) or different (diff) phages
 
-immunity_ave_subset1_intraclade2 <- subset(
-  immunity_ave_subset1,
-  immunity_ave_subset1$gene_content_clade_compare == "clade2")
+immunity_ave_subset1_interclade <- 
+  subset_interclade(immunity_ave_subset1,
+                    "gene_content_clade_compare")
 
+immunity_ave_subset1_intraclade2 <- 
+  subset_intraclade(immunity_ave_subset1,
+                    "gene_content_clade_compare",
+                    "clade2")
 
-immunity_ave_subset1_intraclade2_homotypic <-
-  subset(
-    immunity_ave_subset1_intraclade2,
-    as.character(immunity_ave_subset1_intraclade2$defending_phage) ==
-      as.character(immunity_ave_subset1_intraclade2$challenging_phage)
-  )
+immunity_ave_subset1_intraclade2_same <-
+  subset_same(immunity_ave_subset1_intraclade2,
+                   "defending_phage",
+                   "challenging_phage")
 
-immunity_ave_subset1_intraclade2_heterotypic <-
-  subset(
-    immunity_ave_subset1_intraclade2,
-    as.character(immunity_ave_subset1_intraclade2$defending_phage) !=
-      as.character(immunity_ave_subset1_intraclade2$challenging_phage)
-  )
+immunity_ave_subset1_intraclade2_diff <-
+  subset_diff(immunity_ave_subset1_intraclade2,
+                     "defending_phage",
+                     "challenging_phage")
 
 
-
-
-
-
-
-
-
-
-
-
-# Plots
 
 # Fig. 5b sub-panel 1
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "repressor_full_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1595,9 +1403,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. 5b sub-panel 2
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1606,9 +1414,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5a sub-panel 1
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "gcd",
                        "averaged_rank6",
                        c(0,1),
@@ -1617,9 +1425,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5a sub-panel 2
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "nuc_dist",
                        "averaged_rank6",
                        c(0,0.5),
@@ -1628,9 +1436,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5d sub-panel 1
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "portal_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1639,9 +1447,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5d sub-panel 2
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "dnapol_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1650,9 +1458,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5d sub-panel 3
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "endovii_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1661,9 +1469,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. S5d sub-panel 4
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "cas4_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1672,9 +1480,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. 9b sub-panel 1
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "repressor_nterm_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
@@ -1683,9 +1491,9 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. 9b sub-panel 2
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "repressor_hth_compare",
                        "averaged_rank6",
                        c(0,10),
@@ -1694,19 +1502,14 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
 
 
 # Fig. 9b sub-panel 3
-plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_heterotypic,
+plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
-                       immunity_ave_subset1_intraclade2_homotypic,
+                       immunity_ave_subset1_intraclade2_same,
                        "repressor_cterm_mafft_dist_uncorrected",
                        "averaged_rank6",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_rep_cterm_vs_infection_score.pdf")
-
-
-
-
-
 
 
 
@@ -1757,10 +1560,13 @@ int_extra_interclade <- subset_interclade(int_extra,
 int_extra_intraclade2 <- subset_intraclade(int_extra,
                                            "gene_content_clade_compare",
                                            "clade2")
-int_extra_intraclade2_homotypic <- subset_homotypic(int_extra_intraclade2,
+
+
+int_extra_intraclade2_same <- subset_same(int_extra_intraclade2,
                                                     "defending_phage",
                                                     "challenging_phage")
-int_extra_intraclade2_heterotypic <- subset_heterotypic(int_extra_intraclade2,
+
+int_extra_intraclade2_diff <- subset_diff(int_extra_intraclade2,
                                                         "defending_phage",
                                                         "challenging_phage")
 
@@ -1769,8 +1575,8 @@ int_extra_intraclade2_heterotypic <- subset_heterotypic(int_extra_intraclade2,
 nrow(int_extra)
 nrow(int_extra_interclade)
 nrow(int_extra_intraclade2)
-nrow(int_extra_intraclade2_homotypic)
-nrow(int_extra_intraclade2_heterotypic)
+nrow(int_extra_intraclade2_same)
+nrow(int_extra_intraclade2_diff)
 
 
 
@@ -1781,10 +1587,13 @@ extra_int_interclade <- subset_interclade(extra_int,
 extra_int_intraclade2 <- subset_intraclade(extra_int,
                                            "gene_content_clade_compare",
                                            "clade2")
-extra_int_intraclade2_homotypic <- subset_homotypic(extra_int_intraclade2,
+
+
+extra_int_intraclade2_same <- subset_same(extra_int_intraclade2,
                                                     "defending_phage",
                                                     "challenging_phage")
-extra_int_intraclade2_heterotypic <- subset_heterotypic(extra_int_intraclade2,
+
+extra_int_intraclade2_diff <- subset_diff(extra_int_intraclade2,
                                                         "defending_phage",
                                                         "challenging_phage")
 
@@ -1792,9 +1601,9 @@ extra_int_intraclade2_heterotypic <- subset_heterotypic(extra_int_intraclade2,
 nrow(extra_int)
 nrow(extra_int_interclade)
 nrow(extra_int_intraclade2)
-nrow(extra_int_intraclade2_homotypic)
-nrow(extra_int_intraclade2_heterotypic)
-#
+nrow(extra_int_intraclade2_same)
+nrow(extra_int_intraclade2_diff)
+
 
 
 
@@ -1807,13 +1616,14 @@ int_int_same_intraclade2 <- subset_intraclade(int_int_same,
                                               "gene_content_clade_compare",
                                               "clade2")
 
-int_int_same_intraclade2_homotypic <-
-  subset_homotypic(int_int_same_intraclade2,
+
+int_int_same_intraclade2_same <-
+  subset_same(int_int_same_intraclade2,
                    "defending_phage",
                    "challenging_phage")
 
-int_int_same_intraclade2_heterotypic <- 
-  subset_heterotypic(
+int_int_same_intraclade2_diff <- 
+  subset_diff(
     int_int_same_intraclade2,
     "defending_phage",
     "challenging_phage")
@@ -1823,9 +1633,9 @@ int_int_same_intraclade2_heterotypic <-
 nrow(int_int_same)
 nrow(int_int_same_interclade)
 nrow(int_int_same_intraclade2)
-nrow(int_int_same_intraclade2_homotypic)
-nrow(int_int_same_intraclade2_heterotypic)
-#
+nrow(int_int_same_intraclade2_same)
+nrow(int_int_same_intraclade2_diff)
+
 
 
 
@@ -1840,13 +1650,14 @@ int_int_diff_intraclade2 <- subset_intraclade(int_int_diff,
                                               "gene_content_clade_compare",
                                               "clade2")
 
-int_int_diff_intraclade2_homotypic <-
-  subset_homotypic(int_int_diff_intraclade2,
+
+int_int_diff_intraclade2_same <-
+  subset_same(int_int_diff_intraclade2,
                    "defending_phage",
                    "challenging_phage")
 
-int_int_diff_intraclade2_heterotypic <-
-  subset_heterotypic(int_int_diff_intraclade2,
+int_int_diff_intraclade2_diff <-
+  subset_diff(int_int_diff_intraclade2,
                      "defending_phage",
                      "challenging_phage")
 
@@ -1855,13 +1666,8 @@ int_int_diff_intraclade2_heterotypic <-
 nrow(int_int_diff)
 nrow(int_int_diff_interclade)
 nrow(int_int_diff_intraclade2)
-nrow(int_int_diff_intraclade2_homotypic)
-nrow(int_int_diff_intraclade2_heterotypic)
-
-#
-
-
-
+nrow(int_int_diff_intraclade2_same)
+nrow(int_int_diff_intraclade2_diff)
 
 
 
@@ -1873,13 +1679,13 @@ extra_extra_same_intraclade2 <- subset_intraclade(extra_extra_same,
                                                   "gene_content_clade_compare",
                                                   "clade2")
 
-extra_extra_same_intraclade2_homotypic <-
-  subset_homotypic(extra_extra_same_intraclade2,
+extra_extra_same_intraclade2_same <-
+  subset_same(extra_extra_same_intraclade2,
                    "defending_phage",
                    "challenging_phage")
 
-extra_extra_same_intraclade2_heterotypic <-
-  subset_heterotypic(extra_extra_same_intraclade2,
+extra_extra_same_intraclade2_diff <-
+  subset_diff(extra_extra_same_intraclade2,
                      "defending_phage",
                      "challenging_phage")
 
@@ -1888,13 +1694,8 @@ extra_extra_same_intraclade2_heterotypic <-
 nrow(extra_extra_same)
 nrow(extra_extra_same_interclade)
 nrow(extra_extra_same_intraclade2)
-nrow(extra_extra_same_intraclade2_homotypic)
-nrow(extra_extra_same_intraclade2_heterotypic)
-#
-
-
-
-
+nrow(extra_extra_same_intraclade2_same)
+nrow(extra_extra_same_intraclade2_diff)
 
 
 
@@ -1907,14 +1708,14 @@ extra_extra_diff_intraclade2 <- subset_intraclade(extra_extra_diff,
                                                   "gene_content_clade_compare",
                                                   "clade2")
 
-extra_extra_diff_intraclade2_homotypic <-
-  subset_homotypic(extra_extra_diff_intraclade2,
+
+extra_extra_diff_intraclade2_same <-
+  subset_same(extra_extra_diff_intraclade2,
                    "defending_phage",
                    "challenging_phage")
 
-
-extra_extra_diff_intraclade2_heterotypic <-
-  subset_heterotypic(extra_extra_diff_intraclade2,
+extra_extra_diff_intraclade2_diff <-
+  subset_diff(extra_extra_diff_intraclade2,
                      "defending_phage",
                      "challenging_phage")
 
@@ -1924,23 +1725,17 @@ extra_extra_diff_intraclade2_heterotypic <-
 nrow(extra_extra_diff)
 nrow(extra_extra_diff_interclade)
 nrow(extra_extra_diff_intraclade2)
-nrow(extra_extra_diff_intraclade2_homotypic)
-nrow(extra_extra_diff_intraclade2_heterotypic)
-#
+nrow(extra_extra_diff_intraclade2_same)
+nrow(extra_extra_diff_intraclade2_diff)
 
 
 
 
-
-
-
-
-# Plots
 
 # Fig. S5b sub-panel 1 - IntInt_IntPhamSame
-plot_tricolor_scatter2(int_int_same_intraclade2_heterotypic,
+plot_tricolor_scatter2(int_int_same_intraclade2_diff,
                        int_int_same_interclade,
-                       int_int_same_intraclade2_homotypic,
+                       int_int_same_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1949,9 +1744,9 @@ plot_tricolor_scatter2(int_int_same_intraclade2_heterotypic,
 
 
 # Fig. S5b sub-panel 2 - IntInt_IntPhamDiff
-plot_tricolor_scatter2(int_int_diff_intraclade2_heterotypic,
+plot_tricolor_scatter2(int_int_diff_intraclade2_diff,
                        int_int_diff_interclade,
-                       int_int_diff_intraclade2_homotypic,
+                       int_int_diff_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1960,9 +1755,9 @@ plot_tricolor_scatter2(int_int_diff_intraclade2_heterotypic,
 
 
 # Fig. S5b sub-panel 3 - IntExtra
-plot_tricolor_scatter2(int_extra_intraclade2_heterotypic,
+plot_tricolor_scatter2(int_extra_intraclade2_diff,
                        int_extra_interclade,
-                       int_extra_intraclade2_homotypic,
+                       int_extra_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1971,9 +1766,9 @@ plot_tricolor_scatter2(int_extra_intraclade2_heterotypic,
 
 
 # Fig. S5c sub-panel 1 - ExtraExtra_ParBPhamSame
-plot_tricolor_scatter2(extra_extra_same_intraclade2_heterotypic,
+plot_tricolor_scatter2(extra_extra_same_intraclade2_diff,
                        extra_extra_same_interclade,
-                       extra_extra_same_intraclade2_homotypic,
+                       extra_extra_same_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1982,9 +1777,9 @@ plot_tricolor_scatter2(extra_extra_same_intraclade2_heterotypic,
 
 
 # Fig. S5c sub-panel 2 - ExtraExtra_ParBPhamDiff
-plot_tricolor_scatter2(extra_extra_diff_intraclade2_heterotypic,
+plot_tricolor_scatter2(extra_extra_diff_intraclade2_diff,
                        extra_extra_diff_interclade,
-                       extra_extra_diff_intraclade2_homotypic,
+                       extra_extra_diff_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -1993,9 +1788,9 @@ plot_tricolor_scatter2(extra_extra_diff_intraclade2_heterotypic,
 
 
 # Fig. S5c sub-panel 3 - ExtraInt
-plot_tricolor_scatter2(extra_int_intraclade2_heterotypic,
+plot_tricolor_scatter2(extra_int_intraclade2_diff,
                        extra_int_interclade,
-                       extra_int_intraclade2_homotypic,
+                       extra_int_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6",
                        c(0,5),
@@ -2006,12 +1801,10 @@ plot_tricolor_scatter2(extra_int_intraclade2_heterotypic,
 
 
 
-
-
-
-#Binned Data Stats
-
-#Plot only Clade 2 OR (Clade 2 non-homotypic) immunity data stats
+# Binned Data Stats
+# Unlike analyses above, this subsetted data includes only L5-clade phages,
+# and regardless of whether they are environmental or have a
+# functional repressor.
 
 
 immunity_ave_subset2 <- subset(
@@ -2048,7 +1841,7 @@ clade2_env$challenging_phage <- factor(clade2_env$challenging_phage)
 
 
 
-#TODO might be able to add some of these steps fo the compute_bin_freq function if it doesn't interfere with other usage of the function
+
 clade2_env_bin0 <- subset(clade2_env,
                           clade2_env$averaged_rank6 <= 0.5)
 clade2_env_bin1 <- subset(clade2_env,
@@ -2068,30 +1861,6 @@ clade2_env_bin5 <- subset(clade2_env,
                             clade2_env$averaged_rank6 <= 5.5)
 clade2_env_bin6 <- subset(clade2_env,
                           clade2_env$averaged_rank6 > 5.5)
-
-
-clade2_env_bin0$defending_phage <- factor(clade2_env_bin0$defending_phage)
-clade2_env_bin1$defending_phage <- factor(clade2_env_bin1$defending_phage)
-clade2_env_bin2$defending_phage <- factor(clade2_env_bin2$defending_phage)
-clade2_env_bin3$defending_phage <- factor(clade2_env_bin3$defending_phage)
-clade2_env_bin4$defending_phage <- factor(clade2_env_bin4$defending_phage)
-clade2_env_bin5$defending_phage <- factor(clade2_env_bin5$defending_phage)
-clade2_env_bin6$defending_phage <- factor(clade2_env_bin6$defending_phage)
-
-clade2_env_bin0$challenging_phage <- factor(clade2_env_bin0$challenging_phage)
-clade2_env_bin1$challenging_phage <- factor(clade2_env_bin1$challenging_phage)
-clade2_env_bin2$challenging_phage <- factor(clade2_env_bin2$challenging_phage)
-clade2_env_bin3$challenging_phage <- factor(clade2_env_bin3$challenging_phage)
-clade2_env_bin4$challenging_phage <- factor(clade2_env_bin4$challenging_phage)
-clade2_env_bin5$challenging_phage <- factor(clade2_env_bin5$challenging_phage)
-clade2_env_bin6$challenging_phage <- factor(clade2_env_bin6$challenging_phage)
-
-
-
-
-
-
-
 
 clade2_bin0_freq <- compute_binned_freq1(clade2_env_bin0,"bin0")
 clade2_bin1_freq <- compute_binned_freq1(clade2_env_bin1,"bin1")
@@ -2120,13 +1889,6 @@ clade2_binned_frequency$bin <- factor(clade2_binned_frequency$bin,
                                         "bin0"))
 
 
-
-
-
-
-
-
-#Plots
 
 #Fig. S4a sub-panel 1
 plot_bargraph1(clade2_binned_frequency,
@@ -2166,106 +1928,18 @@ plot_bargraph1(clade2_binned_frequency,
                "bin",
                c(0,0.5),
                "infection_score_percent_intrasubcluster.pdf")
-
-
-
-###Above: averaged data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Reciprocal analysis
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 7. Compare reciprocal infection assays.
 # Using averaged data, compute differences in reciprocal immunity data.
-# Split immunity_average columns into groups.
-
-
-# Phage-specific data = metadata that is not impacted by immunity vector:
-# "prophage"
-# "repressor_clone"
-# "strain_type"
-# "defending_host"
-# "defending_cluster"
-# "defending_subcluster"
-# "defending_size"
-# "defending_lysogen_type"
-# "defending_pham_integrase"
-# "defending_pham_para"
-# "defending_source"
-# "defending_parent"
-# "defending_repressor_functional"
-# "defending_temperate_empirical"
-# "defending_repressor_hth"
-# "defending_repressor_length_full"
-# "defending_repressor_length_nterm"
-# "defending_repressor_length_cterm"
-# "defending_pham_parb"
-# "challenging_host"
-# "challenging_cluster"
-# "challenging_subcluster"
-# "challenging_size"
-# "challenging_lysogen_type"
-# "challenging_pham_integrase"
-# "challenging_pham_para"
-# "challenging_source"
-# "challenging_parent"
-# "challenging_repressor_functional"
-# "challenging_temperate_empirical"
-# "challenging_repressor_hth"
-# "challenging_repressor_length_full"
-# "challenging_repressor_length_nterm"
-# "challenging_repressor_length_cterm"
-# "challenging_pham_parb"
-
-
-# Phage metadata comparisons.Data specific to both phages used in immunity 
-# but not impacted by vector orientation:
-# "nuc_dist"
-# "gcd"
-# "repressor_muscle_bionj_distances"
-# "repressor_prank_phyml_distances"
-# "portal_muscle_bionj_distances"
-# "portal_prank_phyml_distances"
-# "recb_muscle_bionj_distances"
-# "recb_prank_phyml_distances"
-# "repressor_full_mafft_phyml_dist"
-# "repressor_nterm_mafft_phyml_dist"
-# "repressor_cterm_mafft_phyml_dist"
-# "repressor_full_mafft_dist_uncorrected"
-# "repressor_nterm_mafft_dist_uncorrected"
-# "repressor_cterm_mafft_dist_uncorrected"
-# "stoperator_pwd_dist_pearson"
-# "stoperator_pwd_dist_euc"
-# "source_compare"
-# "temperate_empirical_compare"
-# "functional_repressor_compare"
-# "lysogen_type_compare"
-# "integrase_compare"
-# "repressor_hth_compare"
-# "repressor_length_full_compare"
-# "repressor_length_nterm_compare"
-# "repressor_length_cterm_compare"
-# "parb_compare"
-# "subcluster_compare"
-# "gene_content_clade_compare"
-
-
-
-# Vectored_data = data that is specific to immunity assay
+# Vectored_data = data that is specific to the immunity assay
 # and depends on vector orientation:
 vectored_column_names <- c("experiment_id",
                            "defending_challenging",
@@ -2336,14 +2010,9 @@ reciprocal_data_alpha_ordered <-
 
 
 # Output the reciprocal dataset.
-#setwd(DIR_OUTPUT)
 write.table(reciprocal_data_alpha_ordered,
             paste(DIR_OUTPUT,"reciprocal_immunity_data.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-
-
 
 
 
@@ -2380,10 +2049,7 @@ reciprocal_bin5 <- subset(reciprocal_unique_envY,
 reciprocal_bin6 <- subset(reciprocal_unique_envY,
                           reciprocal_unique_envY$averaged_rank6_diff > 5.5)
 
-
-
-
-
+# Compute frequency
 reciprocal_bin0_freq <- compute_binned_freq2(reciprocal_bin0,
                                              "bin0",
                                              reciprocal_unique_envY)
@@ -2430,10 +2096,6 @@ reciprocal_binned_freq$bin <- factor(reciprocal_binned_freq$bin,
 sum(reciprocal_binned_freq$freq) - nrow(reciprocal_unique_envY)
 
 
-# Plot data
-#setwd(DIR_OUTPUT)
-
-
 
 
 # Fig. S4c
@@ -2448,12 +2110,8 @@ plot_bargraph1(reciprocal_binned_freq,
 
 
 
-
-
 # How do various genome/gene distances correlate with differences 
 # in reciprocal profiles?
-
-
 
 
 # Subsetted reciprocal_unique_envY contains data for confident assays involving
@@ -2469,26 +2127,22 @@ reciprocal_intraclade2 <-
                     "gene_content_clade_compare",
                     "clade2")
 
-reciprocal_intraclade2_homotypic <- 
-  subset_homotypic(reciprocal_intraclade2,
+reciprocal_intraclade2_same <- 
+  subset_same(reciprocal_intraclade2,
                    "vector1_defending_phage",
                    "vector1_challenging_phage")
 
-reciprocal_intraclade2_heterotypic <- 
-  subset_heterotypic(reciprocal_intraclade2,
+reciprocal_intraclade2_diff <- 
+  subset_diff(reciprocal_intraclade2,
                      "vector1_defending_phage",
                      "vector1_challenging_phage")
 
 
 
-
-
-#Plots
-
-#Fig. 5b sub-panel 3
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. 5b sub-panel 3
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "repressor_full_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2496,10 +2150,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_rep_vs_infection_score.pdf")
 
 
-#Fig. 5b sub-panel 4
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. 5b sub-panel 4
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "stoperator_pwd_dist_euc",
                        "averaged_rank6_diff",
                        c(0,5),
@@ -2507,10 +2161,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_stop_vs_infection_score.pdf")
 
 
-#Fig. S5a sub-panel 3
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5a sub-panel 3
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "gcd",
                        "averaged_rank6_diff",
                        c(0,1),
@@ -2518,10 +2172,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_gcd_vs_infection_score.pdf")
 
 
-#Fig. S5a sub-panel 4
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5a sub-panel 4
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "nuc_dist",
                        "averaged_rank6_diff",
                        c(0,0.5),
@@ -2529,10 +2183,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_nuc_vs_infection_score.pdf")
 
 
-#Fig. S5d sub-panel 5
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5d sub-panel 5
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "portal_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2540,10 +2194,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_portal_vs_infection_score.pdf")
 
 
-#Fig. S5d sub-panel 6
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5d sub-panel 6
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "dnapol_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2551,10 +2205,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_pol_vs_infection_score.pdf")
 
 
-#Fig. S5d sub-panel 7
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5d sub-panel 7
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "endovii_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2562,10 +2216,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_endovii_vs_infection_score.pdf")
 
 
-#Fig. S5d sub-panel 8
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. S5d sub-panel 8
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "cas4_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2573,10 +2227,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_cas4_vs_infection_score.pdf")
 
 
-#Fig. 9b sub-panel 4
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. 9b sub-panel 4
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "repressor_nterm_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
@@ -2584,10 +2238,10 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_rep_nterm_vs_infection_score.pdf")
 
 
-#Fig. 9b sub-panel 5
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. 9b sub-panel 5
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "repressor_hth_compare",
                        "averaged_rank6_diff",
                        c(0,10),
@@ -2595,34 +2249,26 @@ plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
                        "reciprocal_lys_env_rep_hth_vs_infection_score.pdf")
 
 
-#Fig. 9b sub-panel 6
-plot_tricolor_scatter2(reciprocal_intraclade2_heterotypic,
+# Fig. 9b sub-panel 6
+plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
-                       reciprocal_intraclade2_homotypic,
+                       reciprocal_intraclade2_same,
                        "repressor_cterm_mafft_dist_uncorrected",
                        "averaged_rank6_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_rep_cterm_vs_infection_score.pdf")
 
-
-
-###Reciprocal analysis above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###Compare lysogen vs repressor clone data
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 8. Compare lysogen and cloned-repressor strains.
 
 # Environment, functional repressor, and empirically temperate data from
 # averaged multiple-titer lysogen and clone data.
@@ -2654,17 +2300,15 @@ env_lys_clone_intraclade2 <-
                     "lys_gene_content_clade_compare",
                     "clade2")
 
-env_lys_clone_intraclade2_heterotypic <- 
-  subset_homotypic(env_lys_clone_intraclade2,
-                   "lys_defending_phage",
-                   "lys_challenging_phage")
-
-env_lys_clone_intraclade2_homotypic <- 
-  subset_heterotypic(env_lys_clone_intraclade2,
+env_lys_clone_intraclade2_same <- 
+  subset_diff(env_lys_clone_intraclade2,
                      "lys_defending_phage",
                      "lys_challenging_phage")
 
-
+env_lys_clone_intraclade2_diff <- 
+  subset_same(env_lys_clone_intraclade2,
+              "lys_defending_phage",
+              "lys_challenging_phage")
 
 
 
@@ -2696,13 +2340,14 @@ escape_lys_clone_intraclade2 <-
                     "lys_gene_content_clade_compare",
                     "clade2")
 
-escape_lys_clone_intraclade2_homotypic <- 
-  subset_homotypic(escape_lys_clone_intraclade2,
+
+escape_lys_clone_intraclade2_same <- 
+  subset_same(escape_lys_clone_intraclade2,
                    "lys_defending_phage",
                    "lys_challenging_phage")
 
-escape_lys_clone_intraclade2_heterotypic <- 
-  subset_heterotypic(escape_lys_clone_intraclade2,
+escape_lys_clone_intraclade2_diff <- 
+  subset_diff(escape_lys_clone_intraclade2,
                      "lys_defending_phage",
                      "lys_challenging_phage")
 
@@ -2711,57 +2356,50 @@ escape_lys_clone_intraclade2_heterotypic <-
 nrow(env_lys_clone_matched)
 nrow(escape_lys_clone_matched)
 
-nrow(env_lys_clone_intraclade2_homotypic)
-nrow(env_lys_clone_intraclade2_heterotypic)
+nrow(env_lys_clone_intraclade2_same)
+nrow(env_lys_clone_intraclade2_diff)
 nrow(env_lys_clone_interclade)
 
-nrow(env_lys_clone_intraclade2_homotypic) +
-  nrow(env_lys_clone_intraclade2_heterotypic) + 
+nrow(env_lys_clone_intraclade2_same) +
+  nrow(env_lys_clone_intraclade2_diff) + 
   nrow(env_lys_clone_interclade)
 
 
-nrow(escape_lys_clone_intraclade2_heterotypic)
+nrow(escape_lys_clone_intraclade2_diff)
 nrow(escape_lys_clone_interclade)
-nrow(escape_lys_clone_intraclade2_homotypic)
+nrow(escape_lys_clone_intraclade2_same)
 
-nrow(escape_lys_clone_intraclade2_heterotypic) + 
+nrow(escape_lys_clone_intraclade2_diff) + 
   nrow(escape_lys_clone_interclade) + 
-  nrow(escape_lys_clone_intraclade2_homotypic)
-
-#
+  nrow(escape_lys_clone_intraclade2_same)
 
 
 
 
-
-#Plots
-#setwd(DIR_OUTPUT)
-
-
-#Fig. 6c
-plot_tricolor_scatter1(env_lys_clone_intraclade2_homotypic,
+# Fig. 6c
+plot_tricolor_scatter1(env_lys_clone_intraclade2_same,
                        env_lys_clone_interclade,
-                       env_lys_clone_intraclade2_heterotypic,
+                       env_lys_clone_intraclade2_diff,
                        "lys_averaged_rank6","clone_averaged_rank6",
                        c(0,6),
                        c(0,6),
                        "lys_vs_crs_env_infection_score.pdf")
 
 
-#Fig. 7d
-plot_tricolor_scatter1(escape_lys_clone_intraclade2_heterotypic,
+# Fig. 7d
+plot_tricolor_scatter1(escape_lys_clone_intraclade2_diff,
                        escape_lys_clone_interclade,
-                       escape_lys_clone_intraclade2_homotypic,
+                       escape_lys_clone_intraclade2_same,
                        "lys_averaged_rank6","clone_averaged_rank6",
                        c(0,6),
                        c(0,6),
                        "lys_vs_crs_escape_infection_score.pdf")
 
 
-#Fig. 6d
-plot_tricolor_scatter3(env_lys_clone_intraclade2_homotypic,
+# Fig. 6d
+plot_tricolor_scatter3(env_lys_clone_intraclade2_same,
                        env_lys_clone_interclade,
-                       env_lys_clone_intraclade2_heterotypic,
+                       env_lys_clone_intraclade2_diff,
                        "lys_stoperator_pwd_dist_euc",
                        "rank6_diff",
                        c(0,5),
@@ -2769,42 +2407,34 @@ plot_tricolor_scatter3(env_lys_clone_intraclade2_homotypic,
                        "lys_vs_crs_env_infection_score_stop_vs_score_diff.pdf")
 
 
-#Fig. 7e
-plot_tricolor_scatter3(escape_lys_clone_intraclade2_heterotypic,
+# Fig. 7e
+plot_tricolor_scatter3(escape_lys_clone_intraclade2_diff,
                        escape_lys_clone_interclade,
-                       escape_lys_clone_intraclade2_homotypic,
+                       escape_lys_clone_intraclade2_same,
                        "lys_stoperator_pwd_dist_euc",
                        "rank6_diff",
                        c(0,5),
                        c(-4,4),
                        "lys_vs_crs_escape_infection_score_stop_vs_score_diff.pdf")
 
-
-###Lysogen-clone comparison above
-
-
-
-
-
-
-
-
-
-
-
-
-###L5-mutant comparisons using all averaged data
-
-
-
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 9. Compare L5 and L5-derivative phages.
 # All averaged multiple-titer lysogen and clone data.
-l5_columns <- c('defending_challenging',
-                'defending_phage',
-                'challenging_phage',
-                'averaged_rank6',
-                'nuc_dist',
-                'gcd',
-                'repressor_cterm_mafft_dist_uncorrected')
+l5_columns <- c("defending_challenging",
+                "defending_phage",
+                "challenging_phage",
+                "averaged_rank6",
+                "nuc_dist",
+                "gcd",
+                "repressor_cterm_mafft_dist_uncorrected")
 
 immunity_ave_subset3 <- 
   subset(immunity_average,
@@ -2812,7 +2442,7 @@ immunity_ave_subset3 <-
            immunity_average$strain_type == 'lysogen')
 
 
-# Compare L5 and L5-derivative superinfection patterns.
+# Compare L5-related superinfection patterns 
 chal_l5 <- subset(immunity_ave_subset3,
                   immunity_ave_subset3$challenging_phage == 'l5')
 
@@ -2898,13 +2528,14 @@ chal_l5_assays_intraclade2_empty <-
                     "l5_gene_content_clade_compare",
                     "empty")
 
-chal_l5_assays_intraclade2_phitm1_homotypic <- 
-  subset_homotypic(chal_l5_assays_intraclade2,
+
+chal_l5_assays_intraclade2_phitm1_same <- 
+  subset_same(chal_l5_assays_intraclade2,
                    "phitm1_challenging_phage",
                    "l5_defending_phage")
 
-chal_l5_assays_intraclade2_phitm1_heterotypic <- 
-  subset_heterotypic(chal_l5_assays_intraclade2,
+chal_l5_assays_intraclade2_phitm1_diff <- 
+  subset_diff(chal_l5_assays_intraclade2,
                      "phitm1_challenging_phage",
                      "l5_defending_phage")
 
@@ -2913,25 +2544,17 @@ chal_l5_assays_intraclade2_phitm1_heterotypic <-
 nrow(chal_l5_assays_intraclade2)
 nrow(subset(chal_l5_assays_intraclade2,
             is.na(chal_l5_assays_intraclade2$phitm1_challenging_phage)))
-nrow(chal_l5_assays_intraclade2_phitm1_homotypic)
-nrow(chal_l5_assays_intraclade2_phitm1_heterotypic)
+nrow(chal_l5_assays_intraclade2_phitm1_same)
+nrow(chal_l5_assays_intraclade2_phitm1_diff)
 nrow(chal_l5_assays_intraclade2_empty)
-#
 
 
 
 
-
-
-
-#Plots
-#setwd(DIR_OUTPUT)
-
-
-#Fig. 10d sub-panel 1
-plot_tricolor_scatter2(chal_l5_assays_intraclade2_phitm1_heterotypic,
+# Fig. 10d sub-panel 1
+plot_tricolor_scatter2(chal_l5_assays_intraclade2_phitm1_diff,
                        chal_l5_assays_interclade,
-                       chal_l5_assays_intraclade2_phitm1_homotypic,
+                       chal_l5_assays_intraclade2_phitm1_same,
                        "l5_stoperator_pwd_dist_euc",
                        "phitm1_averaged_rank6",
                        c(0,5),
@@ -2939,7 +2562,7 @@ plot_tricolor_scatter2(chal_l5_assays_intraclade2_phitm1_heterotypic,
                        "stop_vs_infection_score_phitm1.pdf")
 
 
-#Fig. 10d sub-panel 2
+# Fig. 10d sub-panel 2
 plot_tricolor_scatter2(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
@@ -2950,7 +2573,7 @@ plot_tricolor_scatter2(chal_l5_assays_intraclade2,
                        "stop_vs_infection_score_phitm4.pdf")
 
 
-#Fig. S8g sub-panel 1
+# Fig. S8g sub-panel 1
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
@@ -2961,7 +2584,7 @@ plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        "infection_scores_l5_vs_phitm41.pdf")
 
 
-#Fig. S8g sub-panel 2
+# Fig. S8g sub-panel 2
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
@@ -2972,7 +2595,7 @@ plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        "infection_scores_l5_vs_phitm6.pdf")
 
 
-#Fig. S8g sub-panel 3
+# Fig. S8g sub-panel 3
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
@@ -2984,7 +2607,8 @@ plot_tricolor_scatter1(chal_l5_assays_intraclade2,
 
 
 
-#defending correlation
+
+# Compare superinfection patterns against L5-related prophages
 
 
 def_l5 <- subset(immunity_ave_subset3,
@@ -3057,7 +2681,7 @@ def_l5_assays_clade2_empty <-
          def_l5_assays$l5_defending_phage == "phiTM4")
 
 
-# QC:
+# QC
 nrow(def_l5_assays)
 nrow(def_l5_assays_intraclade2)
 nrow(def_l5_assays_interclade)
@@ -3070,11 +2694,7 @@ summary(def_l5_assays_interclade$l5_challenging_phage)
 
 
 
-
-
-#Plots
-
-#Fig. S8h sub-panel 1
+# Fig. S8h sub-panel 1
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
@@ -3085,7 +2705,7 @@ plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        "defense_scores_l5_vs_phitm41.pdf")
 
 
-#Fig. S8h sub-panel 2
+# Fig. S8h sub-panel 2
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
@@ -3096,7 +2716,7 @@ plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        "defense_scores_l5_vs_phitm6.pdf")
 
 
-#Fig. S8h sub-panel 3
+# Fig. S8h sub-panel 3
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
@@ -3107,63 +2727,58 @@ plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        "defense_scores_l5_vs_phitm1.pdf")
 
 
-###L5-mutant comparisons using all averaged data above
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 10. Compare escape mutants and parent phages.
+# Pair superinfecting parent and superinfecting mutant data. Split averaged
+# data into parent and mutant phage tables. Averaged, non-redundant data
+# should only be for multi-titer assays, no low-confidence data, and only
+# from lysogen data. There should be no repressor clones or single-titer assays.
 
-
-
-
-
-
-
-
-
-
-
-### Mutant-parent superinfection profile comparison
-# Pair superinfecting parent and superinfecting mutant data
-# Split averaged data into parent and mutant phage tables
-
-# Averaged, non-redundant data should only be for multi-titer assays,
-# no low-confidence data, and only from lysogen data. There should be no
-# repressor clones or single-titer assays.
-
-mutant_data <- subset(immunity_average,
+mutant_data_lys <- subset(immunity_average,
                       immunity_average$strain_type == 'lysogen' & 
                         immunity_average$assay_type == 'multiple_titer')
 
 # Rename all fields to indicate the data is generated using the mutant
 # challenger. Note: important to remember that "mutant" prefix refers to the
 # entire immunity assay data, not to any particular column.
-names(mutant_data) <- paste('mutant_',names(mutant_data),sep="")
+names(mutant_data_lys) <- paste('mutant_',names(mutant_data_lys),sep="")
 
 
 
 # Drop all data from mutant table not involving a mutant challenging phage. 
 # It is possible that a lab-derived phage is not an escape mutant, so this
 # a broad list of mutants.
-mutant_data <- subset(mutant_data,
-                      mutant_data$mutant_challenging_source == 'lab')
+mutant_data_lys <- subset(mutant_data_lys,
+                      mutant_data_lys$mutant_challenging_source == 'lab')
 
 
 
 
 # Create parent data to match
-parent_data <- subset(immunity_average,
+parent_data_lys <- subset(immunity_average,
                       immunity_average$strain_type == 'lysogen' & 
                         immunity_average$assay_type == 'multiple_titer')
 
-names(parent_data) <- paste('parent_',names(parent_data),sep="")
+names(parent_data_lys) <- paste('parent_',names(parent_data_lys),sep="")
 
 
 # Now match parent challenging data to mutant challenging data.
-mutant_data$parent_defending_challenging <- 
-  paste(mutant_data$mutant_defending_phage,
+mutant_data_lys$parent_defending_challenging <- 
+  paste(mutant_data_lys$mutant_defending_phage,
         "_",
-        mutant_data$mutant_challenging_parent
+        mutant_data_lys$mutant_challenging_parent
         ,sep="")
 
-mutant_analysis <- merge(mutant_data,
-                         parent_data,
+mutant_parent_lys <- merge(mutant_data_lys,
+                         parent_data_lys,
                          by.x="parent_defending_challenging",
                          by.y="parent_defending_challenging")
 
@@ -3174,25 +2789,17 @@ mutant_analysis <- merge(mutant_data,
 # Compute difference in infection profiles. The direction of change in
 # infection between the mutant and parent is informative, so don't use
 # absolute value.
-mutant_analysis$averaged_rank6_diff <-
-  mutant_analysis$mutant_averaged_rank6 - mutant_analysis$parent_averaged_rank6
+mutant_parent_lys$averaged_rank6_diff <-
+  mutant_parent_lys$mutant_averaged_rank6 - mutant_parent_lys$parent_averaged_rank6
 
 
-
-#setwd(DIR_OUTPUT)
-write.table(mutant_analysis,
-            paste(DIR_OUTPUT,"mutant_analysis.csv",sep=""),
+write.table(mutant_parent_lys,
+            paste(DIR_OUTPUT,"mutant_parent_lysogen_data.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 
-
-
-
-
-
-
 # QC
-plot_hist1(mutant_analysis,
+plot_hist1(mutant_parent_lys,
            "averaged_rank6_diff",
            10,
            c(-1,4),
@@ -3240,109 +2847,64 @@ plot_hist1(mutant_analysis,
 # gladiator
 # phitm47 (escape mutant)
 
-
-escape_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm35" | 
-           mutant_analysis$mutant_challenging_phage == "phitm36" | 
-           mutant_analysis$mutant_challenging_phage == "phitm38" | 
-           mutant_analysis$mutant_challenging_phage == "phitm39" | 
-           mutant_analysis$mutant_challenging_phage == "phitm40" | 
-           mutant_analysis$mutant_challenging_phage == "phitm41" | 
-           mutant_analysis$mutant_challenging_phage == "phitm42" | 
-           mutant_analysis$mutant_challenging_phage == "phitm46" | 
-           mutant_analysis$mutant_challenging_phage == "phitm47")
-
-
-phitm35_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm35")
-
-phitm36_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm36")
-
-phitm38_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm38")
-
-phitm39_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm39")
-
-phitm40_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm40")
-
-phitm41_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm41")
-
-phitm42_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm42")
-
-phitm46_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm46")
-
-phitm47_mutant_analysis <- 
-  subset(mutant_analysis,
-         mutant_analysis$mutant_challenging_phage == "phitm47")
+escape_parent_lys <- 
+  subset(mutant_parent_lys,
+         mutant_parent_lys$mutant_challenging_phage == "phitm35" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm36" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm38" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm39" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm40" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm41" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm42" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm46" | 
+           mutant_parent_lys$mutant_challenging_phage == "phitm47")
 
 
-escape_interclade <- subset_interclade(escape_mutant_analysis,
+
+
+escape_interclade <- subset_interclade(escape_parent_lys,
                                        "parent_gene_content_clade_compare")
 
-escape_intraclade2 <- subset_intraclade(escape_mutant_analysis,
+escape_intraclade2 <- subset_intraclade(escape_parent_lys,
                                         "parent_gene_content_clade_compare",
                                         "clade2")
 
-#Used as a dummy table for plotting. "empty" is not a valid clade_comparison.
+# Used as a dummy table for plotting. "empty" is not a valid clade_comparison.
 escape_intraclade2_empty <- 
-  subset_intraclade(escape_mutant_analysis,
+  subset_intraclade(escape_parent_lys,
                     "parent_gene_content_clade_compare",
                     "empty")
 
-escape_intraclade2_parent_homotypic <- subset_homotypic(escape_intraclade2,
+
+escape_intraclade2_parent_same <- subset_same(escape_intraclade2,
                                               "parent_challenging_phage",
                                                 "parent_defending_phage")
 
-escape_intraclade2_parent_heterotypic <- subset_heterotypic(escape_intraclade2,
+escape_intraclade2_parent_diff <- subset_diff(escape_intraclade2,
                                                 "parent_challenging_phage",
                                                   "parent_defending_phage")
 
-escape_intraclade2_mutant_homotypic <- subset_homotypic(escape_intraclade2,
+escape_intraclade2_mutant_same <- subset_same(escape_intraclade2,
                                               "mutant_challenging_phage",
                                                 "mutant_defending_phage")
 
-escape_intraclade2_mutant_heterotypic <- subset_heterotypic(escape_intraclade2,
+escape_intraclade2_mutant_diff <- subset_diff(escape_intraclade2,
                                                 "mutant_challenging_phage",
                                                   "mutant_defending_phage")
 
 # QC
 nrow(escape_intraclade2)
 nrow(escape_intraclade2_empty)
-nrow(escape_intraclade2_parent_homotypic)
-nrow(escape_intraclade2_parent_heterotypic)
-nrow(escape_intraclade2_mutant_homotypic)
-nrow(escape_intraclade2_mutant_heterotypic)
-
-
-summary(escape_intraclade2_parent_homotypic$parent_defending_phage)
-summary(escape_intraclade2_mutant_homotypic$mutant_defending_phage)
-#
+nrow(escape_intraclade2_parent_same)
+nrow(escape_intraclade2_parent_diff)
+nrow(escape_intraclade2_mutant_same)
+nrow(escape_intraclade2_mutant_diff)
+summary(escape_intraclade2_parent_same$parent_defending_phage)
+summary(escape_intraclade2_mutant_same$mutant_defending_phage)
 
 
 
-
-
-
-
-#Plots
-
-
-#Fig. 7c sub-panel 1
+# Fig. 7c sub-panel 1
 plot_tricolor_scatter1(escape_intraclade2,
                        escape_interclade,
                        escape_intraclade2_empty,
@@ -3353,10 +2915,10 @@ plot_tricolor_scatter1(escape_intraclade2,
                        "parent_vs_escape_infection_scores_lysogen.pdf")
 
 
-#Fig. 7f sub-panel 1
-plot_tricolor_scatter2(escape_intraclade2_parent_heterotypic,
+# Fig. 7f sub-panel 1
+plot_tricolor_scatter2(escape_intraclade2_parent_diff,
                        escape_interclade,
-                       escape_intraclade2_parent_homotypic,
+                       escape_intraclade2_parent_same,
                        "parent_stoperator_pwd_dist_euc",
                        "parent_averaged_rank6",
                        c(0,5),
@@ -3364,10 +2926,10 @@ plot_tricolor_scatter2(escape_intraclade2_parent_heterotypic,
                        "stop_vs_infection_score_parent.pdf")
 
 
-#Fig. 7f sub-panel 2
-plot_tricolor_scatter2(escape_intraclade2_mutant_heterotypic,
+# Fig. 7f sub-panel 2
+plot_tricolor_scatter2(escape_intraclade2_mutant_diff,
                        escape_interclade,
-                       escape_intraclade2_mutant_homotypic,
+                       escape_intraclade2_mutant_same,
                        "mutant_stoperator_pwd_dist_euc",
                        "mutant_averaged_rank6",
                        c(0,5),
@@ -3375,102 +2937,70 @@ plot_tricolor_scatter2(escape_intraclade2_mutant_heterotypic,
                        "stop_vs_infection_score_escape.pdf")
 
 
-#TODO change all references to 'homotypic' to 'same'
-#TODO change all references to 'heterotypic' to 'diff'
-
-
-
 # Compare escape mutants to parents on repressor clone strains. Use same
 # pipeline as for lysogen strains.
 
-#TODO change _rep to _clone
-mutant_data_rep <- subset(immunity_average,
+mutant_data_clone <- subset(immunity_average,
                       immunity_average$strain_type == 'repressor_clone' & 
                         immunity_average$assay_type == 'multiple_titer')
 
-names(mutant_data_rep) <- paste('mutant_',
-                                names(mutant_data_rep),
+names(mutant_data_clone) <- paste('mutant_',
+                                names(mutant_data_clone),
                                 sep="")
 
-mutant_data_rep <- subset(mutant_data_rep,
-                          mutant_data_rep$mutant_challenging_source == 'lab')
+mutant_data_clone <- subset(mutant_data_clone,
+                          mutant_data_clone$mutant_challenging_source == 'lab')
 
-parent_data_rep <- subset(immunity_average,
+
+
+parent_data_clone <- subset(immunity_average,
                       immunity_average$strain_type == 'repressor_clone' & 
                         immunity_average$assay_type == 'multiple_titer')
 
-names(parent_data_rep) <- paste('parent_',names(parent_data_rep),sep="")
+names(parent_data_clone) <- paste('parent_',names(parent_data_clone),sep="")
 
 
 
-mutant_data_rep$parent_defending_challenging <- 
-  paste(mutant_data_rep$mutant_defending_phage,
+mutant_data_clone$parent_defending_challenging <- 
+  paste(mutant_data_clone$mutant_defending_phage,
         "_",
-        mutant_data_rep$mutant_challenging_parent,
+        mutant_data_clone$mutant_challenging_parent,
         sep="")
 
-mutant_rep_analysis <- merge(mutant_data_rep,
-                             parent_data_rep,
+
+mutant_parent_clone <- merge(mutant_data_clone,
+                             parent_data_clone,
                              by.x="parent_defending_challenging",
                              by.y="parent_defending_challenging")
 
-mutant_rep_analysis$averaged_rank6_diff <-
-  mutant_rep_analysis$mutant_averaged_rank6 - 
-  mutant_rep_analysis$parent_averaged_rank6
+mutant_parent_clone$averaged_rank6_diff <-
+  mutant_parent_clone$mutant_averaged_rank6 - 
+  mutant_parent_clone$parent_averaged_rank6
 
-escape_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm35" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm36" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm38" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm39" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm40" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm41" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm42" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm46" | 
-           mutant_rep_analysis$mutant_challenging_phage == "phitm47")
-
-
-phitm35_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm35")
-phitm36_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm36")
-phitm38_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm38")
-phitm39_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm39")
-phitm40_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm40")
-phitm41_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm41")
-phitm42_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm42")
-phitm46_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm46")
-phitm47_mutant_rep_analysis <- 
-  subset(mutant_rep_analysis,
-         mutant_rep_analysis$mutant_challenging_phage == "phitm47")
+escape_parent_clone <- 
+  subset(mutant_parent_clone,
+         mutant_parent_clone$mutant_challenging_phage == "phitm35" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm36" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm38" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm39" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm40" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm41" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm42" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm46" | 
+           mutant_parent_clone$mutant_challenging_phage == "phitm47")
 
 
 escape_clone_intraclade2 <- 
-  subset_intraclade(escape_mutant_rep_analysis,
+  subset_intraclade(escape_parent_clone,
                     "parent_gene_content_clade_compare",
                     "clade2")
 
 escape_clone_interclade <- 
-  subset_interclade(escape_mutant_rep_analysis,
+  subset_interclade(escape_parent_clone,
                     "parent_gene_content_clade_compare")
 
 escape_clone_intraclade2_empty <- 
-  subset_intraclade(escape_mutant_rep_analysis,
+  subset_intraclade(escape_parent_clone,
                     "parent_gene_content_clade_compare",
                     "empty")
 
@@ -3478,11 +3008,6 @@ escape_clone_intraclade2_empty <-
 # QC
 nrow(escape_clone_intraclade2_empty)
 
-
-
-
-
-#Plots
 
 
 #Fig. 7c sub-panel 2
@@ -3496,32 +3021,107 @@ plot_tricolor_scatter1(escape_clone_intraclade2,
                        "parent_vs_escape_infection_scores_crs.pdf")
 
 
-###Compare known empirical temperate to isolated mutant to escape mutant
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 11. Compute immunity profile correlations.
+# Import table of averaged data manipulated in Excel. This is a reduced dataset
+# consisting of a complete reciprocal matrix.
+infection_table_reduced <- read.csv(INFECTION_TABLE_REDUCED_FILENAME,
+                                    sep=",",
+                                    header=TRUE,
+                                    row.names=1,
+                                    na.strings="unspecified")
+
+
+infection_table_reduced_t <- as.data.frame(t(infection_table_reduced))
+
+
+
+# No data should be missing in this dataset.
+defending_cor_reduced <- cor(infection_table_reduced,
+                             method="pearson",
+                             use="complete.obs")
+challenging_cor_reduced <- cor(infection_table_reduced_t,
+                               method="pearson",
+                               use="complete.obs")
+
+
+
+# Convert to 3-column data frame
+# Resulting table contains reciprocal data and self-comparisons
+defending_cor_reduced_df <-melt(defending_cor_reduced)
+challenging_cor_reduced_df <-melt(challenging_cor_reduced)
+
+
+names(defending_cor_reduced_df) <- c("phage1",
+                                     "phage2",
+                                     "defending_cor_reduced")
+names(challenging_cor_reduced_df) <- c("phage1",
+                                       "phage2",
+                                       "challenging_cor_reduced")
+
+defending_cor_reduced_df$phage1_phage2 <- 
+  paste(defending_cor_reduced_df$phage1,
+        "_",
+        defending_cor_reduced_df$phage2,
+        sep="")
+
+challenging_cor_reduced_df$phage1_phage2 <- 
+  paste(challenging_cor_reduced_df$phage1,
+        "_",
+        challenging_cor_reduced_df$phage2,
+        sep="")
+
+
+defending_cor_reduced_df$phage1_phage2 <-
+  as.factor(defending_cor_reduced_df$phage1_phage2)
+
+challenging_cor_reduced_df$phage1_phage2 <-
+  as.factor(challenging_cor_reduced_df$phage1_phage2)
+
+defending_cor_reduced_df <- subset(defending_cor_reduced_df,
+                                   select=c("phage1_phage2",
+                                            "defending_cor_reduced"))
+challenging_cor_reduced_df <- subset(challenging_cor_reduced_df,
+                                     select=c("phage1_phage2",
+                                              "challenging_cor_reduced"))
 
 
 
 
 
 
+# Merge datasets
+immunity_correlation_data <- merge(defending_cor_reduced_df,
+                                   challenging_cor_reduced_df,
+                                   by.x="phage1_phage2",
+                                   by.y="phage1_phage2",
+                                   all.x = TRUE,
+                                   all.y = TRUE)
 
+# This merged dataset contains reciprocal data and self-comparisons,
+# and can now be merged with other tables elsewhere in the analysis.
 
-
-
-
-
-
-
-
-
-
-
-###Whole genome metrics
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 12. Analyze misc. phage genome metrics.
 # Assess correlation of genomic distance, gcd, stoperator_pwd, etc.
-# This should be independent of any immunity assay data
-
-
-
-
+# Aside from the immunity profile correlations, this analysis is 
+# independent of any immunity assay data
 
 # Create list of all phage pairs  
 actino1321_phages <- levels(phage_metadata$phageid)
@@ -3546,34 +3146,34 @@ distance_metrics <- subset(distance_metrics,
 
 
 
-#Match the genome/gene distance data. Many comparisons will not be matched
+# Match the genome/gene distance data. Many comparisons will not be matched.
 distance_metrics <- merge(distance_metrics,
                           genomic_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 distance_metrics <- merge(distance_metrics,
-                          repressor336_distance_data,
+                          repressor_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 distance_metrics <- merge(distance_metrics,
-                          cas4311_distance_data,
+                          cas4_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 distance_metrics <- merge(distance_metrics,
-                          endovii306_distance_data,
+                          endovii_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 distance_metrics <- merge(distance_metrics,
-                          dnapol311_distance_data,
+                          dnapol_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
 distance_metrics <- merge(distance_metrics,
-                          portal311_distance_data,
+                          portal_distance_data,
                           by.x="phage1_phage2",
                           by.y="phage1_phage2",
                           all.x=TRUE)
@@ -3590,9 +3190,8 @@ distance_metrics <- merge(distance_metrics,
 
 
 
-#Match the phage metadata
+# Match the phage metadata
 phage_metadata_to_match <- phage_metadata
-
 names(phage_metadata_to_match) <- paste('phage1',
                                         '_',
                                         names(phage_metadata_to_match),
@@ -3614,10 +3213,7 @@ distance_metrics <- merge(distance_metrics,
 
 
 
-# Compute comparisons
-
-
-# Since this dataset is not limited to immunity assays, 
+# Compute comparisons. Since this dataset is not limited to immunity assays, 
 # it contains inter-cluster comparisons.
 distance_metrics$cluster_compare <- 
   ifelse(distance_metrics$phage1_cluster ==
@@ -3684,11 +3280,16 @@ distance_metrics$repressor_length_cterm_compare <-
   abs(distance_metrics$phage1_repressor_length_cterm - 
         distance_metrics$phage2_repressor_length_cterm)
 
-
 distance_metrics$subcluster_compare2 <- 
   ifelse(distance_metrics$phage1_subcluster ==
            distance_metrics$phage2_subcluster,
          "same",
+         "different")
+
+distance_metrics$host_compare <- 
+  ifelse(distance_metrics$phage1_host ==
+           distance_metrics$phage2_host,
+         as.character(distance_metrics$phage1_host),
          "different")
 
 distance_metrics$gene_content_clade_compare <- 
@@ -3702,7 +3303,6 @@ distance_metrics$gene_content_clade_compare2 <-
            distance_metrics$phage2_gene_content_clade,
          "same",
          "different")
-
 
 distance_metrics$cluster_compare <-
   as.factor(distance_metrics$cluster_compare)
@@ -3728,6 +3328,9 @@ distance_metrics$integrase_compare <-
 distance_metrics$parb_compare <-
   as.factor(distance_metrics$parb_compare)
 
+distance_metrics$host_compare <-
+  as.factor(distance_metrics$host_compare)
+
 distance_metrics$subcluster_compare2 <-
   factor(distance_metrics$subcluster_compare2, c("same", "different"))
 
@@ -3740,28 +3343,14 @@ distance_metrics$gene_content_clade_compare2 <-
 
 
 
-
-
-
-
-# Plot relationship between repressors, stoperators, and genomes
-
-
-
-
-
-
-
-# Keep only Mycobacteriophage data and drop Gordonia phages.
-# Do not include escape mutants.
+# Keep only Cluster A Mycobacterium phage data. Do not include Cluster A
+# Gordonia phages, and do not include lab-derived mutants.
 clusterA_data <- subset(
   distance_metrics,
   distance_metrics$cluster_compare == "A" &
     distance_metrics$source_compare == "environment" &
-    distance_metrics$phage1_host == "Mycobacterium" &
-    distance_metrics$phage2_host == "Mycobacterium"
+    distance_metrics$host_compare == "Mycobacterium"
 )
-
 
 
 clusterA_intraclade2 <-
@@ -3786,21 +3375,13 @@ clusterA_intraclade2_empty <-
          "gene_content_clade_compare",
          "empty")
 
-#QC
+# QC: should equal 0.
 nrow(clusterA_intraclade2_empty)
 
 
 
 
-
-
-
-
-#Plots
-#setwd(DIR_OUTPUT)
-
-
-#Fig. 2c
+# Fig. 2c
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "nuc_dist",
@@ -3810,7 +3391,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "nuc_vs_gcd.pdf")
 
 
-#Fig. 2d
+# Fig. 2d
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "gcd",
@@ -3820,7 +3401,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "gcd_vs_rep.pdf")
 
 
-#Fig. 2f sub-panel 1
+# Fig. 2f sub-panel 1
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "gcd",
@@ -3830,7 +3411,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "gcd_vs_stop.pdf")
 
 
-#Fig. 2f sub-panel 2
+# Fig. 2f sub-panel 2
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "repressor_full_mafft_dist_uncorrected",
@@ -3840,7 +3421,7 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "rep_vs_stop.pdf")
 
 
-#Fig. 9a
+# Fig. 9a
 plot_bicolor_scatter2(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "repressor_nterm_mafft_dist_uncorrected",
@@ -3850,7 +3431,7 @@ plot_bicolor_scatter2(clusterA_clade2_diff,
                       "rep_nterm_vs_rep_cterm.pdf")
 
 
-#Fig. 5c sub-panel 1
+# Fig. 5c sub-panel 1
 plot_tricolor_scatter2(clusterA_intraclade2,
                        clusterA_clade2_diff,
                        clusterA_intraclade2_empty,
@@ -3861,7 +3442,7 @@ plot_tricolor_scatter2(clusterA_intraclade2,
                        "stop_vs_cor_challenging.pdf")
 
 
-#Fig. 5c sub-panel 2
+# Fig. 5c sub-panel 2
 plot_tricolor_scatter2(clusterA_intraclade2,
                        clusterA_clade2_diff,
                        clusterA_intraclade2_empty,
@@ -3876,7 +3457,7 @@ plot_tricolor_scatter2(clusterA_intraclade2,
 
 
 
-#Repressor size
+# Compare repressor sizes
 clusterA_subset <- subset(
   phage_metadata,
   phage_metadata$cluster == 'A' &
@@ -3887,7 +3468,7 @@ clusterA_subset <- subset(
 )
 
 
-#Fig. S1a
+# Fig. S1a
 par(mar=c(4,8,16,20))
 boxplot(clusterA_subset$repressor_length_full,
         las=1,cex.axis=2,ann=FALSE,main=NULL,outline=FALSE,ylim=c(150,250),
@@ -3901,19 +3482,16 @@ dev.off()
 
 
 
-### Whole genome metrics (regardless of immunity data) above
-
-
-
-
-
-
-
-
-
-
-
-
+###
+###
+###
+###
+###
+###
+###
+###
+###
+### 13. Compare stoperator site data.
 # Stoperator site prediction data, containing a list of predicted stoperator
 # sites in all 327 Cluster A genomes (including escape mutants) from the
 # Actino1321 database, for each of the 327 stoperator PWMs derived from all
@@ -3931,7 +3509,6 @@ dev.off()
 # "tfbs88_site_rel_score"
 # "tfbs88_site_self"
 
-#setwd(DIR_INPUT)
 
 
 stoperator_sites <-  read.csv(STOPERATOR_SITES_FILENAME,
@@ -4049,8 +3626,6 @@ names(stops_endo_freq) <- c("phage","frequency")
 
 
 # Distance from Pleft
-#setwd(DIR_OUTPUT)
-
 
 
 # Fig. 3b - distance from repressor
@@ -4126,7 +3701,7 @@ nrow(stops_right) - nrow(stops_right_for) - nrow(stops_right_rev)
 
 
 
-#Create frequency tables
+# Create frequency tables
 stops_left_freq <-
   as.data.frame(table(stops_left$tfbs88_stoperator_target))
 names(stops_left_freq) <- c("phage","left_sites_freq")
@@ -4154,7 +3729,7 @@ stops_right_rev_freq <-
 names(stops_right_rev_freq) <- c("phage","right_sites_reverse_freq")
 
 
-#QC: all shoudl have the same number of rows.
+# QC: all shoudl have the same number of rows.
 nrow(stops_endo_freq)
 nrow(stops_left_freq)
 nrow(stops_left_for_freq)
@@ -4247,16 +3822,6 @@ summary(stops_freq_summary$check_right_percent)
 
 
 
-
-
-
-
-# Plots
-#setwd(DIR_OUTPUT)
-
-
-
-
 # Fig. S1c
 par(mar=c(4,8,8,4))
 plot(stops_freq_summary$right_sites_reverse_percent,
@@ -4268,10 +3833,4 @@ abline(0,1)
 dev.copy(pdf,"stoperators_percent_syn_orientation.pdf")
 dev.off()
 
-###Above stoperator site analysis
-
-
-
-
-
-
+###
