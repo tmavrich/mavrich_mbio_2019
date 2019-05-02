@@ -156,30 +156,17 @@ pham_table <- read.csv(PHAM_DATA_FILENAME,sep=",",header=TRUE)
 # Compute gene content dissimilarity.
 pham_table$pham_dissimilarity <- 1 - pham_table$average_shared_proportion
 
-names(pham_table) <- c("pham_phage1",
-                       "pham_phage1_number_unshared_phams",
-                       "pham_phage1_shared_proportion",
-                       "pham_phage2",
-                       "pham_phage2_number_unshared_phams",
-                       "pham_phage2_shared_proportion",
-                       "pham_number_shared_phams",
-                       "pham_average_shared_proportion",
-                       "pham_jaccard_similarity",
-                       "pham_shared_pham_distribution_mean",
-                       "pham_shared_pham_distribution_median",
-                       "pham_shared_pham_distribution_max",
-                       "pham_unshared_pham_distribution_mean",
-                       "pham_unshared_pham_distribution_median",
-                       "pham_unshared_pham_distribution_max",
-                       "pham_unshared_orpham_count",
-                       "pham_pham_dissimilarity")
+names(pham_table) <- paste("pham",
+                           "_",
+                           names(pham_table),
+                           sep="")
 
 
 # Since pham data contains pairwise duplicates, no need to worry about the
 # phage order when creating ref_query match column.
-pham_table$pham_phage1_phage2 <- paste(pham_table$pham_phage1,
+pham_table$pham_phage1_phage2 <- paste(pham_table$pham_phage1_name,
                                        "_",
-                                       pham_table$pham_phage2,
+                                       pham_table$pham_phage2_name,
                                        sep="")
 
 pham_table$pham_phage1_phage2 <- as.factor(pham_table$pham_phage1_phage2)
