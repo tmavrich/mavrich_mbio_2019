@@ -1,13 +1,13 @@
 # R script to process genomic distance data in preparation for immunity data
-# analysis in the analyze_immunity_data.R script published in
+# analysis in the analyze_immunity_data.R script, as published in
 # Mavrich & Hatfull, mBio, 2019. 
-# Travis Mavrich.
 # Note: this code merges and analyzes various input data sets 
-# prepared by other tools including Python and Excel.
+# prepared by other tools.
+# Phage metadata table was manually prepared in Excel.
 # Whole genome nucleotide distance was computed from Mash.
-# Whole genome gene content dissimilarity was computed from Python scripts.
-# Both data sets were computed as published in Mavrich & Hatfull, Nature
-# Microbiology 2017.
+# Whole genome gene content dissimilarity (GCD) was computed from Python scripts.
+# Mash and GCD data sets were computed as published in
+# Mavrich & Hatfull, Nature Microbiology, 2017.
 # Distinct analyses and code blocks separated by "###".
 
 ### 1. Prepare environment.
@@ -28,20 +28,9 @@ DIR_OUTPUT = "~/scratch/process_genome_distances/output/"
 
 # Set paths for all input files.
 
-PHAGE_METADATA_FILENAME = 
-  paste(DIR_INPUT,
-        "phage_metadata.csv",
-        sep="")
-
-MASH_DATA_FILENAME = 
-  paste(DIR_INPUT,
-        "processed_mash_output.csv",
-        sep="")
-
-PHAM_DATA_FILENAME = 
-  paste(DIR_INPUT,
-        "pairwise_pham_proportions.csv",
-        sep="")
+PHAGE_METADATA_FILENAME = paste(DIR_INPUT,"phage_metadata.csv",sep="")
+MASH_DATA_FILENAME = paste(DIR_INPUT,"processed_mash_output.csv",sep="")
+PHAM_DATA_FILENAME = paste(DIR_INPUT,"pairwise_pham_proportions.csv",sep="")
 
 setwd(DIR_OUTPUT)
 ###
@@ -55,7 +44,7 @@ setwd(DIR_OUTPUT)
 ###
 ### 2. Define functions.
 
-# The standard genomic similarity plot parameters.
+# The standard genomic similarity plot.
 plot_genomic_similarity_standard <- function(table){
   
   par(mar=c(4,8,4,4))
@@ -79,7 +68,6 @@ plot_genomic_similarity_standard <- function(table){
 ###
 ### 3. Import mash and gene content dissimilarity data.
 
-
 # Import mash dataset.
 # This data is generated from the process_mash_data.py script.
 # Data structure:
@@ -97,11 +85,10 @@ names(mash_table) <- c("mash_reference",
                        "mash_count",
                        "mash_ref_query")
 
-
-
-# Import phage metadata. Derived from same metadata input used for immunity
-# data analysis. Contains data for all phages in Actino1321 database.
-# This data is generated manually in Excel.
+# Import phage metadata.
+# This data is derived from the same metadata input used for the
+# analyze_immunity_data.R. It contains data for all phages in the Actino1321
+# database.
 # Data structure:
 # 1 = phageid
 # 2 = host
@@ -116,7 +103,7 @@ phage_metadata_table[phage_metadata_table == "Unspecified"] <- NA
 
 
 # Match metadata for the query and reference phages in each pairwise comparison.
-# Data for all phages in processed mash table should be present in the
+# Data for all phages in the processed mash table should be present in the
 # phage metadata table. As a result, do not select all.x=TRUE option. Any
 # missing rows indicates an error in the table.
 metadata_to_match <- phage_metadata_table
@@ -142,6 +129,9 @@ main_data_table <- merge(main_data_table,
                          by.y="phageid")
 
 
+# QC
+nrow(mash_table) - nrow(main_data_table)
+
 # Import pairwise pham proportion data and merge with mash table.
 # This data is generated from the analyze_pham_data.py script.
 # Data structure:
@@ -165,7 +155,6 @@ pham_table <- read.csv(PHAM_DATA_FILENAME,sep=",",header=TRUE)
 
 # Compute gene content dissimilarity.
 pham_table$pham_dissimilarity <- 1 - pham_table$average_shared_proportion
-pham_table$jaccard_dissimilarity <- 1 - pham_table$jaccard_similarity
 
 names(pham_table) <- c("pham_phage1",
                        "pham_phage1_number_unshared_phams",
@@ -183,8 +172,7 @@ names(pham_table) <- c("pham_phage1",
                        "pham_unshared_pham_distribution_median",
                        "pham_unshared_pham_distribution_max",
                        "pham_unshared_orpham_count",
-                       "pham_pham_dissimilarity",
-                       "pham_jaccard_dissimilarity")
+                       "pham_pham_dissimilarity")
 
 
 # Since pham data contains pairwise duplicates, no need to worry about the
@@ -196,11 +184,14 @@ pham_table$pham_phage1_phage2 <- paste(pham_table$pham_phage1,
 
 pham_table$pham_phage1_phage2 <- as.factor(pham_table$pham_phage1_phage2)
 
-main_data_table <- merge(main_data_table,pham_table,
+main_data_table <- merge(main_data_table,
+                         pham_table,
                          by.x="mash_ref_query",
                          by.y="pham_phage1_phage2")
 
 # Assign filter status and change mash distance if data is not significant.
+
+# As published in Mavrich & Hatfull 2017:
 # main_data_table$filter <- ifelse(main_data_table$mash_pvalue < 1e-10 & 
 #                                    main_data_table$size_diff_max_percent < 1,
 #                                  TRUE,
@@ -213,12 +204,10 @@ main_data_table$filter <- ifelse(main_data_table$mash_pvalue < 1e-10,
                                  FALSE)
 
 
-#  QC:Determine the max filtered distance.
-filtered_table <- subset(main_data_table,
-                         main_data_table$filter == TRUE)
-
+# QC:Determine the max filtered distance.
+filtered_table <- subset(main_data_table,main_data_table$filter == TRUE)
 summary(filtered_table$mash_distance)
-# The max mash distance = 0.4991900.
+# The max mash distance < 0.5.
 
 # At this point, the max mash distance of all filtered comparisons < 0.5. So
 # set the distance of all comparisons that did not pass the filter = 0.5.
@@ -259,10 +248,8 @@ main_data_table$subcluster_compare <-
 main_data_table[main_data_table == "Unspecified"] <- NA
 
 
-# QC: Check how all data looks.
+# QC: Confirm data is matched correctly and looks fine.
 plot_genomic_similarity_standard(main_data_table)
-
-
 
 
 ###
@@ -277,10 +264,10 @@ plot_genomic_similarity_standard(main_data_table)
 ### 4. Output data for immunity analysis.
 # Currently, the pairwise comparison data does not contain self-comparisons
 # (i.e. L5 compared to L5), and it does not contain duplicate reciprocal pairs
-# (i.e. L5-Trixie is absent if Trixie-L5 is already present). Analyzing
+# (i.e. If Trixie-L5 is present then L5-Trixie is absent). Analyzing
 # immunity data requires all duplicate reciprocal data and self-comparisons.
 
-# First subset only the columns of interest.
+# Subset only the columns of interest.
 partial_data_for_immunity <- subset(main_data_table,
                                     select=c("mash_reference",
                                              "mash_query",
@@ -374,22 +361,20 @@ write.table(all_data_for_immunity,
 # then mode will be predicted only for phages that contain at least one data 
 # point within the subsetted data. Only data within intra-cluster boundaries 
 # should be used to match what was done in Mavrich & Hatfull 2017.
+
 data_for_mode_prediction <- 
   subset(main_data_table,
          main_data_table$modified_mash_distance < 0.42 &
-           main_data_table$pham_pham_dissimilarity < 0.89)
-
-data_for_mode_prediction <- subset(data_for_mode_prediction,
-                                   select=c("mash_reference",
-                                            "mash_query",
-                                            "modified_mash_distance",
-                                            "pham_pham_dissimilarity"))
+           main_data_table$pham_pham_dissimilarity < 0.89,
+         select=c("mash_reference",
+                  "mash_query",
+                  "modified_mash_distance",
+                  "pham_pham_dissimilarity"))
 
 write.table(data_for_mode_prediction,
             paste(DIR_OUTPUT,"data_for_mode_prediction.csv",sep=""),
             sep=",",
             row.names = FALSE,col.names = FALSE,quote=FALSE)
-
 
 ###
 ###
@@ -403,7 +388,6 @@ write.table(data_for_mode_prediction,
 ### 6. Output data for computing MaxGCDGap (if needed).
 # MaxGCDGap is computed using the analyze_mash_network.py script as published
 # in Pope et al. 2017.
-
 
 # All pairwise comparisons can be used for this analysis.
 data_for_maxgcdgap_all <- subset(main_data_table,
@@ -447,4 +431,3 @@ write.table(data_for_mash_network_nuc005,
 
 
 ###
-
