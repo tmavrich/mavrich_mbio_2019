@@ -73,13 +73,13 @@ setwd(DIR_OUTPUT)
 # 1. phage name (imported as factor)
 # 2. stoperator_id (imported as factor)
 # 3. sequence (imported as factor)
-stoperator_data <- read.csv(STOPERATOR_DATA_FILENAME,sep=",",header=TRUE)
+meme_sites <- read.csv(STOPERATOR_DATA_FILENAME,sep=",",header=TRUE)
 
 
 
 # Tally # of stoperators identified by MEME as input.
-stoperator_MEME_frequency <- as.data.frame(table(stoperator_data$phage))
-names(stoperator_MEME_frequency) <- c("phage","meme_frequency")
+meme_freq <- as.data.frame(table(meme_sites$phage))
+names(meme_freq) <- c("phage","meme_frequency")
 
 
 
@@ -92,33 +92,37 @@ names(stoperator_MEME_frequency) <- c("phage","meme_frequency")
 # Data structure:
 # 1. phageid (imported as factor)
 # 2. size (imported as int)
-# 3. genome_center_alignment_reference (imported as int)
+# 3. coordinate_genome_center (imported as int)
 phage_metadata <- read.csv(PHAGE_METADATA_FILENAME,sep=",",header=TRUE)
 
 
+#Phages not in Cluster A do not have a specific genome center coordinate.
+phage_metadata[phage_metadata == "Unspecified"] <- NA
+phage_metadata$coordinate_genome_center <- 
+  as.numeric(as.character(phage_metadata$coordinate_genome_center))
 
 
 # QC: Confirm presence of sites in each genomes in case genome sequence has
 # changed since original MEME search.
 
 # Create an empty dataframe to store all the search data
-stoperator_biostrings_df <- data.frame(phage="empty",
-                                       stoperator_forward_seq="empty",
-                                       stoperator_reverse_seq="empty",
-                                       start=0,
-                                       end=0,
-                                       strand="empty")
+bios_sites <- data.frame(phage="empty",
+                         forward_seq="empty",
+                         reverse_seq="empty",
+                         start=0,
+                         end=0,
+                         strand="empty")
 
 
 # For each phage, 
 # 1. create list of unique 13bp stoperators.
 # 2. search the corresponding parent genome, both strands.
 # 3. save list of sites and coordinates.
-for (phageid in levels(stoperator_data$phage)){
+for (phageid in levels(meme_sites$phage)){
   
   
-  reduced_table_seqs <- subset(stoperator_data,
-                               stoperator_data$phage == phageid,
+  reduced_table_seqs <- subset(meme_sites,
+                               meme_sites$phage == phageid,
                                select = c("sequence"))
   
   reduced_table_seqs$sequence <- factor(reduced_table_seqs$sequence)
@@ -136,271 +140,205 @@ for (phageid in levels(stoperator_data$phage)){
       
       hits_plus_df <- 
         data.frame(phage=phageid,
-                   stoperator_forward_seq = as.character(stop_forward),
-                   stoperator_reverse_seq = as.character(stop_reverse),
+                   forward_seq = as.character(stop_forward),
+                   reverse_seq = as.character(stop_reverse),
                    start=start(hits_plus),
                    end=end(hits_plus),
                    strand="forward")
-      stoperator_biostrings_df <- rbind(stoperator_biostrings_df,hits_plus_df)
+      bios_sites <- rbind(bios_sites,hits_plus_df)
     }
 
     if (length(hits_minus) > 0){
       
       hits_minus_df <- 
         data.frame(phage=phageid,
-                   stoperator_forward_seq=as.character(stop_forward),
-                   stoperator_reverse_seq=as.character(stop_reverse),
+                   forward_seq=as.character(stop_forward),
+                   reverse_seq=as.character(stop_reverse),
                    start=start(hits_minus),
                    end=end(hits_minus),
                    strand="reverse")
-      stoperator_biostrings_df <- rbind(stoperator_biostrings_df,hits_minus_df)
+      bios_sites <- rbind(bios_sites,hits_minus_df)
     }
   }
 }
 
 
 # Remove the row of empty data used to initiate the table.
-stoperator_biostrings_df <- 
-  stoperator_biostrings_df[stoperator_biostrings_df$phage != "empty",]
+bios_sites <- bios_sites[bios_sites$phage != "empty",]
 
-stoperator_biostrings_df$phage <- 
-  factor(stoperator_biostrings_df$phage)
+bios_sites$phage <- factor(bios_sites$phage)
 
-stoperator_biostrings_df$strand <- 
-  factor(stoperator_biostrings_df$strand)
+bios_sites$strand <- factor(bios_sites$strand)
 
-stoperator_biostrings_df$stoperator_forward_seq <- 
-  factor(stoperator_biostrings_df$stoperator_forward_seq)
+bios_sites$forward_seq <- factor(bios_sites$forward_seq)
 
-stoperator_biostrings_df$stoperator_reverse_seq <- 
-  factor(stoperator_biostrings_df$stoperator_reverse_seq)
+bios_sites$reverse_seq <- factor(bios_sites$reverse_seq)
 
 
 
 # Create unique identifier for each site.
-stoperator_biostrings_df$stop_site_id <- paste(stoperator_biostrings_df$phage,
-                                               stoperator_biostrings_df$strand,
-                                               stoperator_biostrings_df$start,
-                                               sep="_")
+bios_sites$stop_site_id <- paste(bios_sites$phage,
+                                 bios_sites$strand,
+                                 bios_sites$start,
+                                 sep="_")
 
-stoperator_biostrings_df$stop_site_id <- 
-  factor(stoperator_biostrings_df$stop_site_id)
+bios_sites$stop_site_id <- factor(bios_sites$stop_site_id)
 
 
 # Add metadata.
-stoperator_biostrings_df <- merge(stoperator_biostrings_df,
-                                  phage_metadata,
-                                  by.x="phage",
-                                  by.y="phageid")
+bios_sites <- merge(bios_sites,phage_metadata,by.x="phage",by.y="phageid")
 
-stoperator_biostrings_df$site_dist_from_center <- 
-  stoperator_biostrings_df$start - 
-  stoperator_biostrings_df$genome_center_alignment_reference
+bios_sites$dist_from_center <- 
+  bios_sites$start - bios_sites$coordinate_genome_center
 
 
 # Tally # of stoperators confirmed.
-stoperator_biostrings_frequency <- 
-  as.data.frame(table(stoperator_biostrings_df$phage))
+bios_freq <- as.data.frame(table(bios_sites$phage))
 
-names(stoperator_biostrings_frequency) <- c("phage","biostrings_frequency")
+names(bios_freq) <- c("phage","biostrings_freq")
 
 
 # Tally # of stoperators on each side of genome center.
-stoperator_biostrings_left_sites <- 
-  subset(stoperator_biostrings_df,
-         stoperator_biostrings_df$site_dist_from_center <= 0)
+bios_sites_left <- subset(bios_sites,bios_sites$dist_from_center <= 0)
+bios_sites_right <- subset(bios_sites,bios_sites$dist_from_center > 0)
 
-stoperator_biostrings_right_sites <- 
-  subset(stoperator_biostrings_df,
-         stoperator_biostrings_df$site_dist_from_center > 0)
+bios_freq_left <- as.data.frame(table(bios_sites_left$phage))
+bios_freq_right <- as.data.frame(table(bios_sites_right$phage))
 
-stoperator_biostrings_left_sites_frequency <- 
-  as.data.frame(table(stoperator_biostrings_left_sites$phage))
+names(bios_freq_left) <- c("phage","biostrings_freq_left")
+names(bios_freq_right) <- c("phage","biostrings_freq_right")
 
-names(stoperator_biostrings_left_sites_frequency) <- 
-  c("phage","biostrings_left_sites_frequency")
-
-stoperator_biostrings_right_sites_frequency <- 
-  as.data.frame(table(stoperator_biostrings_right_sites$phage))
-
-names(stoperator_biostrings_right_sites_frequency) <- 
-  c("phage","biostrings_right_sites_frequency")
 
 # QC: should equal 0.
-nrow(stoperator_biostrings_df) - 
-  nrow(stoperator_biostrings_left_sites) - 
-  nrow(stoperator_biostrings_right_sites)
+nrow(bios_sites) - nrow(bios_sites_left) - nrow(bios_sites_right)
 
 
 
 
 # Tally # of stoperators on each strand of each side of genome center.
-stoperator_biostrings_left_sites_forward <- 
-  subset(stoperator_biostrings_left_sites,
-         stoperator_biostrings_left_sites$strand == "forward")
-
-stoperator_biostrings_left_sites_reverse <- 
-  subset(stoperator_biostrings_left_sites,
-         stoperator_biostrings_left_sites$strand == "reverse")
-
-stoperator_biostrings_right_sites_forward <- 
-  subset(stoperator_biostrings_right_sites,
-         stoperator_biostrings_right_sites$strand == "forward")
-
-stoperator_biostrings_right_sites_reverse <- 
-  subset(stoperator_biostrings_right_sites,
-         stoperator_biostrings_right_sites$strand == "reverse")
+bios_sites_left_for <- subset(bios_sites_left,
+                              bios_sites_left$strand == "forward")
+bios_sites_left_rev <- subset(bios_sites_left,
+                              bios_sites_left$strand == "reverse")
+bios_sites_right_for <- subset(bios_sites_right,
+                               bios_sites_right$strand == "forward")
+bios_sites_right_rev <- subset(bios_sites_right,
+                               bios_sites_right$strand == "reverse")
 
 
-
-stoperator_biostrings_left_sites_forward_frequency <- 
-  as.data.frame(table(stoperator_biostrings_left_sites_forward$phage))
-
-names(stoperator_biostrings_left_sites_forward_frequency) <- 
-  c("phage","biostrings_left_sites_forward_frequency")
-
-stoperator_biostrings_left_sites_reverse_frequency <- 
-  as.data.frame(table(stoperator_biostrings_left_sites_reverse$phage))
-
-names(stoperator_biostrings_left_sites_reverse_frequency) <- 
-  c("phage","biostrings_left_sites_reverse_frequency")
+bios_freq_left_for <- as.data.frame(table(bios_sites_left_for$phage))
+bios_freq_left_rev <- as.data.frame(table(bios_sites_left_rev$phage))
+bios_freq_right_for <- as.data.frame(table(bios_sites_right_for$phage))
+bios_freq_right_rev <- as.data.frame(table(bios_sites_right_rev$phage))
 
 
-stoperator_biostrings_right_sites_forward_frequency <- 
-  as.data.frame(table(stoperator_biostrings_right_sites_forward$phage))
-
-names(stoperator_biostrings_right_sites_forward_frequency) <- 
-  c("phage","biostrings_right_sites_forward_frequency")
-
-stoperator_biostrings_right_sites_reverse_frequency <- 
-  as.data.frame(table(stoperator_biostrings_right_sites_reverse$phage))
-
-names(stoperator_biostrings_right_sites_reverse_frequency) <- 
-  c("phage","biostrings_right_sites_reverse_frequency")
+names(bios_freq_left_for) <- c("phage","biostrings_freq_left_forward")
+names(bios_freq_left_rev) <- c("phage","biostrings_freq_left_reverse")
+names(bios_freq_right_for) <- c("phage","biostrings_freq_right_forward")
+names(bios_freq_right_rev) <- c("phage","biostrings_freq_right_reverse")
 
 
 
 
 # Combine MEME and Biostrings data.
-stoperator_frequency <- merge(stoperator_MEME_frequency,
-                              stoperator_biostrings_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_left_sites_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_right_sites_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_left_sites_forward_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_left_sites_reverse_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_right_sites_forward_frequency,
-                              by.x="phage",
-                              by.y="phage")
-stoperator_frequency <- merge(stoperator_frequency,
-                              stoperator_biostrings_right_sites_reverse_frequency,
-                              by.x="phage",
-                              by.y="phage")
+freq_table <- merge(meme_freq,bios_freq,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_left,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_right,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_left_for,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_left_rev,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_right_for,by.x="phage",by.y="phage")
+freq_table <- merge(freq_table,bios_freq_right_rev,by.x="phage",by.y="phage")
+
+
+
+freq_table$meme_biostrings_diff <- 
+  freq_table$meme_frequency - freq_table$biostrings_freq
+
+freq_table$biostrings_percent_left <- 
+  freq_table$biostrings_freq_left / freq_table$biostrings_freq
+
+freq_table$biostrings_percent_right <- 
+  freq_table$biostrings_freq_right / freq_table$biostrings_freq
+
+freq_table$biostrings_percent_left_forward <- 
+  freq_table$biostrings_freq_left_forward / freq_table$biostrings_freq_left
+
+freq_table$biostrings_percent_left_reverse <- 
+  freq_table$biostrings_freq_left_reverse / freq_table$biostrings_freq_left
+
+freq_table$biostrings_percent_right_forward <- 
+  freq_table$biostrings_freq_right_forward / freq_table$biostrings_freq_right
+
+freq_table$biostrings_percent_right_reverse <- 
+  freq_table$biostrings_freq_right_reverse / freq_table$biostrings_freq_right
+
+
+# QC: Tally checks should equal 0.
+freq_table$biostrings_check1 <- 
+  freq_table$biostrings_freq - 
+  freq_table$biostrings_freq_left - 
+  freq_table$biostrings_freq_right
+
+freq_table$biostrings_check2 <- 
+  freq_table$biostrings_freq_left - 
+  freq_table$biostrings_freq_left_forward - 
+  freq_table$biostrings_freq_left_reverse
+
+
+freq_table$biostrings_check3 <- 
+  freq_table$biostrings_freq_right - 
+  freq_table$biostrings_freq_right_forward - 
+  freq_table$biostrings_freq_right_reverse
+
+summary(freq_table$biostrings_check1)
+summary(freq_table$biostrings_check2)
+summary(freq_table$biostrings_check3)
+
+
+
+# QC: Percent checks should equal 1.
+freq_table$biostrings_check4 <- 
+  freq_table$biostrings_percent_left +
+  freq_table$biostrings_percent_right
+
+freq_table$biostrings_check5 <- 
+  freq_table$biostrings_percent_left_forward +
+  freq_table$biostrings_percent_left_reverse
+
+freq_table$biostrings_check6 <- 
+  freq_table$biostrings_percent_right_forward +
+  freq_table$biostrings_percent_right_reverse
+
+
+summary(freq_table$biostrings_check4)
+summary(freq_table$biostrings_check5)
+summary(freq_table$biostrings_check6)
 
 
 
 
 
-stoperator_frequency$meme_biostrings_diff <- 
-  stoperator_frequency$meme_frequency - 
-  stoperator_frequency$biostrings_frequency
-
-stoperator_frequency$biostrings_left_sites_percent <- 
-  stoperator_frequency$biostrings_left_sites_frequency / 
-  stoperator_frequency$biostrings_frequency
-
-stoperator_frequency$biostrings_right_sites_percent <- 
-  stoperator_frequency$biostrings_right_sites_frequency / 
-  stoperator_frequency$biostrings_frequency
-
-stoperator_frequency$biostrings_left_sites_forward_percent <- 
-  stoperator_frequency$biostrings_left_sites_forward_frequency / 
-  stoperator_frequency$biostrings_left_sites_frequency
-
-stoperator_frequency$biostrings_left_sites_reverse_percent <- 
-  stoperator_frequency$biostrings_left_sites_reverse_frequency / 
-  stoperator_frequency$biostrings_left_sites_frequency
-
-stoperator_frequency$biostrings_right_sites_forward_percent <- 
-  stoperator_frequency$biostrings_right_sites_forward_frequency / 
-  stoperator_frequency$biostrings_right_sites_frequency
-
-stoperator_frequency$biostrings_right_sites_reverse_percent <- 
-  stoperator_frequency$biostrings_right_sites_reverse_frequency / 
-  stoperator_frequency$biostrings_right_sites_frequency
-
-
-# QC:Site tally checks should equal 0.
-stoperator_frequency$site_tally_check <- 
-  stoperator_frequency$biostrings_frequency - 
-  stoperator_frequency$biostrings_left_sites_frequency - 
-  stoperator_frequency$biostrings_right_sites_frequency
-summary(stoperator_frequency$site_tally_check)
-
-stoperator_frequency$site_left_tally_check <- 
-  stoperator_frequency$biostrings_left_sites_frequency - 
-  stoperator_frequency$biostrings_left_sites_forward_frequency - 
-  stoperator_frequency$biostrings_left_sites_reverse_frequency
-summary(stoperator_frequency$site_left_tally_check)
-
-stoperator_frequency$site_right_tally_check <- 
-  stoperator_frequency$biostrings_right_sites_frequency - 
-  stoperator_frequency$biostrings_right_sites_forward_frequency - 
-  stoperator_frequency$biostrings_right_sites_reverse_frequency
-summary(stoperator_frequency$site_right_tally_check)
 
 
 
-# QC: Site percent checks should equal 1.
-stoperator_frequency$site_percent_check <- 
-  stoperator_frequency$biostrings_left_sites_percent + 
-  stoperator_frequency$biostrings_right_sites_percent
-summary(stoperator_frequency$site_percent_check)
-
-
-stoperator_frequency$site_left_percent_check <- 
-  stoperator_frequency$biostrings_left_sites_forward_percent + 
-  stoperator_frequency$biostrings_left_sites_reverse_percent
-summary(stoperator_frequency$site_left_percent_check)
-
-stoperator_frequency$site_right_percent_check <- 
-  stoperator_frequency$biostrings_right_sites_forward_percent + 
-  stoperator_frequency$biostrings_right_sites_reverse_percent
-summary(stoperator_frequency$site_right_percent_check)
-
-
-
+#HERE
 # QC: 
 
-nrow(stoperator_data)
-nrow(stoperator_biostrings_df)
+nrow(meme_sites)
+nrow(bios_sites)
 
 # If this does not equal 0, then there is a difference between the number
 # of stoperators present in the two sets of stoperators.
-nrow(stoperator_data) - nrow(stoperator_biostrings_df)
+nrow(meme_sites) - nrow(bios_sites)
 
 
 
 #TODO delete or refine
-hist(stoperator_frequency$meme_biostrings_diff)
-setdiff(levels(stoperator_MEME_frequency$phage),
-        levels(stoperator_biostrings_frequency$phage))
-setdiff(levels(stoperator_biostrings_frequency$phage),
-        levels(stoperator_MEME_frequency$phage))
+hist(freq_table$meme_biostrings_diff)
+setdiff(levels(meme_freq$phage),
+        levels(bios_freq$phage))
+setdiff(levels(bios_freq$phage),
+        levels(meme_freq$phage))
 
 
 
@@ -418,58 +356,24 @@ setdiff(levels(stoperator_biostrings_frequency$phage),
 
 
 # Compare # MEME sites versus # Biostrings sites per genome.
-plot(stoperator_frequency$meme_frequency,
-     stoperator_frequency$biostrings_frequency)
+plot(freq_table$meme_frequency,
+     freq_table$biostrings_freq)
 
 
 
 # Plot distribution of number of stoperators.
 
-#TODO delete?
-# 
-# par(mar=c(4,8,8,4))
-# hist(table(stoperator_biostrings_df$phage),col="black",
-#      xlim=c(0,50),ylim=c(0,80),
-#      breaks=10,cex.axis=2,ann=FALSE,main=NULL,las=1)
-# dev.copy(pdf,paste(DIR_OUTPUT,
-#                    'stoperator327_number_stops_per_genome.pdf',
-#                    sep=""))
-# dev.off()
-# 
-
-
-
-
-#TODO delete?
-# 
-# #Plot distribution of percent of stoperators on each side of genome.
-# hist(stoperator_frequency$biostrings_left_sites_forward_percent,
-#      xlim=c(0,1),col="black",breaks=100)
-# 
-# hist(stoperator_frequency$biostrings_left_sites_reverse_percent,
-#      xlim=c(0,1),col="black",breaks=100)
-# 
-# hist(stoperator_frequency$biostrings_right_sites_forward_percent,
-#      xlim=c(0,1),col="black",breaks=100)
-# 
-# hist(stoperator_frequency$biostrings_right_sites_reverse_percent,
-#      xlim=c(0,1),col="black",breaks=100)
-# 
-# par(mar=c(4,8,8,4))
-# plot(stoperator_frequency$biostrings_right_sites_reverse_percent,
-#      stoperator_frequency$biostrings_left_sites_forward_percent,
-#      xlim=c(0,1),ylim=c(0,1),
-#      cex.axis=2,ann=FALSE,main=NULL,las=1,
-#      col="black",pch=16,cex=2)
-# dev.copy(pdf,paste(DIR_OUTPUT,
-#                    'stoperator327_percent_txn_oriented_sites_per_genome.pdf',
-#                    sep=""))
-# dev.off()
-
-
+par(mar=c(4,8,8,4))
+hist(table(bios_sites$phage),col="black",
+     xlim=c(0,50),ylim=c(0,80),
+     breaks=10,cex.axis=2,ann=FALSE,main=NULL,las=1)
+dev.copy(pdf,paste(DIR_OUTPUT,
+                   'stoperator327_number_stops_per_genome.pdf',
+                   sep=""))
+dev.off()
 
 # Output biostrings data for reference
-write.table(stoperator_biostrings_df,
+write.table(bios_sites,
             paste(DIR_OUTPUT,"stoperator_biostrings_coordinates.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
@@ -496,11 +400,11 @@ write.table(stoperator_biostrings_df,
 # Create two lists of PWMs.
 
 # Log2ProbRatio PWM.
-stoperator_pwm_list <- vector("list",nlevels(stoperator_biostrings_df$phage))
+stoperator_pwm_list <- vector("list",nlevels(bios_sites$phage))
 
 
 # Prob PWM.
-stoperator_pwm2_list <- vector("list",nlevels(stoperator_biostrings_df$phage))
+stoperator_pwm2_list <- vector("list",nlevels(bios_sites$phage))
 
 
 # For each phage genome, the list of stoperators must contain at least 
@@ -512,14 +416,14 @@ stoperator_letters_check_sum <- 0
 
 
 count <- 1
-for (stoperator_phage in levels(stoperator_biostrings_df$phage)){
+for (stoperator_phage in levels(bios_sites$phage)){
   
-  reduced_table_seqs <- subset(stoperator_biostrings_df,
-                               stoperator_biostrings_df$phage == 
+  reduced_table_seqs <- subset(bios_sites,
+                               bios_sites$phage == 
                                  stoperator_phage,
-                               select = c("stoperator_forward_seq"))
+                               select = c("forward_seq"))
   
-  reduced_table_seqs <- as.character(reduced_table_seqs$stoperator_forward_seq)
+  reduced_table_seqs <- as.character(reduced_table_seqs$forward_seq)
   
   consensus_matrix <- consensusMatrix(reduced_table_seqs)
   stoperator_pfm <- PFMatrix(ID=stoperator_phage,
@@ -550,7 +454,7 @@ for (stoperator_phage in levels(stoperator_biostrings_df$phage)){
 
 
 # QC: should equal 0.
-nlevels(stoperator_biostrings_df$phage) - stoperator_letters_check_sum
+nlevels(bios_sites$phage) - stoperator_letters_check_sum
 
 
 
@@ -932,68 +836,68 @@ names(stoperator_site_predictions100_self_tfbstools_frequency) <- c("phage","tfb
 
 
 #Combine TFBSTools data with MEME and Biostrings data
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions80_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions85_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions86_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions87_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions88_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions89_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions90_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions91_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions92_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions93_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions94_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions95_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
 
-stoperator_frequency <- merge(stoperator_frequency,
+freq_table <- merge(freq_table,
                               stoperator_site_predictions100_self_tfbstools_frequency,
                               by.x="phage",
                               by.y="phage")
@@ -1024,19 +928,19 @@ plot_scatter <- function(table,field1,field2,x_range,y_range,title){
 x_coords <- c(0,100)
 y_coords <- c(0,100)
 
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools80_frequency",x_coords,y_coords,"80")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools85_frequency",x_coords,y_coords,"85")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools86_frequency",x_coords,y_coords,"86")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools87_frequency",x_coords,y_coords,"87")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools88_frequency",x_coords,y_coords,"88")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools89_frequency",x_coords,y_coords,"89")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools90_frequency",x_coords,y_coords,"90")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools91_frequency",x_coords,y_coords,"91")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools92_frequency",x_coords,y_coords,"92")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools93_frequency",x_coords,y_coords,"93")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools94_frequency",x_coords,y_coords,"94")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools95_frequency",x_coords,y_coords,"95")
-plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools100_frequency",x_coords,y_coords,"100")
+plot_scatter("freq_table","biostrings_freq","tfbstools80_frequency",x_coords,y_coords,"80")
+plot_scatter("freq_table","biostrings_freq","tfbstools85_frequency",x_coords,y_coords,"85")
+plot_scatter("freq_table","biostrings_freq","tfbstools86_frequency",x_coords,y_coords,"86")
+plot_scatter("freq_table","biostrings_freq","tfbstools87_frequency",x_coords,y_coords,"87")
+plot_scatter("freq_table","biostrings_freq","tfbstools88_frequency",x_coords,y_coords,"88")
+plot_scatter("freq_table","biostrings_freq","tfbstools89_frequency",x_coords,y_coords,"89")
+plot_scatter("freq_table","biostrings_freq","tfbstools90_frequency",x_coords,y_coords,"90")
+plot_scatter("freq_table","biostrings_freq","tfbstools91_frequency",x_coords,y_coords,"91")
+plot_scatter("freq_table","biostrings_freq","tfbstools92_frequency",x_coords,y_coords,"92")
+plot_scatter("freq_table","biostrings_freq","tfbstools93_frequency",x_coords,y_coords,"93")
+plot_scatter("freq_table","biostrings_freq","tfbstools94_frequency",x_coords,y_coords,"94")
+plot_scatter("freq_table","biostrings_freq","tfbstools95_frequency",x_coords,y_coords,"95")
+plot_scatter("freq_table","biostrings_freq","tfbstools100_frequency",x_coords,y_coords,"100")
 
 
 
@@ -1066,172 +970,172 @@ plot_scatter("stoperator_frequency","biostrings_frequency","tfbstools100_frequen
 
 
 #TODO delete
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools80_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools80_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="80")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools85_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools85_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="85")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools86_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools86_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="86")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools87_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools87_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="87")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools88_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools88_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="88")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools89_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools89_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="89")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools90_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools90_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="90")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools91_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools91_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="91")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools92_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools92_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="92")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools93_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools93_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="93")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools94_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools94_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="94")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools95_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools95_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="95")
 # abline(0,1)  
-# plot(stoperator_frequency$biostrings_frequency,
-#      stoperator_frequency$tfbstools100_frequency,
+# plot(freq_table$biostrings_freq,
+#      freq_table$tfbstools100_frequency,
 #      xlim=c(0,100),ylim=c(0,100),main="100")
 # abline(0,1)  
 # 
 # 
 # 
-# lm_biostrings_tfbs80_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs80_cor <- lm(biostrings_freq ~
 #                                  tfbstools80_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs80_cor)
 # #Stop264 = Multiple R2 = 0.1551
 # #Stop327 = Multiple R2 = 0.1943
 # 
-# lm_biostrings_tfbs85_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs85_cor <- lm(biostrings_freq ~
 #                                  tfbstools85_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs85_cor)
 # #Stop264 = Multiple R2 = 0.7822
 # #Stop327 = Multiple R2 = 0.8067
 # 
-# lm_biostrings_tfbs86_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs86_cor <- lm(biostrings_freq ~
 #                                  tfbstools86_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs86_cor)
 # #Stop264 = Multiple R2 = 0.8615
 # #Stop327 = Multiple R2 = 0.876
 # 
-# lm_biostrings_tfbs87_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs87_cor <- lm(biostrings_freq ~
 #                                  tfbstools87_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs87_cor)
 # #Stop264 = Multiple R2 = 0.9162
 # #Stop327 = Multiple R2 = 0.9224
 # 
-# lm_biostrings_tfbs88_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs88_cor <- lm(biostrings_freq ~
 #                                  tfbstools88_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs88_cor)
 # #Stop264 = Multiple R2 = 0.954
 # #Stop327 = Multiple R2 = 0.9532
 # 
-# lm_biostrings_tfbs89_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs89_cor <- lm(biostrings_freq ~
 #                                  tfbstools89_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs89_cor)
 # #Stop264 = Multiple R2 = 0.9054
 # #Stop327 = Multiple R2 = 0.8966
 # 
 # 
-# lm_biostrings_tfbs90_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs90_cor <- lm(biostrings_freq ~
 #                                  tfbstools90_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs90_cor)
 # #Stop264 = Multiple R2 = 0.8098
 # #Stop327 = Multiple R2 = 0.7866
 # 
-# lm_biostrings_tfbs91_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs91_cor <- lm(biostrings_freq ~
 #                                  tfbstools91_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs91_cor)
 # #Stop264 = Multiple R2 = 0.8005
 # #Stop327 = Multiple R2 = 0.7791
 # 
-# lm_biostrings_tfbs92_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs92_cor <- lm(biostrings_freq ~
 #                                  tfbstools92_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs92_cor)
 # #Stop264 = Multiple R2 = 0.7619
 # #Stop327 = Multiple R2 = 0.7465
 # 
-# lm_biostrings_tfbs93_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs93_cor <- lm(biostrings_freq ~
 #                                  tfbstools93_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs93_cor)
 # #Stop264 = Multiple R2 = 0.6733
 # #Stop327 = Multiple R2 = 0.6517
 # 
-# lm_biostrings_tfbs94_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs94_cor <- lm(biostrings_freq ~
 #                                  tfbstools94_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs94_cor)
 # #Stop264 = Multiple R2 = 0.6078
 # #Stop327 = Multiple R2 = 0.5796
 # 
 # 
 # 
-# lm_biostrings_tfbs95_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs95_cor <- lm(biostrings_freq ~
 #                                  tfbstools95_frequency,
-#                                data = stoperator_frequency)
+#                                data = freq_table)
 # summary(lm_biostrings_tfbs95_cor)
 # #Stop264 = Multiple R2 = 0.5812
 # #Stop327 = Multiple R2 = 0.5526
 # 
 # 
-# lm_biostrings_tfbs100_cor <- lm(biostrings_frequency ~
+# lm_biostrings_tfbs100_cor <- lm(biostrings_freq ~
 #                                   tfbstools100_frequency,
-#                                 data = stoperator_frequency)
+#                                 data = freq_table)
 # summary(lm_biostrings_tfbs100_cor)
 # #Stop264 = Multiple R2 = 2.752e-06
 # #Stop327 = Multiple R2 = 3.081e-05
 # 
 # 
 # 
-# sum(stoperator_frequency$biostrings_frequency) #Stop264 = 7500 sites; Stop327 = 9273 sites
-# sum(stoperator_frequency$tfbstools80_frequency) #Stop264 = 10705 sites; Stop327 = 13193 sites
-# sum(stoperator_frequency$tfbstools85_frequency) #Stop264 = 7835 sites; Stop327 = 9686 sites
-# sum(stoperator_frequency$tfbstools86_frequency) #Stop264 = 7715 sites; Stop327 = 9536 sites
-# sum(stoperator_frequency$tfbstools87_frequency) #Stop264 = 7602 sites; Stop327 = 9399 sites
-# sum(stoperator_frequency$tfbstools88_frequency) #Stop264 = 7445 sites; Stop327 = 9202 sites
-# sum(stoperator_frequency$tfbstools89_frequency) #Stop264 = 7249 sites; Stop327 = 8965 sites
-# sum(stoperator_frequency$tfbstools90_frequency) #Stop264 = 7055 sites; Stop327 = 8720 sites
-# sum(stoperator_frequency$tfbstools91_frequency) #Stop264 = 6903 sites; Stop327 = 8535 sites
-# sum(stoperator_frequency$tfbstools92_frequency) #Stop264 = 6768 sites; Stop327 = 8373 sites
-# sum(stoperator_frequency$tfbstools93_frequency) #Stop264 = 6569 sites; Stop327 = 8124 sites
-# sum(stoperator_frequency$tfbstools94_frequency) #Stop264 = 6367 sites; Stop327 = 7869 sites
-# sum(stoperator_frequency$tfbstools95_frequency) #Stop264 = 6063 sites; Stop327 = 7493 sites
-# sum(stoperator_frequency$tfbstools100_frequency) #Stop264 = 1856 sites; Stop327 = 2361 sites
+# sum(freq_table$biostrings_freq) #Stop264 = 7500 sites; Stop327 = 9273 sites
+# sum(freq_table$tfbstools80_frequency) #Stop264 = 10705 sites; Stop327 = 13193 sites
+# sum(freq_table$tfbstools85_frequency) #Stop264 = 7835 sites; Stop327 = 9686 sites
+# sum(freq_table$tfbstools86_frequency) #Stop264 = 7715 sites; Stop327 = 9536 sites
+# sum(freq_table$tfbstools87_frequency) #Stop264 = 7602 sites; Stop327 = 9399 sites
+# sum(freq_table$tfbstools88_frequency) #Stop264 = 7445 sites; Stop327 = 9202 sites
+# sum(freq_table$tfbstools89_frequency) #Stop264 = 7249 sites; Stop327 = 8965 sites
+# sum(freq_table$tfbstools90_frequency) #Stop264 = 7055 sites; Stop327 = 8720 sites
+# sum(freq_table$tfbstools91_frequency) #Stop264 = 6903 sites; Stop327 = 8535 sites
+# sum(freq_table$tfbstools92_frequency) #Stop264 = 6768 sites; Stop327 = 8373 sites
+# sum(freq_table$tfbstools93_frequency) #Stop264 = 6569 sites; Stop327 = 8124 sites
+# sum(freq_table$tfbstools94_frequency) #Stop264 = 6367 sites; Stop327 = 7869 sites
+# sum(freq_table$tfbstools95_frequency) #Stop264 = 6063 sites; Stop327 = 7493 sites
+# sum(freq_table$tfbstools100_frequency) #Stop264 = 1856 sites; Stop327 = 2361 sites
 # 
 
 
@@ -1253,7 +1157,7 @@ names(stoperator_site_predictions88_self) <-
 #TODO
 # QC
 # temp_tfbs_l5 <- subset(stoperator_site_predictions88_self,stoperator_site_predictions88_self$stoperator_target == "l5")
-# temp_biostrings_l5 <- subset(stoperator_biostrings_df,stoperator_biostrings_df$phage == "l5")
+# temp_biostrings_l5 <- subset(bios_sites,bios_sites$phage == "l5")
 
 
 
@@ -1265,7 +1169,7 @@ names(stoperator_site_predictions88_self) <-
 # tfbstools88 datasets.
 
 
-stoperator_biostrings_tfbs88 <- merge(stoperator_biostrings_df,
+stoperator_biostrings_tfbs88 <- merge(bios_sites,
                                       stoperator_site_predictions88_self,
                                       by.x="stop_site_id",
                                       by.y="tfbs88_stop_site_id",
