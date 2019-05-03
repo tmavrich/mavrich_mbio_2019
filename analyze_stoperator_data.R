@@ -50,6 +50,67 @@ STOPERATOR_DATA_FILENAME =
 
 
 
+### Define functions
+
+
+compute_pwm_distances <- function(pwm_list){
+  
+  pwm_list1 <- pwm_list
+  pwm_list2 <- pwm_list
+  
+  pwm_output_list <- 
+    vector("list",length(pwm_list1)*length(pwm_list2))
+  
+  count <- 1
+  for (pwm1 in pwm_list1){
+    for (pwm2 in pwm_list2){
+      
+      dist_pearson <- 1 - PWMSimilarity(pwm1,pwm2,method="Pearson")
+      dist_euc <- PWMSimilarity(pwm1,pwm2,method="Euclidean")
+      
+      # Append the distance data to the output list.
+      pwm_output_list[[count]] <- c(ID(pwm1),
+                                    ID(pwm2),
+                                    round(dist_pearson,2),
+                                    round(dist_euc,2))
+      count <- count + 1
+    }
+  }
+  
+  pwm_output_df <- as.data.frame(t(as.data.frame(pwm_output_list)))
+  rownames(pwm_output_df) <- NULL
+  names(pwm_output_df) <- c("phage1","phage2","dist_pearson","dist_euc")
+  
+  pwm_output_df$phage1_phage2 <- paste(pwm_output_df$phage1,
+                                       "_",
+                                       pwm_output_df$phage2,
+                                       sep="")
+  pwm_output_df$dist_pearson <- 
+    as.numeric(as.character(pwm_output_df$dist_pearson))
+  pwm_output_df$dist_euc <- 
+    as.numeric(as.character(pwm_output_df$dist_euc))
+  
+  return(pwm_output_df)
+  
+}
+
+plot_scatter <- function(table,field1,field2,x_range,y_range,title){
+  
+  plot(table[,field1],
+       table[,field2],
+       pch=16,cex=2,cex.axis=2,ann=FALSE,las=1,
+       xlim = x_range,ylim = y_range,main = title,col="black")
+  abline(0,1)  
+
+  correlation <- lm(table[,field1] ~ 
+                      table[,field2],
+                    data = freq_table)
+  print(summary(correlation))
+
+  print(paste("Total number of sites in Field 1: ",sum(table[,field1])))
+  print(paste("Total number of sites in Field 2: ",sum(table[,field2])))
+}
+
 
 
 ### Import datasets
@@ -213,8 +274,6 @@ names(bios_freq_right) <- c("phage","biostrings_freq_right")
 nrow(bios_sites) - nrow(bios_sites_left) - nrow(bios_sites_right)
 
 
-
-
 # Tally # of stoperators on each strand of each side of genome center.
 bios_sites_left_for <- subset(bios_sites_left,
                               bios_sites_left$strand == "forward")
@@ -236,8 +295,6 @@ names(bios_freq_left_for) <- c("phage","biostrings_freq_left_forward")
 names(bios_freq_left_rev) <- c("phage","biostrings_freq_left_reverse")
 names(bios_freq_right_for) <- c("phage","biostrings_freq_right_forward")
 names(bios_freq_right_rev) <- c("phage","biostrings_freq_right_reverse")
-
-
 
 
 # Combine MEME and Biostrings data.
@@ -316,32 +373,16 @@ summary(freq_table$biostrings_check6)
 
 
 
+# QC:Compare # MEME sites versus # Biostrings sites per genome.
+plot(freq_table$meme_frequency,
+     freq_table$biostrings_freq)
 
-
-
-
-
-#HERE
-# QC: 
-
-nrow(meme_sites)
-nrow(bios_sites)
-
-# If this does not equal 0, then there is a difference between the number
+# QC: If this does not equal 0, then there is a difference between the number
 # of stoperators present in the two sets of stoperators.
 nrow(meme_sites) - nrow(bios_sites)
-
-
-
-#TODO delete or refine
+nrow(meme_sites)
+nrow(bios_sites)
 hist(freq_table$meme_biostrings_diff)
-setdiff(levels(meme_freq$phage),
-        levels(bios_freq$phage))
-setdiff(levels(bios_freq$phage),
-        levels(meme_freq$phage))
-
-
-
 # MEME sites tally = 9266. Biostrings sites tally = 9273.
 # Biostrings contains 7 more stoperators. Overall,  only a few genomes contain
 # small differences in stoperators than expected. Seven phages contain 1 fewer
@@ -355,35 +396,25 @@ setdiff(levels(bios_freq$phage),
 # SarFire (A1)
 
 
-# Compare # MEME sites versus # Biostrings sites per genome.
-plot(freq_table$meme_frequency,
-     freq_table$biostrings_freq)
 
 
 
 # Plot distribution of number of stoperators.
-
 par(mar=c(4,8,8,4))
 hist(table(bios_sites$phage),col="black",
      xlim=c(0,50),ylim=c(0,80),
      breaks=10,cex.axis=2,ann=FALSE,main=NULL,las=1)
 dev.copy(pdf,paste(DIR_OUTPUT,
-                   'stoperator327_number_stops_per_genome.pdf',
+                   'biostrings_stoperators_per_genome.pdf',
                    sep=""))
 dev.off()
 
 # Output biostrings data for reference
+# This list is more robust than the input meme-derived list, because it has 
+# been generated using the most recent version of genome sequences.
 write.table(bios_sites,
-            paste(DIR_OUTPUT,"stoperator_biostrings_coordinates.csv",sep=""),
+            paste(DIR_OUTPUT,"biostrings_stoperators.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-
-
-
-
-
-
 
 ###
 ###
@@ -397,23 +428,17 @@ write.table(bios_sites,
 ### Create PWMs
 # Use the sites that were identified in each genome by Biostrings search.
 # For each phage in the table, create a pwm.
-# Create two lists of PWMs.
-
-# Log2ProbRatio PWM.
-stoperator_pwm_list <- vector("list",nlevels(bios_sites$phage))
-
-
-# Prob PWM.
-stoperator_pwm2_list <- vector("list",nlevels(bios_sites$phage))
+# Create two lists of PWMs = one to store the linear probability and one to
+# store the log2 probability ratio.
+pwm_prob_list <- vector("list",nlevels(bios_sites$phage))
+pwm_log2_list <- vector("list",nlevels(bios_sites$phage))
 
 
 # For each phage genome, the list of stoperators must contain at least 
 # one of each of the 4 nucleotides A,C,T,G. Otherwise, when PFMatrix is called,
 # an error is encountered. The for loop will probably crash if one or more
 # PWMs does not meet this criteria, but a QC step has been used to confirm it.
-stoperator_letters_check_sum <- 0
-
-
+alphabet_check_sum <- 0
 
 count <- 1
 for (stoperator_phage in levels(bios_sites$phage)){
@@ -430,14 +455,12 @@ for (stoperator_phage in levels(bios_sites$phage)){
                                   name=stoperator_phage,
                                   profileMatrix = consensus_matrix)
   
-  stoperator_pwm <- toPWM(stoperator_pfm,type="log2probratio") 
-  stoperator_pwm2 <- toPWM(stoperator_pfm,type="prob") 
-  
-  
-  
+  pwm_log2 <- toPWM(stoperator_pfm,type="log2probratio") 
+  pwm_prob <- toPWM(stoperator_pfm,type="prob") 
+
   # Append the pwm to the list of pwms.
-  stoperator_pwm_list[[count]] <- stoperator_pwm
-  stoperator_pwm2_list[[count]] <- stoperator_pwm2  
+  pwm_log2_list[[count]] <- pwm_log2
+  pwm_prob_list[[count]] <- pwm_prob  
   
   
   # Append DNA letter frequency check.
@@ -445,8 +468,8 @@ for (stoperator_phage in levels(bios_sites$phage)){
   all_4_nucleotides <- 
     ifelse(length(uniqueLetters(reduced_table_seqs_dnastringset)) == 4,1,0)
   
-  stoperator_letters_check_sum <- 
-    stoperator_letters_check_sum + all_4_nucleotides
+  alphabet_check_sum <- 
+    alphabet_check_sum + all_4_nucleotides
   
   count <- count + 1
   
@@ -454,155 +477,66 @@ for (stoperator_phage in levels(bios_sites$phage)){
 
 
 # QC: should equal 0.
-nlevels(bios_sites$phage) - stoperator_letters_check_sum
+nlevels(bios_sites$phage) - alphabet_check_sum
+
+
+### Compute PWM distances using the Prob PWMs or Log2ProbRatio PWMs.
+# The log2-based score seems to be more commonly used than a linear score.
+pwm_log2_distances <- compute_pwm_distances(pwm_log2_list)
+pwm_prob_distances <- compute_pwm_distances(pwm_prob_list)
 
 
 
 
+# Compare the euclidean distance of PWM linear and the log2probratio
+# probabilities.
+names(pwm_prob_distances) <- paste("prob_",names(pwm_prob_distances),sep = "")
+
+pwm_distances <- merge(pwm_log2_distances,
+                       pwm_prob_distances,
+                       by.x="phage1_phage2",
+                       by.y="prob_phage1_phage2")
 
 
+#QC: Should equal 0.
+nrow(pwm_log2_distances) - nrow(pwm_prob_distances)
+nrow(pwm_distances) - nrow(pwm_log2_distances)
+nrow(pwm_distances) - nrow(pwm_prob_distances)
 
+plot(pwm_distances$dist_euc,
+     pwm_distances$prob_dist_euc)
 
+plot(pwm_distances$dist_euc,
+     pwm_distances$dist_pearson)
 
-### Compute Log2ProbRatio PWM distances
-# This log2-based score seems to be commonly used instead of a linear score.
-stoperator_pwm_list1 <- stoperator_pwm_list
-stoperator_pwm_list2 <- stoperator_pwm_list
+plot(pwm_distances$prob_dist_euc,
+     pwm_distances$prob_dist_pearson)
 
-
-pwm_output_list <- 
-  vector("list",length(stoperator_pwm_list1)*length(stoperator_pwm_list2))
-
-count <- 1
-for (pwm1 in stoperator_pwm_list1){
-  for (pwm2 in stoperator_pwm_list2){
-    
-    dist_pearson <- 1 - PWMSimilarity(pwm1,
-                                      pwm2,
-                                      method="Pearson")
-    
-    dist_euc <- PWMSimilarity(pwm1,
-                              pwm2,
-                              method="Euclidean")
-    
-    # Append the distance data to the output list.
-    pwm_output_list[[count]] <- c(ID(pwm1),
-                                  ID(pwm2),
-                                  round(dist_pearson,2),
-                                  round(dist_euc,2))
-    count <- count + 1
-  }
-}
-
-
-
-pwm_output_df <- as.data.frame(t(as.data.frame(pwm_output_list)))
-rownames(pwm_output_df) <- NULL
-names(pwm_output_df) <- c("phage1","phage2","dist_pearson","dist_euc")
-
-
-# Export data
-setwd("~/scratch/stoperator_distance/output/")
-write.table(pwm_output_df,
-            paste(DIR_OUTPUT,"stoperator_pwm_distances.csv",sep=""),
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
-
-
-
-
-
-
-
-# QC: Compare the euclidean distance of PWM probabilities and the
-# log2probratio probabilities.
-
-pwm_output_df$phage1_phage2 <- paste(pwm_output_df$phage1,
-                                     "_",
-                                     pwm_output_df$phage2,
-                                     sep="")
-
-pwm_output_df$dist_pearson <- as.numeric(as.character(pwm_output_df$dist_pearson))
-pwm_output_df$dist_euc <- as.numeric(as.character(pwm_output_df$dist_euc))
-
-
-
-
-
-
-
-### Compute Prob PWM distances.
-stoperator_pwm2_list1 <- stoperator_pwm2_list
-stoperator_pwm2_list2 <- stoperator_pwm2_list
-
-
-pwm2_output_list <- 
-  vector("list",length(stoperator_pwm2_list1)*length(stoperator_pwm2_list2))
-
-count <- 1
-for (pwm1 in stoperator_pwm2_list1){
-  for (pwm2 in stoperator_pwm2_list2){
-    
-    dist_pearson <- 1 - PWMSimilarity(pwm1,
-                                      pwm2,
-                                      method="Pearson")
-    
-    dist_euc <- PWMSimilarity(pwm1,
-                              pwm2,
-                              method="Euclidean")
-
-    # Append the distance data to the output list.
-    pwm2_output_list[[count]] <- c(ID(pwm1),
-                                   ID(pwm2),
-                                   round(dist_pearson,2),
-                                   round(dist_euc,2))
-    count <- count + 1
-  }
-}
-
-
-
-pwm2_output_df <- as.data.frame(t(as.data.frame(pwm2_output_list)))
-rownames(pwm2_output_df) <- NULL
-names(pwm2_output_df) <- 
-  c("prob_phage1","prob_phage2","prob_dist_pearson","prob_dist_euc")
-
-pwm2_output_df$phage1_phage2 <- paste(pwm2_output_df$prob_phage1,
-                                      "_",
-                                      pwm2_output_df$prob_phage2,
-                                      sep="")
-
-pwm2_output_df$prob_dist_pearson <- 
-  as.numeric(as.character(pwm2_output_df$prob_dist_pearson))
-
-pwm2_output_df$prob_dist_euc <- 
-  as.numeric(as.character(pwm2_output_df$prob_dist_euc))
-
-
-
-
-
-
-# Merge both PWM lists.
-
-combined_pwm_output_df <- merge(pwm_output_df,
-                                pwm2_output_df,
-                                by.x="phage1_phage2",
-                                by.y="phage1_phage2")
-
-
-plot(combined_pwm_output_df$dist_euc,
-     combined_pwm_output_df$prob_dist_euc)
-
-plot(combined_pwm_output_df$dist_euc,
-     combined_pwm_output_df$dist_pearson)
-
-plot(combined_pwm_output_df$prob_dist_euc,
-     combined_pwm_output_df$prob_dist_pearson)
-abline(0,1)
 
 #TODO
 #Summary of comparisons
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#TODO will need to select columns
+# Export data
+write.table(pwm_log2_distances,
+            paste(DIR_OUTPUT,"stoperator_pwm_log2_distances.csv",sep=""),
+            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
+
+
 
 
 ###
@@ -615,17 +549,27 @@ abline(0,1)
 ###
 ###
 ### After creating all stoperator PWMs, iterate through all genomes for each
-# PWM and predict sites.
+# PWM and predict sites. 
+time_start <- Sys.time()
 
-# Convert object type of stoperator PWMs from standard list to PWMatrixList.
-stoperator_pwm_matrixlist <- do.call(PWMatrixList,stoperator_pwm_list)
+# A PWMatrixList needs to be created first.
+stoperator_pwm_matrixlist <- do.call(PWMatrixList,pwm_log2_list)
 
-
+# Use default min.score of 80%, so that different cutoffs can be assessed.
 stop_site_set80_list <- searchSeq(stoperator_pwm_matrixlist,actino1321_genomes)
 stop_site_set80_df <- as(stop_site_set80_list,"data.frame")
-# Note: it takes about an hour to run the two commands above using stop327 data.
+time_stop <- Sys.time()
 
 
+# QC
+time_start
+time_stop
+# Note: it takes about an hour to run the two commands above using stop.
+
+#TODO remove
+# stop_site_set80_list_backup <- stop_site_set80_list
+# stop_site_set80_df_backup <- stop_site_set80_df
+#
 
 
 # Dataframe output: each row is a predicted site in a genome from one PWM
@@ -646,61 +590,50 @@ stop_site_set80_df <- as(stop_site_set80_list,"data.frame")
 # 12. siteSeqs = chr, 13bp stoperator DNA sequence
 
 
-
-
-#TODO 
-# QC
-# stop_site_set95_list <- searchSeq(stoperator_pwm_matrixlist,actino1321_genomes,min.score = "95%")
-# stop_site_set95_df <- as(stop_site_set95_list,"data.frame")
-
-
-# actino1319_analysis:
-# For 80%: 1797889 rows. 
-# For 95%: 350763 rows.
-
-
 # Reduce data for analysis with immunity data
-stoperator_site_predictions80 <- subset(stop_site_set80_df,
-                                     select=c("seqnames",
-                                              "start",
-                                              "end",
-                                              "strand",
-                                              "siteSeqs",
-                                              "absScore",
-                                              "relScore",
-                                              "ID"))
+site_predictions_80 <- subset(stop_site_set80_df,
+                              select=c("seqnames",
+                                       "start",
+                                       "end",
+                                       "strand",
+                                       "siteSeqs",
+                                       "absScore",
+                                       "relScore",
+                                       "ID"))
 
-names(stoperator_site_predictions80) <- c("stoperator_target",
-                                       "site_start",
-                                       "site_end",
-                                       "site_strand",
-                                       "site_seq",
-                                       "site_abs_score",
-                                       "site_rel_score",
-                                       "stoperator_motif")
-  
+names(site_predictions_80) <- c("stoperator_target",
+                                "site_start",
+                                "site_end",
+                                "site_strand",
+                                "site_seq",
+                                "site_abs_score",
+                                "site_rel_score",
+                                "stoperator_motif")
 
-stoperator_site_predictions80$motif_target <- 
-  paste(stoperator_site_predictions80$stoperator_motif,
+
+site_predictions_80$motif_target <- 
+  paste(site_predictions_80$stoperator_motif,
         "_",
-        stoperator_site_predictions80$stoperator_target,
+        site_predictions_80$stoperator_target,
         sep="")
 
-stoperator_site_predictions80$motif_target <- 
-  as.factor(stoperator_site_predictions80$motif_target)
+site_predictions_80$motif_target <- 
+  as.factor(site_predictions_80$motif_target)
 
 
 #TODO
 # QC: Check number of unique comparisons.
+nlevels(site_predictions_80$motif_target)
 # This list has 106,300 levels, but in the Actino1321 database there are
 # 106,929 unique possible pairwise combinations (327 PWMs * 327 target genomes).
-
-
+# Re-factor motif_target using all possible pairwise combinations.
+# This will enable quantification for all combinations, 
+# even those that are missing.
 all_levels <- 
   expand.grid(stoperator_target = 
-                as.character(levels(stoperator_site_predictions80$stoperator_target)),
+                as.character(levels(site_predictions_80$stoperator_target)),
               stoperator_motif = 
-                as.character(levels(stoperator_site_predictions80$stoperator_motif)))
+                as.character(levels(site_predictions_80$stoperator_motif)))
 
 all_levels$motif_target <- paste(all_levels$stoperator_motif,
                                  "_",
@@ -710,237 +643,251 @@ all_levels$motif_target <- paste(all_levels$stoperator_motif,
 all_levels$motif_target <- as.factor(all_levels$motif_target)
 
 
-# Re-factor motif_target using all possible pairwise combinations.
-# This will enable quantification for all combinations, 
-# even those that are missing.
-stoperator_site_predictions80$motif_target <- 
-  factor(stoperator_site_predictions80$motif_target,
+site_predictions_80$motif_target <- 
+  factor(site_predictions_80$motif_target,
          levels(all_levels$motif_target))
+
+# Should equal 0.
+106929 - nlevels(site_predictions_80$motif_target)
 # Now there are 106,929 levels.
 
 
 
 
 # Create unique site ids
-stoperator_site_predictions80$site_strand2 <- 
-  ifelse(stoperator_site_predictions80$site_strand == "+",
+site_predictions_80$site_strand2 <- 
+  ifelse(site_predictions_80$site_strand == "+",
          "forward",
          "reverse")
-stoperator_site_predictions80$site_strand2 <- 
-  factor(stoperator_site_predictions80$site_strand2)
+site_predictions_80$site_strand2 <- 
+  factor(site_predictions_80$site_strand2)
 
-stoperator_site_predictions80$stop_site_id <- 
-  paste(stoperator_site_predictions80$stoperator_target,
-        stoperator_site_predictions80$site_strand2,
-        stoperator_site_predictions80$site_start,
+site_predictions_80$stop_site_id <- 
+  paste(site_predictions_80$stoperator_target,
+        site_predictions_80$site_strand2,
+        site_predictions_80$site_start,
         sep="_")
 
-stoperator_site_predictions80$stop_site_id <- 
-  factor(stoperator_site_predictions80$stop_site_id)
-
-
-
-#QC
-#temp_l5 <- subset(stoperator_site_predictions80,stoperator_site_predictions80$stoperator_target == "l5" & stoperator_site_predictions80$stoperator_motif == "l5")
+site_predictions_80$stop_site_id <- 
+  factor(site_predictions_80$stop_site_id)
 
 
 
 
+site_predictions_80_self <- 
+  subset(site_predictions_80,
+         as.character(site_predictions_80$stoperator_target) == 
+           as.character(site_predictions_80$stoperator_motif))
+
+
+site_predictions_80_self$stoperator_target <- 
+  factor(site_predictions_80_self$stoperator_target)
+site_predictions_80_self$stoperator_motif <- 
+  factor(site_predictions_80_self$stoperator_motif)
+site_predictions_80_self$motif_target <- 
+  factor(site_predictions_80_self$motif_target)
+site_predictions_80_self$site_strand2 <- 
+  factor(site_predictions_80_self$site_strand2)
+
+
+
+site_predictions_85_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.85)
+site_predictions_86_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.86)
+site_predictions_87_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.87)
+site_predictions_88_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.88)
+site_predictions_89_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.89)
+site_predictions_90_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.90)
+site_predictions_91_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.91)
+site_predictions_92_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.92)
+site_predictions_93_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.93)
+site_predictions_94_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.94)
+site_predictions_95_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 0.95)
+site_predictions_100_self <- 
+  subset(site_predictions_80_self,
+         site_predictions_80_self$site_rel_score >= 1)
 
 
 # Table creates a two column table = the levels and the frequency (int)
-stoperator_site_predictions80_self <- 
-  subset(stoperator_site_predictions80,
-         as.character(stoperator_site_predictions80$stoperator_target) == 
-           as.character(stoperator_site_predictions80$stoperator_motif))
+
+site_predictions_80_self_freq <- 
+  as.data.frame(table(site_predictions_80_self$stoperator_target))
+names(site_predictions_80_self_freq) <- c("phage","tfbstools80_freq")
+
+site_predictions_85_self_freq <- 
+  as.data.frame(table(site_predictions_85_self$stoperator_target))
+names(site_predictions_85_self_freq) <- c("phage","tfbstools85_freq")
+
+site_predictions_86_self_freq <- 
+  as.data.frame(table(site_predictions_86_self$stoperator_target))
+names(site_predictions_86_self_freq) <- c("phage","tfbstools86_freq")
+
+site_predictions_87_self_freq <- 
+  as.data.frame(table(site_predictions_87_self$stoperator_target))
+names(site_predictions_87_self_freq) <- c("phage","tfbstools87_freq")
+
+site_predictions_88_self_freq <- 
+  as.data.frame(table(site_predictions_88_self$stoperator_target))
+names(site_predictions_88_self_freq) <- c("phage","tfbstools88_freq")
+
+site_predictions_89_self_freq <- 
+  as.data.frame(table(site_predictions_89_self$stoperator_target))
+names(site_predictions_89_self_freq) <- c("phage","tfbstools89_freq")
+
+site_predictions_90_self_freq <- 
+  as.data.frame(table(site_predictions_90_self$stoperator_target))
+names(site_predictions_90_self_freq) <- c("phage","tfbstools90_freq")
+
+site_predictions_91_self_freq <- 
+  as.data.frame(table(site_predictions_91_self$stoperator_target))
+names(site_predictions_91_self_freq) <- c("phage","tfbstools91_freq")
+
+site_predictions_92_self_freq <- 
+  as.data.frame(table(site_predictions_92_self$stoperator_target))
+names(site_predictions_92_self_freq) <- c("phage","tfbstools92_freq")
+
+site_predictions_93_self_freq <- 
+  as.data.frame(table(site_predictions_93_self$stoperator_target))
+names(site_predictions_93_self_freq) <- c("phage","tfbstools93_freq")
+
+site_predictions_94_self_freq <- 
+  as.data.frame(table(site_predictions_94_self$stoperator_target))
+names(site_predictions_94_self_freq) <- c("phage","tfbstools94_freq")
+
+site_predictions_95_self_freq <- 
+  as.data.frame(table(site_predictions_95_self$stoperator_target))
+names(site_predictions_95_self_freq) <- c("phage","tfbstools95_freq")
+
+site_predictions_100_self_freq <- 
+  as.data.frame(table(site_predictions_100_self$stoperator_target))
+names(site_predictions_100_self_freq) <- c("phage","tfbstools100_freq")
 
 
-stoperator_site_predictions80_self$stoperator_target <- 
-  factor(stoperator_site_predictions80_self$stoperator_target)
-stoperator_site_predictions80_self$stoperator_motif <- 
-  factor(stoperator_site_predictions80_self$stoperator_motif)
-stoperator_site_predictions80_self$motif_target <- 
-  factor(stoperator_site_predictions80_self$motif_target)
-stoperator_site_predictions80_self$site_strand2 <- 
-  factor(stoperator_site_predictions80_self$site_strand2)
-
-stoperator_site_predictions85_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.85)
-stoperator_site_predictions86_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.86)
-stoperator_site_predictions87_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.87)
-stoperator_site_predictions88_self <- subset(stoperator_site_predictions80_self,
-                                            stoperator_site_predictions80_self$site_rel_score >= 0.88)
-stoperator_site_predictions89_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.89)
-stoperator_site_predictions90_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.90)
-stoperator_site_predictions91_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.91)
-stoperator_site_predictions92_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.92)
-stoperator_site_predictions93_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.93)
-stoperator_site_predictions94_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.94)
-stoperator_site_predictions95_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 0.95)
-stoperator_site_predictions100_self <- subset(stoperator_site_predictions80_self,
-                                             stoperator_site_predictions80_self$site_rel_score >= 1)
-
-
-
-
-stoperator_site_predictions80_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions80_self$stoperator_target))
-names(stoperator_site_predictions80_self_tfbstools_frequency) <- c("phage","tfbstools80_frequency")
-
-stoperator_site_predictions85_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions85_self$stoperator_target))
-names(stoperator_site_predictions85_self_tfbstools_frequency) <- c("phage","tfbstools85_frequency")
-
-stoperator_site_predictions86_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions86_self$stoperator_target))
-names(stoperator_site_predictions86_self_tfbstools_frequency) <- c("phage","tfbstools86_frequency")
-
-stoperator_site_predictions87_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions87_self$stoperator_target))
-names(stoperator_site_predictions87_self_tfbstools_frequency) <- c("phage","tfbstools87_frequency")
-
-stoperator_site_predictions88_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions88_self$stoperator_target))
-names(stoperator_site_predictions88_self_tfbstools_frequency) <- c("phage","tfbstools88_frequency")
-
-stoperator_site_predictions89_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions89_self$stoperator_target))
-names(stoperator_site_predictions89_self_tfbstools_frequency) <- c("phage","tfbstools89_frequency")
-
-stoperator_site_predictions90_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions90_self$stoperator_target))
-names(stoperator_site_predictions90_self_tfbstools_frequency) <- c("phage","tfbstools90_frequency")
-
-stoperator_site_predictions91_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions91_self$stoperator_target))
-names(stoperator_site_predictions91_self_tfbstools_frequency) <- c("phage","tfbstools91_frequency")
-
-stoperator_site_predictions92_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions92_self$stoperator_target))
-names(stoperator_site_predictions92_self_tfbstools_frequency) <- c("phage","tfbstools92_frequency")
-
-stoperator_site_predictions93_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions93_self$stoperator_target))
-names(stoperator_site_predictions93_self_tfbstools_frequency) <- c("phage","tfbstools93_frequency")
-
-stoperator_site_predictions94_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions94_self$stoperator_target))
-names(stoperator_site_predictions94_self_tfbstools_frequency) <- c("phage","tfbstools94_frequency")
-
-stoperator_site_predictions95_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions95_self$stoperator_target))
-names(stoperator_site_predictions95_self_tfbstools_frequency) <- c("phage","tfbstools95_frequency")
-
-stoperator_site_predictions100_self_tfbstools_frequency <- as.data.frame(table(stoperator_site_predictions100_self$stoperator_target))
-names(stoperator_site_predictions100_self_tfbstools_frequency) <- c("phage","tfbstools100_frequency")
-
-
-
-
-
-#Combine TFBSTools data with MEME and Biostrings data
+# Combine TFBSTools data with MEME and Biostrings data.
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions80_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
-
+                    site_predictions_80_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions85_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_85_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions86_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_86_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions87_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_87_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions88_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_88_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions89_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_89_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions90_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_90_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions91_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_91_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions92_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_92_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions93_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_93_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions94_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_94_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions95_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_95_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 freq_table <- merge(freq_table,
-                              stoperator_site_predictions100_self_tfbstools_frequency,
-                              by.x="phage",
-                              by.y="phage")
+                    site_predictions_100_self_freq,
+                    by.x="phage",
+                    by.y="phage")
 
 
 
 
 
-# Check how well TFBSTools matches with Biostrings.
-
-plot_scatter <- function(table,field1,field2,x_range,y_range,title){
-  
-  plot(table$field1,
-       table$field2,
-       xlim = x_range,ylim = y_range,main= title)
-  abline(0,1)  
-  
-  correlation <- lm(field1 ~
-                      field2,
-                    data = table)
-  summary(correlation)
-  
-  print(paste("Total number of sites in Field 1: ",sum(table$field1)))
-  print(paste("Total number of sites in Field 2: ",sum(table$field2)))
-}
-
-
+# QC: Check how well TFBSTools matches with Biostrings.
 x_coords <- c(0,100)
 y_coords <- c(0,100)
 
-plot_scatter("freq_table","biostrings_freq","tfbstools80_frequency",x_coords,y_coords,"80")
-plot_scatter("freq_table","biostrings_freq","tfbstools85_frequency",x_coords,y_coords,"85")
-plot_scatter("freq_table","biostrings_freq","tfbstools86_frequency",x_coords,y_coords,"86")
-plot_scatter("freq_table","biostrings_freq","tfbstools87_frequency",x_coords,y_coords,"87")
-plot_scatter("freq_table","biostrings_freq","tfbstools88_frequency",x_coords,y_coords,"88")
-plot_scatter("freq_table","biostrings_freq","tfbstools89_frequency",x_coords,y_coords,"89")
-plot_scatter("freq_table","biostrings_freq","tfbstools90_frequency",x_coords,y_coords,"90")
-plot_scatter("freq_table","biostrings_freq","tfbstools91_frequency",x_coords,y_coords,"91")
-plot_scatter("freq_table","biostrings_freq","tfbstools92_frequency",x_coords,y_coords,"92")
-plot_scatter("freq_table","biostrings_freq","tfbstools93_frequency",x_coords,y_coords,"93")
-plot_scatter("freq_table","biostrings_freq","tfbstools94_frequency",x_coords,y_coords,"94")
-plot_scatter("freq_table","biostrings_freq","tfbstools95_frequency",x_coords,y_coords,"95")
-plot_scatter("freq_table","biostrings_freq","tfbstools100_frequency",x_coords,y_coords,"100")
+
+#HERE
+plot_scatter(freq_table,"biostrings_freq","tfbstools80_freq",
+             x_coords,y_coords,"80")
+
+plot_scatter(freq_table,"biostrings_freq","tfbstools85_freq",
+             x_coords,y_coords,"85")
+
+plot_scatter("freq_table","biostrings_freq","tfbstools86_freq",
+             x_coords,y_coords,"86")
+plot_scatter("freq_table","biostrings_freq","tfbstools87_freq",
+             x_coords,y_coords,"87")
+plot_scatter("freq_table","biostrings_freq","tfbstools88_freq",
+             x_coords,y_coords,"88")
+plot_scatter("freq_table","biostrings_freq","tfbstools89_freq",
+             x_coords,y_coords,"89")
+plot_scatter("freq_table","biostrings_freq","tfbstools90_freq",
+             x_coords,y_coords,"90")
+plot_scatter("freq_table","biostrings_freq","tfbstools91_freq",
+             x_coords,y_coords,"91")
+plot_scatter("freq_table","biostrings_freq","tfbstools92_freq",
+             x_coords,y_coords,"92")
+plot_scatter("freq_table","biostrings_freq","tfbstools93_freq",
+             x_coords,y_coords,"93")
+plot_scatter("freq_table","biostrings_freq","tfbstools94_freq",
+             x_coords,y_coords,"94")
+plot_scatter("freq_table","biostrings_freq","tfbstools95_freq",
+             x_coords,y_coords,"95")
+plot_scatter("freq_table","biostrings_freq","tfbstools100_freq",
+             x_coords,y_coords,"100")
 
 
 
@@ -1150,13 +1097,13 @@ plot_scatter("freq_table","biostrings_freq","tfbstools100_frequency",x_coords,y_
 
 
 
-names(stoperator_site_predictions88_self) <- 
-  paste("tfbs88_",names(stoperator_site_predictions88_self),sep="")
+names(site_predictions_88_self) <- 
+  paste("tfbs88_",names(site_predictions_88_self),sep="")
 
 
 #TODO
 # QC
-# temp_tfbs_l5 <- subset(stoperator_site_predictions88_self,stoperator_site_predictions88_self$stoperator_target == "l5")
+# temp_tfbs_l5 <- subset(site_predictions_88_self,site_predictions_88_self$stoperator_target == "l5")
 # temp_biostrings_l5 <- subset(bios_sites,bios_sites$phage == "l5")
 
 
@@ -1170,7 +1117,7 @@ names(stoperator_site_predictions88_self) <-
 
 
 stoperator_biostrings_tfbs88 <- merge(bios_sites,
-                                      stoperator_site_predictions88_self,
+                                      site_predictions_88_self,
                                       by.x="stop_site_id",
                                       by.y="tfbs88_stop_site_id",
                                       all.x=TRUE,
@@ -1207,7 +1154,7 @@ summary(stoperator_biostrings_tfbs88$source_both)
 #Stop264:
 #temp_tfbs_sites <- subset(stoperator_biostrings_tfbs88,stoperator_biostrings_tfbs88$source_tfbs88 == TRUE & stoperator_biostrings_tfbs88$source_biostrings == FALSE)
 #temp_biostrings_sites <- subset(stoperator_biostrings_tfbs88,stoperator_biostrings_tfbs88$source_tfbs88 == FALSE & stoperator_biostrings_tfbs88$source_biostrings == TRUE)
-#temp_tfbs88_l5_sites <- subset(stoperator_site_predictions88_self,stoperator_site_predictions88_self$tfbs88_stoperator_target == 'l5')
+#temp_tfbs88_l5_sites <- subset(site_predictions_88_self,site_predictions_88_self$tfbs88_stoperator_target == 'l5')
 #Of the 30 L5 site originally reported in Brown et al. 1997, the TFBS88 dataset does not include Site #3 (EMSA bound) or Site #30 (EMSA unbound)
 
 
@@ -1219,29 +1166,29 @@ summary(stoperator_biostrings_tfbs88$source_both)
 # Now that the best TFBS cutoff has been determined (88%), search all genomes
 # with each PWM and determine how many sites of each motif are in each genome.
 # Re-factor columns in the self-site dataset.
-stoperator_site_predictions88_self$tfbs88_stoperator_target <- 
-  factor(stoperator_site_predictions88_self$tfbs88_stoperator_target)
+site_predictions_88_self$tfbs88_stoperator_target <- 
+  factor(site_predictions_88_self$tfbs88_stoperator_target)
 
-stoperator_site_predictions88_self$tfbs88_stoperator_motif <- 
-  factor(stoperator_site_predictions88_self$tfbs88_stoperator_motif)
+site_predictions_88_self$tfbs88_stoperator_motif <- 
+  factor(site_predictions_88_self$tfbs88_stoperator_motif)
 
-stoperator_site_predictions88_self$tfbs88_motif_target <- 
-  factor(stoperator_site_predictions88_self$tfbs88_motif_target)
+site_predictions_88_self$tfbs88_motif_target <- 
+  factor(site_predictions_88_self$tfbs88_motif_target)
 
-stoperator_site_predictions88_self$tfbs88_site_strand2 <- 
-  factor(stoperator_site_predictions88_self$tfbs88_site_strand2)
+site_predictions_88_self$tfbs88_site_strand2 <- 
+  factor(site_predictions_88_self$tfbs88_site_strand2)
 
 
 
 # Subset all sites predicted in each genome from each PWM above 88% threshold.
-stoperator_site_predictions80$site_self <- 
-  ifelse(is.element(stoperator_site_predictions80$stop_site_id,
-                    stoperator_site_predictions88_self$tfbs88_stop_site_id),
+site_predictions_80$site_self <- 
+  ifelse(is.element(site_predictions_80$stop_site_id,
+                    site_predictions_88_self$tfbs88_stop_site_id),
          TRUE,FALSE)
 
 stoperator_site_predictions88 <- 
-  subset(stoperator_site_predictions80,
-         stoperator_site_predictions80$site_rel_score >= 0.88)
+  subset(site_predictions_80,
+         site_predictions_80$site_rel_score >= 0.88)
 
 
 
