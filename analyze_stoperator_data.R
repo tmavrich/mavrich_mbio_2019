@@ -29,14 +29,6 @@ DIR_OUTPUT = "~/scratch/process_stoperator_data/output/"
 #Set paths for all input files.
 STOPERATOR_DATA_FILENAME = paste(DIR_INPUT_MISC,"stoperator_data.csv",sep="")
 
-
-
-
-#TODO delete
-# PHAGE_METADATA_FILENAME = paste(DIR_INPUT_MISC,"phage_metadata.csv",sep="")
-
-
-
 ###
 ###
 ###
@@ -136,29 +128,6 @@ meme_sites <- read.csv(STOPERATOR_DATA_FILENAME,sep=",",header=TRUE)
 meme_freq <- as.data.frame(table(meme_sites$phage))
 names(meme_freq) <- c("phage","meme_frequency")
 
-
-
-
-
-#TODO delete
-# # Import phage metadata.
-# # This data is derived from the same metadata input used for the
-# # analyze_immunity_data.R. It contains data for all phages in the Actino1321
-# # database.
-# # Data structure:
-# # 1. phageid (imported as factor)
-# # 2. size (imported as int)
-# # 3. coordinate_genome_center (imported as int)
-# phage_metadata <- read.csv(PHAGE_METADATA_FILENAME,sep=",",header=TRUE)
-
-
-
-#TODO delete
-# #Phages not in Cluster A do not have a specific genome center coordinate.
-# phage_metadata[phage_metadata == "Unspecified"] <- NA
-# phage_metadata$coordinate_genome_center <- 
-#   as.numeric(as.character(phage_metadata$coordinate_genome_center))
-
 ###
 ###
 ###
@@ -242,151 +211,18 @@ bios_sites$stop_site_id <- paste(bios_sites$phage,
 
 bios_sites$stop_site_id <- factor(bios_sites$stop_site_id)
 
-
-
-
-
-# # Add metadata.
-# bios_sites <- merge(bios_sites,phage_metadata,by.x="phage",by.y="phageid")
-
-
-
-
-
-
-#TODO delete
-# bios_sites$dist_from_center <- 
-#   bios_sites$start - bios_sites$coordinate_genome_center
-
-
-
 # Tally # of stoperators confirmed.
 bios_freq <- as.data.frame(table(bios_sites$phage))
 
 names(bios_freq) <- c("phage","biostrings_freq")
 
 
-
-
-#TODO delete
-# 
-# # Tally # of stoperators on each side of genome center.
-# bios_sites_left <- subset(bios_sites,bios_sites$dist_from_center <= 0)
-# bios_sites_right <- subset(bios_sites,bios_sites$dist_from_center > 0)
-# 
-# bios_freq_left <- as.data.frame(table(bios_sites_left$phage))
-# bios_freq_right <- as.data.frame(table(bios_sites_right$phage))
-# 
-# names(bios_freq_left) <- c("phage","biostrings_freq_left")
-# names(bios_freq_right) <- c("phage","biostrings_freq_right")
-# 
-# 
-# # QC: should equal 0.
-# nrow(bios_sites) - nrow(bios_sites_left) - nrow(bios_sites_right)
-# 
-# 
-# # Tally # of stoperators on each strand of each side of genome center.
-# bios_sites_left_for <- subset(bios_sites_left,
-#                               bios_sites_left$strand == "forward")
-# bios_sites_left_rev <- subset(bios_sites_left,
-#                               bios_sites_left$strand == "reverse")
-# bios_sites_right_for <- subset(bios_sites_right,
-#                                bios_sites_right$strand == "forward")
-# bios_sites_right_rev <- subset(bios_sites_right,
-#                                bios_sites_right$strand == "reverse")
-# 
-# 
-# bios_freq_left_for <- as.data.frame(table(bios_sites_left_for$phage))
-# bios_freq_left_rev <- as.data.frame(table(bios_sites_left_rev$phage))
-# bios_freq_right_for <- as.data.frame(table(bios_sites_right_for$phage))
-# bios_freq_right_rev <- as.data.frame(table(bios_sites_right_rev$phage))
-# 
-# 
-# names(bios_freq_left_for) <- c("phage","biostrings_freq_left_forward")
-# names(bios_freq_left_rev) <- c("phage","biostrings_freq_left_reverse")
-# names(bios_freq_right_for) <- c("phage","biostrings_freq_right_forward")
-# names(bios_freq_right_rev) <- c("phage","biostrings_freq_right_reverse")
-# 
-
 # Combine MEME and Biostrings data.
 freq_table <- merge(meme_freq,bios_freq,by.x="phage",by.y="phage")
 
 
-#TODO delete
-# freq_table <- merge(freq_table,bios_freq_left,by.x="phage",by.y="phage")
-# freq_table <- merge(freq_table,bios_freq_right,by.x="phage",by.y="phage")
-# freq_table <- merge(freq_table,bios_freq_left_for,by.x="phage",by.y="phage")
-# freq_table <- merge(freq_table,bios_freq_left_rev,by.x="phage",by.y="phage")
-# freq_table <- merge(freq_table,bios_freq_right_for,by.x="phage",by.y="phage")
-# freq_table <- merge(freq_table,bios_freq_right_rev,by.x="phage",by.y="phage")
-
-
-
 freq_table$meme_biostrings_diff <- 
   freq_table$meme_frequency - freq_table$biostrings_freq
-
-
-#TODO delete
-# freq_table$biostrings_percent_left <- 
-#   freq_table$biostrings_freq_left / freq_table$biostrings_freq
-# 
-# freq_table$biostrings_percent_right <- 
-#   freq_table$biostrings_freq_right / freq_table$biostrings_freq
-# 
-# freq_table$biostrings_percent_left_forward <- 
-#   freq_table$biostrings_freq_left_forward / freq_table$biostrings_freq_left
-# 
-# freq_table$biostrings_percent_left_reverse <- 
-#   freq_table$biostrings_freq_left_reverse / freq_table$biostrings_freq_left
-# 
-# freq_table$biostrings_percent_right_forward <- 
-#   freq_table$biostrings_freq_right_forward / freq_table$biostrings_freq_right
-# 
-# freq_table$biostrings_percent_right_reverse <- 
-#   freq_table$biostrings_freq_right_reverse / freq_table$biostrings_freq_right
-# 
-# 
-# # QC: Tally checks should equal 0.
-# freq_table$biostrings_check1 <- 
-#   freq_table$biostrings_freq - 
-#   freq_table$biostrings_freq_left - 
-#   freq_table$biostrings_freq_right
-# 
-# freq_table$biostrings_check2 <- 
-#   freq_table$biostrings_freq_left - 
-#   freq_table$biostrings_freq_left_forward - 
-#   freq_table$biostrings_freq_left_reverse
-# 
-# 
-# freq_table$biostrings_check3 <- 
-#   freq_table$biostrings_freq_right - 
-#   freq_table$biostrings_freq_right_forward - 
-#   freq_table$biostrings_freq_right_reverse
-# 
-# summary(freq_table$biostrings_check1)
-# summary(freq_table$biostrings_check2)
-# summary(freq_table$biostrings_check3)
-#
-#
-#
-# # QC: Percent checks should equal 1.
-# freq_table$biostrings_check4 <- 
-#   freq_table$biostrings_percent_left +
-#   freq_table$biostrings_percent_right
-# 
-# freq_table$biostrings_check5 <- 
-#   freq_table$biostrings_percent_left_forward +
-#   freq_table$biostrings_percent_left_reverse
-# 
-# freq_table$biostrings_check6 <- 
-#   freq_table$biostrings_percent_right_forward +
-#   freq_table$biostrings_percent_right_reverse
-# 
-# 
-# summary(freq_table$biostrings_check4)
-# summary(freq_table$biostrings_check5)
-# summary(freq_table$biostrings_check6)
-
 
 
 # QC:Compare # MEME sites versus # Biostrings sites per genome.
@@ -580,11 +416,6 @@ time_stop <- Sys.time()
 time_start
 time_stop
 # Note: it takes about an hour to run the two commands above using stop.
-
-#TODO remove
-# stop_site_set80_list_backup <- stop_site_set80_list
-# stop_site_set80_df_backup <- stop_site_set80_df
-#
 
 
 # Dataframe output: each row is a predicted site in a genome from one PWM
