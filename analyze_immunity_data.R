@@ -1289,7 +1289,7 @@ immunity_average$frequency2 <- as.factor(immunity_average$frequency2)
 
 
 
-#QC: assess how many replicates there are for each unique assay.
+# QC: Assess how many replicates there are for each unique assay.
 plot_bargraph2(immunity_average,
                "frequency",
                c(0,800),
@@ -2099,7 +2099,7 @@ reciprocal_binned_freq$bin <- factor(reciprocal_binned_freq$bin,
                                        "bin0"))
 
 
-# QC: should equal 0.
+# QC: Should equal 0.
 sum(reciprocal_binned_freq$freq) - nrow(reciprocal_unique_envY)
 
 
@@ -2797,7 +2797,8 @@ mutant_parent_lys <- merge(mutant_data_lys,
 # infection between the mutant and parent is informative, so don't use
 # absolute value.
 mutant_parent_lys$averaged_score_diff <-
-  mutant_parent_lys$mutant_averaged_score - mutant_parent_lys$parent_averaged_score
+  mutant_parent_lys$mutant_averaged_score - 
+  mutant_parent_lys$parent_averaged_score
 
 
 # Export all mutant data.
@@ -3724,7 +3725,7 @@ stops_right_rev_freq <-
 names(stops_right_rev_freq) <- c("phage","right_sites_reverse_freq")
 
 
-# QC: All shoudl have the same number of rows.
+# QC: All should have the same number of rows.
 nrow(stops_endo_freq)
 nrow(stops_left_freq)
 nrow(stops_left_for_freq)
