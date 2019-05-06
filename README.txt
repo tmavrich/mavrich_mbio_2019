@@ -293,7 +293,7 @@ Input files:
         21. Coordinate of genome center for manual alignment
 
 
-    4. repressor_336_distance_data.csv (TODO filename)
+    4. repressor_336_distance_data.csv
 
     Description: Pairwise genetic distances of 336 Immunity Repressor homologs.
 
@@ -372,24 +372,24 @@ Input files:
 Output files:
 
 
-    1. conf_assay_strain_def_chal_average.csv
+    1. Table_S1_averaged_immunity_data.csv
     
     Description: Processed infection data, with low-confidence data removed
-    and all replicate assay results averaged.
-    
-    
-    2. reciprocal_data_alpha_ordered.csv
-    
-    Description:
-    
-    
-    3. mutant_analysis.csv
-    
-    
-    Description:
+    and all replicate assay results averaged. Data from this table was used
+    to generate heatmaps in several figure panels.
 
-
-
+    Data structure:
+        1. Strain type
+        2. Defending phage
+        3. Infecting phage
+        4. Whole genome nucleotide distance
+        5. Whole genome gene content dissimilarity
+        6. Repressor distance
+        7. Stoperator motif distance
+        8. Immunity assay replicates
+        9. Minimum infection score
+        10. Maximum infection score
+        11. Average infection score
 
 
 

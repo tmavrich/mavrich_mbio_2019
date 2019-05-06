@@ -1187,12 +1187,11 @@ immunity_average <- merge(immunity_average,
 immunity_average$frequency <- as.factor(immunity_average$frequency) 
 
 
-
-# Export all averaged data
-write.table(immunity_average,
-            paste(DIR_OUTPUT,"immunity_data_averaged.csv",sep=""),
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
+# Export all averaged data.
+# This table was not used for the publication.
+# write.table(immunity_average,
+#             paste(DIR_OUTPUT,"immunity_data_averaged.csv",sep=""),
+#             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 # Export reduced data for Table S1
 output_fields <- c("strain_type",
@@ -1230,6 +1229,8 @@ write.table(immunity_average_reduced_for_output,
             paste(DIR_OUTPUT,"Table_S1_averaged_immunity_data.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
+# Summary - Data in Table S1 was used to generate heatmaps in Excel
+# for Figs. 5a, 6b, 10c, S8a, S8b, S8d, S8e.
 
 ###
 ###
@@ -2015,9 +2016,10 @@ reciprocal_data_alpha_ordered <-
 
 
 # Output the reciprocal dataset.
-write.table(reciprocal_data_alpha_ordered,
-            paste(DIR_OUTPUT,"reciprocal_immunity_data.csv",sep=""),
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
+# This table was not used for the publication.
+# write.table(reciprocal_data_alpha_ordered,
+#             paste(DIR_OUTPUT,"reciprocal_immunity_data.csv",sep=""),
+#             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 
 
@@ -2798,9 +2800,11 @@ mutant_parent_lys$averaged_score_diff <-
   mutant_parent_lys$mutant_averaged_score - mutant_parent_lys$parent_averaged_score
 
 
-write.table(mutant_parent_lys,
-            paste(DIR_OUTPUT,"mutant_parent_lysogen_data.csv",sep=""),
-            sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
+# Export all mutant data.
+# This table was not used for the publication.
+# write.table(mutant_parent_lys,
+#             paste(DIR_OUTPUT,"mutant_parent_lysogen_data.csv",sep=""),
+#             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
 
 
 # QC
