@@ -270,29 +270,27 @@ Input files:
     database, generated from multiple tools.
 
     Data structure:
-        1. phageid
-        2. host
-        3. cluster
-        4. subcluster
-        5. size
-        6. lysogen_type (extrachromosomal, integration, none)
-        7. pham_integrase
-        8. pham_para (imported as int)
-        9. source (environment or lab)
-        10. parent
-        11. repressor_functional (yes, no, NA; For Cluster A phages, 
-            is the immunity repressor predicted to be functional?)
-        12. temperate_empirical (no, unknown, yes, NA; For Cluster A phages,
-            can a lysogen be generated?)
-        13. repressor_hth
-        14. repressor_length_full (imported as factor)
-        15. repressor_length_nterm (imported as factor)
-        16. repressor_length_cterm (imported as factor)
-        17. pham_parb (imported as int)
-        18. gene_content_clade (clade2 = the "L5 clade")
-        19. coordinate_pleft (coordinate for manual alignment)
-        20. coordinate_repressor (coordinate for manual alignment)
-        21. coordinate_genome_center (coordinate for manual alignment)
+        1. Phage name
+        2. Host
+        3. Cluster
+        4. Subcluster
+        5. Genome size
+        6. Lysogen type (extrachromosomal, integration, none)
+        7. Integrase pham number
+        8. ParA pham number 
+        9. Phage source (environment or lab)
+        10. Parent phage name
+        11. Repressor is functional (yes, no, NA)
+        12. Lysogen can be generated (no, unknown, yes, NA)
+        13. Repressor helix-turn-helix domain sequence
+        14. Length of repressor full sequence
+        15. Length of repressor N-terminal sequence
+        16. Length of repressor C-terminal sequence
+        17. ParB pham number
+        18. Gene content clade (clade2 = the "L5 clade")
+        19. Coordinate of Pleft locus for manual alignment
+        20. Coordinate of repressor locus for manual alignment
+        21. Coordinate of genome center for manual alignment
 
 
     4. repressor_336_distance_data.csv (TODO filename)

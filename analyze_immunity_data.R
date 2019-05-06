@@ -701,9 +701,9 @@ names(genomic_distance_data) <- c("phage1_phage2",
 # 9. source (environment or lab)
 # 10. parent
 # 11. repressor_functional (yes, no, NA; For Cluster A phages, 
-  #is the immunity repressor predicted to be functional?)
+#     is the immunity repressor predicted to be functional?)
 # 12. temperate_empirical (no, unknown, yes, NA; For Cluster A phages,
-  #can a lysogen be generated?)
+#     can a lysogen be generated?)
 # 13. repressor_hth
 # 14. repressor_length_full (imported as factor)
 # 15. repressor_length_nterm (imported as factor)
