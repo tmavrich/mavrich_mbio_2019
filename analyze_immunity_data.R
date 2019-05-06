@@ -180,14 +180,12 @@ compute_comparisons <- function(table){
   return(table)
 }
 
-
-
 match_lys_clone_data <- function(lysogen_data,clone_data){
   
   clone_match_columns <- c("defending_challenging",
                            "defending_phage",
                            "challenging_phage",
-                           "averaged_rank6",
+                           "averaged_score",
                            "nuc_dist",
                            "gcd",
                            "repressor_cterm_mafft_dist_uncorrected",
@@ -208,15 +206,16 @@ match_lys_clone_data <- function(lysogen_data,clone_data){
                              by.x='lys_defending_challenging',
                              by.y='clone_defending_challenging')
   
-  lys_clone_compare$lys_averaged_rank6 <- 
-    as.numeric(as.character(lys_clone_compare$lys_averaged_rank6))
   
-  lys_clone_compare$clone_averaged_rank6 <- 
-    as.numeric(as.character(lys_clone_compare$clone_averaged_rank6))
+  lys_clone_compare$lys_averaged_score <- 
+    as.numeric(as.character(lys_clone_compare$lys_averaged_score))
   
-  lys_clone_compare$rank6_diff <- 
-    lys_clone_compare$clone_averaged_rank6 - 
-    lys_clone_compare$lys_averaged_rank6
+  lys_clone_compare$clone_averaged_score <- 
+    as.numeric(as.character(lys_clone_compare$clone_averaged_score))
+  
+  lys_clone_compare$score_diff <- 
+    lys_clone_compare$clone_averaged_score - 
+    lys_clone_compare$lys_averaged_score
   
   return(lys_clone_compare)
 }
@@ -609,7 +608,7 @@ plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
 # 18. observed_turbidity
 # 19. observed_plaque_size
 # 20. observed_plaques
-# 21. rank6 (systematically scored infection phenotype) TODO change to score
+# 21. Infection score (systematically scored infection phenotype)
 immunity_data <- read.csv(IMMUNITY_DATA_FILENAME,sep=",",header=TRUE)
 immunity_data$immunity_assay_id <- as.factor(immunity_data$immunity_assay_id)
 immunity_data$immunity_set <- as.factor(immunity_data$immunity_set)
@@ -617,7 +616,7 @@ immunity_data$notebook <- as.factor(immunity_data$notebook)
 immunity_data$page <- as.factor(immunity_data$page)
 immunity_data$lawn_reliability <- as.factor(immunity_data$lawn_reliability)
 immunity_data$phage_reliability <- as.factor(immunity_data$phage_reliability)
-immunity_data$rank6 <- as.factor(immunity_data$rank6)
+immunity_data$score <- as.factor(immunity_data$score)
 
 # Several fields contain 'unspecified' which can be converted to NA and
 # then need to be re-factored:
@@ -630,7 +629,7 @@ immunity_data[immunity_data == "unspecified"] <- NA
 immunity_data$prophage <- factor(immunity_data$prophage)
 immunity_data$repressor_clone <- factor(immunity_data$repressor_clone)
 immunity_data$phage_reliability <- factor(immunity_data$phage_reliability)
-immunity_data$rank6 <- factor(immunity_data$rank6)
+immunity_data$score <- factor(immunity_data$score)
 
 # Convert titer to numeric
 immunity_data$tested_titer <-
@@ -994,7 +993,7 @@ dev.off()
 # Averages can be computed by unique experiment_id.
 main_immunity_data$experiment_id <-
   factor(main_immunity_data$experiment_id)
-main_immunity_data$rank6 <- as.numeric(as.character(main_immunity_data$rank6))
+main_immunity_data$score <- as.numeric(as.character(main_immunity_data$score))
 
 
 
@@ -1003,28 +1002,28 @@ main_immunity_data$rank6 <- as.numeric(as.character(main_immunity_data$rank6))
 
 # Average infection scores for each unique experiment_id identifier.
 
-immunity_average <- aggregate(main_immunity_data[,'rank6'],
+immunity_average <- aggregate(main_immunity_data[,'score'],
                               list(main_immunity_data$experiment_id),mean)
 names(immunity_average) <- c('experiment_id',
-                             'averaged_rank6') 
+                             'averaged_score') 
 immunity_average$experiment_id <- factor(immunity_average$experiment_id)
 
 
 
 # Compute the range of scores for each unique assay. First compute the minimum
 # score and maximum score, then compute the range.
-immunity_min <- aggregate(main_immunity_data[,'rank6'],
+immunity_min <- aggregate(main_immunity_data[,'score'],
                           list(main_immunity_data$experiment_id),min)
 names(immunity_min) <- c('experiment_id',
-                         'min_rank6') 
+                         'min_score') 
 immunity_min$experiment_id <- factor(immunity_min$experiment_id)
 
 
 
-immunity_max <- aggregate(main_immunity_data[,'rank6'],
+immunity_max <- aggregate(main_immunity_data[,'score'],
                           list(main_immunity_data$experiment_id),max)
 names(immunity_max) <- c('experiment_id',
-                         'max_rank6') 
+                         'max_score') 
 immunity_max$experiment_id <- factor(immunity_max$experiment_id)
 
 
@@ -1039,9 +1038,9 @@ immunity_average <- merge(immunity_average,
                           by.y="experiment_id")
 
 
-immunity_average$range_rank6 <- immunity_average$max_rank6 -
-  immunity_average$min_rank6
-immunity_average$range_rank6 <- as.factor(immunity_average$range_rank6)
+immunity_average$range_score <- immunity_average$max_score -
+  immunity_average$min_score
+immunity_average$range_score <- as.factor(immunity_average$range_score)
 
 
 
@@ -1194,9 +1193,9 @@ output_fields <- c("strain_type",
                    "repressor_full_mafft_dist_uncorrected",
                    "stoperator_pwd_dist_euc",
                    "frequency",
-                   "min_rank6",
-                   "max_rank6",
-                   "averaged_rank6")
+                   "min_score",
+                   "max_score",
+                   "averaged_score")
 
 immunity_average_reduced_for_output <- 
   subset(immunity_average,
@@ -1237,10 +1236,10 @@ write.table(immunity_average_reduced_for_output,
 # dataset is.
 immunity_ave_to_match <- subset(immunity_average,
                                 select = c("experiment_id",
-                                           "averaged_rank6",
-                                           "min_rank6",
-                                           "max_rank6",
-                                           "range_rank6",
+                                           "averaged_score",
+                                           "min_score",
+                                           "max_score",
+                                           "range_score",
                                            "frequency"))
 
 names(immunity_ave_to_match) <- paste('ave_data',
@@ -1259,10 +1258,10 @@ main_immunity_data <- merge(main_immunity_data,
                             all.x=TRUE)
 
 
-main_immunity_data$ave_data_averaged_rank6_diff <-
-  as.numeric(as.character(main_immunity_data$rank6)) -
-  as.numeric(as.character(main_immunity_data$ave_data_averaged_rank6))
-# Note: if the diff is positive = assay's rank is higher than the average.
+main_immunity_data$ave_data_averaged_score_diff <-
+  as.numeric(as.character(main_immunity_data$score)) -
+  as.numeric(as.character(main_immunity_data$ave_data_averaged_score))
+# Note: if the diff is positive = assay's score is higher than the average.
 
 
 
@@ -1301,7 +1300,7 @@ plot_bargraph2(immunity_average,
 
 # QC: Assess variability in scoring between replicates for each unique assay.
 plot_bargraph2(immunity_average,
-               "range_rank6",
+               "range_score",
                c(0,1200),
                "immunity_assay_replicate_range.pdf")
 # 92% of unique comparisons with > 1 replicate have a score range of < 2.
@@ -1330,8 +1329,8 @@ nrow(immunity_ave_multi_reps)/nrow(immunity_ave_multi)
 nrow(
   subset(
     immunity_ave_multi_reps,
-    immunity_ave_multi_reps$range_rank6 == "0" |
-      immunity_ave_multi_reps$range_rank6 == "1"
+    immunity_ave_multi_reps$range_score == "0" |
+      immunity_ave_multi_reps$range_score == "1"
   )
 ) / nrow(immunity_ave_multi_reps)
 
@@ -1396,7 +1395,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "repressor_full_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_rep_vs_infection_score.pdf")
@@ -1407,7 +1406,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_environment_stop_vs_infection_score.pdf")
@@ -1418,7 +1417,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "gcd",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,1),
                        c(0,6),
                        "lysogen_environment_gcd_vs_infection_score.pdf")
@@ -1429,7 +1428,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "nuc_dist",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,0.5),
                        c(0,6),
                        "lysogen_environment_nuc_vs_infection_score.pdf")
@@ -1440,7 +1439,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "portal_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_portal_vs_infection_score.pdf")
@@ -1451,7 +1450,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "dnapol_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_pol_vs_infection_score.pdf")
@@ -1462,7 +1461,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "endovii_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_endovii_vs_infection_score.pdf")
@@ -1473,7 +1472,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "cas4_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_cas4_vs_infection_score.pdf")
@@ -1484,7 +1483,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "repressor_nterm_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_rep_nterm_vs_infection_score.pdf")
@@ -1495,7 +1494,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "repressor_hth_compare",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,10),
                        c(0,6),
                        "lysogen_environment_rep_hth_vs_infection_score.pdf")
@@ -1506,7 +1505,7 @@ plot_tricolor_scatter2(immunity_ave_subset1_intraclade2_diff,
                        immunity_ave_subset1_interclade,
                        immunity_ave_subset1_intraclade2_same,
                        "repressor_cterm_mafft_dist_uncorrected",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,70),
                        c(0,6),
                        "lysogen_environment_rep_cterm_vs_infection_score.pdf")
@@ -1737,7 +1736,7 @@ plot_tricolor_scatter2(int_int_same_intraclade2_diff,
                        int_int_same_interclade,
                        int_int_same_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_int_same_stop_vs_infection_score.pdf")
@@ -1748,7 +1747,7 @@ plot_tricolor_scatter2(int_int_diff_intraclade2_diff,
                        int_int_diff_interclade,
                        int_int_diff_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_int_diff_stop_vs_infection_score.pdf")
@@ -1759,7 +1758,7 @@ plot_tricolor_scatter2(int_extra_intraclade2_diff,
                        int_extra_interclade,
                        int_extra_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_int_parb_stop_vs_infection_score.pdf")
@@ -1770,7 +1769,7 @@ plot_tricolor_scatter2(extra_extra_same_intraclade2_diff,
                        extra_extra_same_interclade,
                        extra_extra_same_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_parb_same_stop_vs_infection_score.pdf")
@@ -1781,7 +1780,7 @@ plot_tricolor_scatter2(extra_extra_diff_intraclade2_diff,
                        extra_extra_diff_interclade,
                        extra_extra_diff_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_parb_diff_stop_vs_infection_score.pdf")
@@ -1792,7 +1791,7 @@ plot_tricolor_scatter2(extra_int_intraclade2_diff,
                        extra_int_interclade,
                        extra_int_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6",
+                       "averaged_score",
                        c(0,5),
                        c(0,6),
                        "lysogen_env_parb_int_stop_vs_infection_score.pdf")
@@ -1843,24 +1842,24 @@ clade2_env$challenging_phage <- factor(clade2_env$challenging_phage)
 
 
 clade2_env_bin0 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 <= 0.5)
+                          clade2_env$averaged_score <= 0.5)
 clade2_env_bin1 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 0.5 &
-                            clade2_env$averaged_rank6 <= 1.5)
+                          clade2_env$averaged_score > 0.5 &
+                            clade2_env$averaged_score <= 1.5)
 clade2_env_bin2 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 1.5 &
-                            clade2_env$averaged_rank6 <= 2.5)
+                          clade2_env$averaged_score > 1.5 &
+                            clade2_env$averaged_score <= 2.5)
 clade2_env_bin3 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 2.5 &
-                            clade2_env$averaged_rank6 <= 3.5)
+                          clade2_env$averaged_score > 2.5 &
+                            clade2_env$averaged_score <= 3.5)
 clade2_env_bin4 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 3.5 &
-                            clade2_env$averaged_rank6 <= 4.5)
+                          clade2_env$averaged_score > 3.5 &
+                            clade2_env$averaged_score <= 4.5)
 clade2_env_bin5 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 4.5 &
-                            clade2_env$averaged_rank6 <= 5.5)
+                          clade2_env$averaged_score > 4.5 &
+                            clade2_env$averaged_score <= 5.5)
 clade2_env_bin6 <- subset(clade2_env,
-                          clade2_env$averaged_rank6 > 5.5)
+                          clade2_env$averaged_score > 5.5)
 
 clade2_bin0_freq <- compute_binned_freq1(clade2_env_bin0,"bin0")
 clade2_bin1_freq <- compute_binned_freq1(clade2_env_bin1,"bin1")
@@ -1945,7 +1944,7 @@ vectored_column_names <- c("experiment_id",
                            "defending_challenging",
                            "defending_phage",
                            "challenging_phage",
-                           "averaged_rank6",
+                           "averaged_score",
                            "assay_type",
                            "frequency"
 )
@@ -1984,11 +1983,10 @@ reciprocal_data <- merge(reciprocal_data,
                          by.x='vector2_defending_challenging',
                          by.y='vector2_defending_challenging')
 
-
 # Compute difference in infection profiles.
-reciprocal_data$averaged_rank6_diff <-
-  abs(reciprocal_data$vector1_averaged_rank6 - 
-        reciprocal_data$vector2_averaged_rank6)
+reciprocal_data$averaged_score_diff <-
+  abs(reciprocal_data$vector1_averaged_score - 
+        reciprocal_data$vector2_averaged_score)
 
 
 # Now that all data has been matched, the data is duplicated. (e.g. vector1
@@ -2030,24 +2028,24 @@ reciprocal_unique_envY <-
 
 # Bin data
 reciprocal_bin0 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff <= 0.5)
+                          reciprocal_unique_envY$averaged_score_diff <= 0.5)
 reciprocal_bin1 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 0.5 &
-                            reciprocal_unique_envY$averaged_rank6_diff <= 1.5)
+                          reciprocal_unique_envY$averaged_score_diff > 0.5 &
+                            reciprocal_unique_envY$averaged_score_diff <= 1.5)
 reciprocal_bin2 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 1.5 &
-                            reciprocal_unique_envY$averaged_rank6_diff <= 2.5)
+                          reciprocal_unique_envY$averaged_score_diff > 1.5 &
+                            reciprocal_unique_envY$averaged_score_diff <= 2.5)
 reciprocal_bin3 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 2.5 &
-                            reciprocal_unique_envY$averaged_rank6_diff <= 3.5)
+                          reciprocal_unique_envY$averaged_score_diff > 2.5 &
+                            reciprocal_unique_envY$averaged_score_diff <= 3.5)
 reciprocal_bin4 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 3.5 &
-                            reciprocal_unique_envY$averaged_rank6_diff <= 4.5)
+                          reciprocal_unique_envY$averaged_score_diff > 3.5 &
+                            reciprocal_unique_envY$averaged_score_diff <= 4.5)
 reciprocal_bin5 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 4.5 &
-                            reciprocal_unique_envY$averaged_rank6_diff <= 5.5)
+                          reciprocal_unique_envY$averaged_score_diff > 4.5 &
+                            reciprocal_unique_envY$averaged_score_diff <= 5.5)
 reciprocal_bin6 <- subset(reciprocal_unique_envY,
-                          reciprocal_unique_envY$averaged_rank6_diff > 5.5)
+                          reciprocal_unique_envY$averaged_score_diff > 5.5)
 
 # Compute frequency
 reciprocal_bin0_freq <- compute_binned_freq2(reciprocal_bin0,
@@ -2144,7 +2142,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "repressor_full_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_rep_vs_infection_score.pdf")
@@ -2155,7 +2153,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "stoperator_pwd_dist_euc",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,5),
                        c(0,6),
                        "reciprocal_lys_env_stop_vs_infection_score.pdf")
@@ -2166,7 +2164,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "gcd",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,1),
                        c(0,6),
                        "reciprocal_lys_env_gcd_vs_infection_score.pdf")
@@ -2177,7 +2175,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "nuc_dist",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,0.5),
                        c(0,6),
                        "reciprocal_lys_env_nuc_vs_infection_score.pdf")
@@ -2188,7 +2186,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "portal_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_portal_vs_infection_score.pdf")
@@ -2199,7 +2197,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "dnapol_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_pol_vs_infection_score.pdf")
@@ -2210,7 +2208,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "endovii_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_endovii_vs_infection_score.pdf")
@@ -2221,7 +2219,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "cas4_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_cas4_vs_infection_score.pdf")
@@ -2232,7 +2230,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "repressor_nterm_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_rep_nterm_vs_infection_score.pdf")
@@ -2243,7 +2241,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "repressor_hth_compare",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,10),
                        c(0,6),
                        "reciprocal_lys_env_rep_hth_vs_infection_score.pdf")
@@ -2254,7 +2252,7 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
                        reciprocal_interclade,
                        reciprocal_intraclade2_same,
                        "repressor_cterm_mafft_dist_uncorrected",
-                       "averaged_rank6_diff",
+                       "averaged_score_diff",
                        c(0,70),
                        c(0,6),
                        "reciprocal_lys_env_rep_cterm_vs_infection_score.pdf")
@@ -2380,7 +2378,7 @@ nrow(escape_lys_clone_intraclade2_diff) +
 plot_tricolor_scatter1(env_lys_clone_intraclade2_same,
                        env_lys_clone_interclade,
                        env_lys_clone_intraclade2_diff,
-                       "lys_averaged_rank6","clone_averaged_rank6",
+                       "lys_averaged_score","clone_averaged_score",
                        c(0,6),
                        c(0,6),
                        "lys_vs_crs_env_infection_score.pdf")
@@ -2390,7 +2388,7 @@ plot_tricolor_scatter1(env_lys_clone_intraclade2_same,
 plot_tricolor_scatter1(escape_lys_clone_intraclade2_diff,
                        escape_lys_clone_interclade,
                        escape_lys_clone_intraclade2_same,
-                       "lys_averaged_rank6","clone_averaged_rank6",
+                       "lys_averaged_score","clone_averaged_score",
                        c(0,6),
                        c(0,6),
                        "lys_vs_crs_escape_infection_score.pdf")
@@ -2401,7 +2399,7 @@ plot_tricolor_scatter3(env_lys_clone_intraclade2_same,
                        env_lys_clone_interclade,
                        env_lys_clone_intraclade2_diff,
                        "lys_stoperator_pwd_dist_euc",
-                       "rank6_diff",
+                       "score_diff",
                        c(0,5),
                        c(-4,4),
                        "lys_vs_crs_env_infection_score_stop_vs_score_diff.pdf")
@@ -2412,7 +2410,7 @@ plot_tricolor_scatter3(escape_lys_clone_intraclade2_diff,
                        escape_lys_clone_interclade,
                        escape_lys_clone_intraclade2_same,
                        "lys_stoperator_pwd_dist_euc",
-                       "rank6_diff",
+                       "score_diff",
                        c(0,5),
                        c(-4,4),
                        "lys_vs_crs_escape_infection_score_stop_vs_score_diff.pdf")
@@ -2431,7 +2429,7 @@ plot_tricolor_scatter3(escape_lys_clone_intraclade2_diff,
 l5_columns <- c("defending_challenging",
                 "defending_phage",
                 "challenging_phage",
-                "averaged_rank6",
+                "averaged_score",
                 "nuc_dist",
                 "gcd",
                 "repressor_cterm_mafft_dist_uncorrected")
@@ -2494,23 +2492,23 @@ chal_l5_assays <- merge(chal_l5_assays,
                         all.y=TRUE)
 
 
-chal_l5_assays$l5_phitm41_rank6_diff <-
-  chal_l5_assays$phitm41_averaged_rank6 - chal_l5_assays$l5_averaged_rank6
+chal_l5_assays$l5_phitm41_score_diff <-
+  chal_l5_assays$phitm41_averaged_score - chal_l5_assays$l5_averaged_score
 
-chal_l5_assays$l5_phitm1_rank6_diff <-
-  chal_l5_assays$phitm1_averaged_rank6 - chal_l5_assays$l5_averaged_rank6
+chal_l5_assays$l5_phitm1_score_diff <-
+  chal_l5_assays$phitm1_averaged_score - chal_l5_assays$l5_averaged_score
 
-chal_l5_assays$l5_phitm4_rank6_diff <-
-  chal_l5_assays$phitm4_averaged_rank6 - chal_l5_assays$l5_averaged_rank6
+chal_l5_assays$l5_phitm4_score_diff <-
+  chal_l5_assays$phitm4_averaged_score - chal_l5_assays$l5_averaged_score
 
-chal_l5_assays$l5_phitm6_rank6_diff <-
-  chal_l5_assays$phitm6_averaged_rank6 - chal_l5_assays$l5_averaged_rank6
+chal_l5_assays$l5_phitm6_score_diff <-
+  chal_l5_assays$phitm6_averaged_score - chal_l5_assays$l5_averaged_score
 
-chal_l5_assays$phitm1_phitm6_rank6_diff <-
-  chal_l5_assays$phitm6_averaged_rank6 - chal_l5_assays$phitm1_averaged_rank6
+chal_l5_assays$phitm1_phitm6_score_diff <-
+  chal_l5_assays$phitm6_averaged_score - chal_l5_assays$phitm1_averaged_score
 
-chal_l5_assays$phitm1_phitm4_rank6_diff <-
-  chal_l5_assays$phitm4_averaged_rank6 - chal_l5_assays$phitm1_averaged_rank6
+chal_l5_assays$phitm1_phitm4_score_diff <-
+  chal_l5_assays$phitm4_averaged_score - chal_l5_assays$phitm1_averaged_score
 
 
 chal_l5_assays_interclade <-
@@ -2556,7 +2554,7 @@ plot_tricolor_scatter2(chal_l5_assays_intraclade2_phitm1_diff,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_phitm1_same,
                        "l5_stoperator_pwd_dist_euc",
-                       "phitm1_averaged_rank6",
+                       "phitm1_averaged_score",
                        c(0,5),
                        c(0,6),
                        "stop_vs_infection_score_phitm1.pdf")
@@ -2567,7 +2565,7 @@ plot_tricolor_scatter2(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
                        "l5_stoperator_pwd_dist_euc",
-                       "phitm4_averaged_rank6",
+                       "phitm4_averaged_score",
                        c(0,5),
                        c(0,6),
                        "stop_vs_infection_score_phitm4.pdf")
@@ -2577,8 +2575,8 @@ plot_tricolor_scatter2(chal_l5_assays_intraclade2,
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm41_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm41_averaged_score",
                        c(0,6),
                        c(0,6),
                        "infection_scores_l5_vs_phitm41.pdf")
@@ -2588,8 +2586,8 @@ plot_tricolor_scatter1(chal_l5_assays_intraclade2,
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm6_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm6_averaged_score",
                        c(0,6),
                        c(0,6),
                        "infection_scores_l5_vs_phitm6.pdf")
@@ -2599,8 +2597,8 @@ plot_tricolor_scatter1(chal_l5_assays_intraclade2,
 plot_tricolor_scatter1(chal_l5_assays_intraclade2,
                        chal_l5_assays_interclade,
                        chal_l5_assays_intraclade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm1_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm1_averaged_score",
                        c(0,6),
                        c(0,6),
                        "infection_scores_l5_vs_phitm1.pdf")
@@ -2652,17 +2650,17 @@ def_l5_assays <- merge(def_l5_assays,
                        all.y=TRUE)
 
 
-def_l5_assays$l5_phitm41_rank6_diff <-
-  def_l5_assays$phitm41_averaged_rank6 - def_l5_assays$l5_averaged_rank6
+def_l5_assays$l5_phitm41_score_diff <-
+  def_l5_assays$phitm41_averaged_score - def_l5_assays$l5_averaged_score
 
-def_l5_assays$l5_phitm1_rank6_diff <-
-  def_l5_assays$phitm1_averaged_rank6 - def_l5_assays$l5_averaged_rank6
+def_l5_assays$l5_phitm1_score_diff <-
+  def_l5_assays$phitm1_averaged_score - def_l5_assays$l5_averaged_score
 
-def_l5_assays$l5_phitm6_rank6_diff <-
-  def_l5_assays$phitm6_averaged_rank6 - def_l5_assays$l5_averaged_rank6
+def_l5_assays$l5_phitm6_score_diff <-
+  def_l5_assays$phitm6_averaged_score - def_l5_assays$l5_averaged_score
 
-def_l5_assays$phitm1_phitm6_rank6_diff <-
-  def_l5_assays$phitm6_averaged_rank6 - def_l5_assays$phitm1_averaged_rank6
+def_l5_assays$phitm1_phitm6_score_diff <-
+  def_l5_assays$phitm6_averaged_score - def_l5_assays$phitm1_averaged_score
 
 
 def_l5_assays_interclade <- 
@@ -2698,8 +2696,8 @@ summary(def_l5_assays_interclade$l5_challenging_phage)
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm41_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm41_averaged_score",
                        c(0,6),
                        c(0,6),
                        "defense_scores_l5_vs_phitm41.pdf")
@@ -2709,8 +2707,8 @@ plot_tricolor_scatter1(def_l5_assays_intraclade2,
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm6_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm6_averaged_score",
                        c(0,6),
                        c(0,6),
                        "defense_scores_l5_vs_phitm6.pdf")
@@ -2720,8 +2718,8 @@ plot_tricolor_scatter1(def_l5_assays_intraclade2,
 plot_tricolor_scatter1(def_l5_assays_intraclade2,
                        def_l5_assays_interclade,
                        def_l5_assays_clade2_empty,
-                       "l5_averaged_rank6",
-                       "phitm1_averaged_rank6",
+                       "l5_averaged_score",
+                       "phitm1_averaged_score",
                        c(0,6),
                        c(0,6),
                        "defense_scores_l5_vs_phitm1.pdf")
@@ -2789,8 +2787,8 @@ mutant_parent_lys <- merge(mutant_data_lys,
 # Compute difference in infection profiles. The direction of change in
 # infection between the mutant and parent is informative, so don't use
 # absolute value.
-mutant_parent_lys$averaged_rank6_diff <-
-  mutant_parent_lys$mutant_averaged_rank6 - mutant_parent_lys$parent_averaged_rank6
+mutant_parent_lys$averaged_score_diff <-
+  mutant_parent_lys$mutant_averaged_score - mutant_parent_lys$parent_averaged_score
 
 
 write.table(mutant_parent_lys,
@@ -2800,7 +2798,7 @@ write.table(mutant_parent_lys,
 
 # QC
 plot_hist1(mutant_parent_lys,
-           "averaged_rank6_diff",
+           "averaged_score_diff",
            10,
            c(-1,4),
            c(0,80),
@@ -2908,8 +2906,8 @@ summary(escape_intraclade2_mutant_same$mutant_defending_phage)
 plot_tricolor_scatter1(escape_intraclade2,
                        escape_interclade,
                        escape_intraclade2_empty,
-                       "parent_averaged_rank6",
-                       "mutant_averaged_rank6",
+                       "parent_averaged_score",
+                       "mutant_averaged_score",
                        c(0,6),
                        c(0,6),
                        "parent_vs_escape_infection_scores_lysogen.pdf")
@@ -2920,7 +2918,7 @@ plot_tricolor_scatter2(escape_intraclade2_parent_diff,
                        escape_interclade,
                        escape_intraclade2_parent_same,
                        "parent_stoperator_pwd_dist_euc",
-                       "parent_averaged_rank6",
+                       "parent_averaged_score",
                        c(0,5),
                        c(0,6),
                        "stop_vs_infection_score_parent.pdf")
@@ -2931,7 +2929,7 @@ plot_tricolor_scatter2(escape_intraclade2_mutant_diff,
                        escape_interclade,
                        escape_intraclade2_mutant_same,
                        "mutant_stoperator_pwd_dist_euc",
-                       "mutant_averaged_rank6",
+                       "mutant_averaged_score",
                        c(0,5),
                        c(0,6),
                        "stop_vs_infection_score_escape.pdf")
@@ -2973,9 +2971,9 @@ mutant_parent_clone <- merge(mutant_data_clone,
                              by.x="parent_defending_challenging",
                              by.y="parent_defending_challenging")
 
-mutant_parent_clone$averaged_rank6_diff <-
-  mutant_parent_clone$mutant_averaged_rank6 - 
-  mutant_parent_clone$parent_averaged_rank6
+mutant_parent_clone$averaged_score_diff <-
+  mutant_parent_clone$mutant_averaged_score - 
+  mutant_parent_clone$parent_averaged_score
 
 escape_parent_clone <- 
   subset(mutant_parent_clone,
@@ -3014,8 +3012,8 @@ nrow(escape_clone_intraclade2_empty)
 plot_tricolor_scatter1(escape_clone_intraclade2,
                        escape_clone_interclade,
                        escape_clone_intraclade2_empty,
-                       "parent_averaged_rank6",
-                       "mutant_averaged_rank6",
+                       "parent_averaged_score",
+                       "mutant_averaged_score",
                        c(0,6),
                        c(0,6),
                        "parent_vs_escape_infection_scores_crs.pdf")
