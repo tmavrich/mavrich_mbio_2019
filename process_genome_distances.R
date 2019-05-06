@@ -71,12 +71,12 @@ plot_genomic_similarity_standard <- function(table){
 # Import mash dataset.
 # This data is generated from the process_mash_data.py script.
 # Data structure:
-# 1 = reference genome
-# 2 = query genome
-# 3 = mash distance 
-# 4 = mash p-value
-# 5 = mash kmer count
-# 6 = reference_query
+# 1. reference genome
+# 2. query genome
+# 3. mash distance 
+# 4. mash p-value
+# 5. mash kmer count
+# 6. reference_query
 mash_table <- read.csv(MASH_DATA_FILENAME,sep=",",header=TRUE)
 names(mash_table) <- c("mash_reference",
                        "mash_query",
@@ -90,10 +90,10 @@ names(mash_table) <- c("mash_reference",
 # analyze_immunity_data.R. It contains data for all phages in the Actino1321
 # database.
 # Data structure:
-# 1 = phageid
-# 2 = host
-# 3 = cluster
-# 4 = subcluster
+# 1. phageid
+# 2. host
+# 3. cluster
+# 4. subcluster
 phage_metadata_table <- read.csv(PHAGE_METADATA_FILENAME,sep=",",header=TRUE)
 
 
@@ -129,28 +129,28 @@ main_data_table <- merge(main_data_table,
                          by.y="phageid")
 
 
-# QC
+# QC: Should equal 0, since no rows should be lost.
 nrow(mash_table) - nrow(main_data_table)
 
 # Import pairwise pham proportion data and merge with mash table.
 # This data is generated from the analyze_pham_data.py script.
 # Data structure:
-# 1 = phage1
-# 2 = phage1_number_unshared_phams
-# 3 = phage1_shared_proportion
-# 4 = phage2
-# 5 = phage2_number_unshared_phams
-# 6 = phage2_shared_proportion
-# 7 = number_shared_phams
-# 8 = average_shared_proportion
-# 9 = jaccard_similarity
-# 10 = shared_pham_distribution_mean
-# 11 = shared_pham_distribution_median
-# 12 = shared_pham_distribution_max
-# 13 = unshared_pham_distribution_mean
-# 14 = unshared_pham_distribution_median
-# 15 = unshared_pham_distribution_max
-# 16 = unshared_orpham_count
+# 1. phage1
+# 2. phage1_number_unshared_phams
+# 3. phage1_shared_proportion
+# 4. phage2
+# 5. phage2_number_unshared_phams
+# 6. phage2_shared_proportion
+# 7. number_shared_phams
+# 8. average_shared_proportion
+# 9. jaccard_similarity
+# 10. shared_pham_distribution_mean
+# 11. shared_pham_distribution_median
+# 12. shared_pham_distribution_max
+# 13. unshared_pham_distribution_mean
+# 14. unshared_pham_distribution_median
+# 15. unshared_pham_distribution_max
+# 16. unshared_orpham_count
 pham_table <- read.csv(PHAM_DATA_FILENAME,sep=",",header=TRUE)
 
 # Compute gene content dissimilarity.
@@ -191,7 +191,7 @@ main_data_table$filter <- ifelse(main_data_table$mash_pvalue < 1e-10,
                                  FALSE)
 
 
-# QC:Determine the max filtered distance.
+# QC: Determine the max filtered distance.
 filtered_table <- subset(main_data_table,main_data_table$filter == TRUE)
 summary(filtered_table$mash_distance)
 # The max mash distance < 0.5.
@@ -315,9 +315,7 @@ self_comparison_for_immunity$modified_mash_distance <- 0
 self_comparison_for_immunity$pham_pham_dissimilarity <- 0
 
 self_comparison_for_immunity <- subset(self_comparison_for_immunity,
-                                       select=c("phage1_phage2",
-                                                "modified_mash_distance",
-                                                "pham_pham_dissimilarity"))
+                                       select=new_names)
 
 # Now merge the three tables = duplicate/reciprocal data and self-comparisons.
 all_data_for_immunity <- rbind(duplicate_data_for_immunity1,

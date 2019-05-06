@@ -81,7 +81,7 @@ Output files:
     L5 compared to Trixie and Trixie compared to L5).
     
     Data structure:
-        1. Phage1_Phage2
+        1. Phage1-Phage2 ID
         2. Modified Mash distance
         3. Gene content dissimilarity
 
@@ -125,7 +125,7 @@ Output files:
         3. Modified Mash distance
         4. Mash p-value
         5. Mash kmer count
-        6. Reference_Query identifier
+        6. Reference_Query ID
 
 
 
