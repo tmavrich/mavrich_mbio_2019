@@ -74,6 +74,8 @@ STOPERATOR_PWM_DATA_FILENAME =
   paste(DIR_INPUT,
         "stoperator_pwm_distances.csv",
         sep="")
+
+#TODO change filename
 INFECTION_TABLE_REDUCED_FILENAME = 
   paste(DIR_INPUT,
         "multi_lys_ave_infection_table_reduced.csv",
@@ -957,7 +959,7 @@ main_immunity_data <- subset(main_immunity_data,
 # not be used for this analysis, so they can be removed.
 
 
-# QC Summary 
+# Summary 
 # Number of assays.
 nrow(main_immunity_data)
 
@@ -1518,22 +1520,19 @@ int_int <- subset(immunity_ave_subset1,
 
 extra_extra <- subset(
   immunity_ave_subset1,
-  immunity_ave_subset1$lysogen_type_compare == 'extrachromosomal'
-)
+  immunity_ave_subset1$lysogen_type_compare == 'extrachromosomal')
 
 int_extra <- subset(
   immunity_ave_subset1,
   immunity_ave_subset1$lysogen_type_compare == 'different' &
     immunity_ave_subset1$defending_lysogen_type == 'integration' &
-    immunity_ave_subset1$challenging_lysogen_type == 'extrachromosomal'
-)
+    immunity_ave_subset1$challenging_lysogen_type == 'extrachromosomal')
 
 extra_int <- subset(
   immunity_ave_subset1,
   immunity_ave_subset1$lysogen_type_compare == 'different' &
     immunity_ave_subset1$defending_lysogen_type == 'extrachromosomal' &
-    immunity_ave_subset1$challenging_lysogen_type == 'integration'
-)
+    immunity_ave_subset1$challenging_lysogen_type == 'integration')
 
 
 int_int$defending_pham_integrase <- factor(int_int$defending_pham_integrase)
@@ -3003,7 +3002,7 @@ escape_clone_intraclade2_empty <-
                     "empty")
 
 
-# QC
+# QC: Should equal 0.
 nrow(escape_clone_intraclade2_empty)
 
 
@@ -3374,7 +3373,7 @@ clusterA_intraclade2_empty <-
          "gene_content_clade_compare",
          "empty")
 
-# QC: should equal 0.
+# QC: Should equal 0.
 nrow(clusterA_intraclade2_empty)
 
 
@@ -3687,7 +3686,7 @@ stops_right_rev <- subset(stops_right,
                           stops_right$tfbs88_site_strand2 == "reverse")
 
 
-# QC: should equal 0
+# QC: Should equal 0.
 nrow(stops_endogenous) - nrow(stops_left) - nrow(stops_right)
 nrow(stops_left) - nrow(stops_left_for) - nrow(stops_left_rev)
 nrow(stops_right) - nrow(stops_right_for) - nrow(stops_right_rev)
@@ -3725,7 +3724,7 @@ stops_right_rev_freq <-
 names(stops_right_rev_freq) <- c("phage","right_sites_reverse_freq")
 
 
-# QC: all shoudl have the same number of rows.
+# QC: All shoudl have the same number of rows.
 nrow(stops_endo_freq)
 nrow(stops_left_freq)
 nrow(stops_left_for_freq)
