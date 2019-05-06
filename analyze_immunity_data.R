@@ -42,44 +42,52 @@ IMMUNITY_DATA_FILENAME =
   paste(DIR_INPUT,
         "immunity_data.csv",
         sep="")
+
 GENOMIC_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "genomic_distance_data.csv",
         sep="")
+
 PHAGE_METADATA_FILENAME = 
   paste(DIR_INPUT,
         "phage_metadata.csv",
         sep="")
+
 REPRESSOR_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "repressor_336_distance_data.csv",
         sep="")
+
 CAS4_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "cas4_311_distance_data.csv",
         sep="")
+
 ENDOVII_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "endovii_306_distance_data.csv",
         sep="")
+
 DNAPOL_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "dnapol_311_distance_data.csv",
         sep="")
+
 PORTAL_DISTANCE_DATA_FILENAME = 
   paste(DIR_INPUT,
         "portal_311_distance_data.csv",
         sep="")
+
 STOPERATOR_PWM_DATA_FILENAME = 
   paste(DIR_INPUT,
         "stoperator_pwm_distances.csv",
         sep="")
 
-#TODO change filename
-INFECTION_TABLE_REDUCED_FILENAME = 
+RECIPROCAL_INFECTION_TABLE_FILENAME = 
   paste(DIR_INPUT,
-        "multi_lys_ave_infection_table_reduced.csv",
+        "reciprocal_infection_matrix.csv",
         sep="")
+
 STOPERATOR_SITES_FILENAME = 
   paste(DIR_INPUT,
         "stoperator_site_predictions.csv",
@@ -3028,77 +3036,65 @@ plot_tricolor_scatter1(escape_clone_intraclade2,
 ###
 ###
 ### 11. Compute immunity profile correlations.
-#TODO compute this automatically in R or add data structure.
-# Import table of averaged data manipulated in Excel. This is a reduced dataset
-# consisting of a complete reciprocal matrix.
-infection_table_reduced <- read.csv(INFECTION_TABLE_REDUCED_FILENAME,
-                                    sep=",",
-                                    header=TRUE,
-                                    row.names=1,
-                                    na.strings="unspecified")
+# Import table of table of averaged reciprocal infection data used to create
+# heatmap in Fig. 5a.
+# Data structure:
+# Rows: infecting phage
+# Columns: defending phage
+ave_infection_matrix <- read.csv(RECIPROCAL_INFECTION_TABLE_FILENAME,
+                                 sep=",",
+                                 header=TRUE,
+                                 row.names=1,
+                                 na.strings="unspecified")
 
-
-infection_table_reduced_t <- as.data.frame(t(infection_table_reduced))
-
-
+ave_infection_matrix_t <- as.data.frame(t(ave_infection_matrix))
 
 # No data should be missing in this dataset.
-defending_cor_reduced <- cor(infection_table_reduced,
-                             method="pearson",
-                             use="complete.obs")
-challenging_cor_reduced <- cor(infection_table_reduced_t,
-                               method="pearson",
-                               use="complete.obs")
-
-
+defending_cor <- cor(ave_infection_matrix,
+                     method="pearson",
+                     use="complete.obs")
+challenging_cor <- cor(ave_infection_matrix_t,
+                       method="pearson",
+                       use="complete.obs")
 
 # Convert to 3-column data frame
 # Resulting table contains reciprocal data and self-comparisons
-defending_cor_reduced_df <-melt(defending_cor_reduced)
-challenging_cor_reduced_df <-melt(challenging_cor_reduced)
+defending_cor_df <-melt(defending_cor)
+challenging_cor_df <-melt(challenging_cor)
 
 
-names(defending_cor_reduced_df) <- c("phage1",
-                                     "phage2",
-                                     "defending_cor_reduced")
-names(challenging_cor_reduced_df) <- c("phage1",
-                                       "phage2",
-                                       "challenging_cor_reduced")
+names(defending_cor_df) <- c("phage1",
+                             "phage2",
+                             "defending_cor")
+names(challenging_cor_df) <- c("phage1",
+                               "phage2",
+                               "challenging_cor")
 
-defending_cor_reduced_df$phage1_phage2 <- 
-  paste(defending_cor_reduced_df$phage1,
-        "_",
-        defending_cor_reduced_df$phage2,
-        sep="")
+defending_cor_df$phage1_phage2 <- paste(defending_cor_df$phage1,
+                                        "_",
+                                        defending_cor_df$phage2,
+                                        sep="")
 
-challenging_cor_reduced_df$phage1_phage2 <- 
-  paste(challenging_cor_reduced_df$phage1,
-        "_",
-        challenging_cor_reduced_df$phage2,
-        sep="")
+challenging_cor_df$phage1_phage2 <- paste(challenging_cor_df$phage1,
+                                          "_",
+                                          challenging_cor_df$phage2,
+                                          sep="")
 
 
-defending_cor_reduced_df$phage1_phage2 <-
-  as.factor(defending_cor_reduced_df$phage1_phage2)
+defending_cor_df$phage1_phage2 <- as.factor(defending_cor_df$phage1_phage2)
+challenging_cor_df$phage1_phage2 <- as.factor(challenging_cor_df$phage1_phage2)
 
-challenging_cor_reduced_df$phage1_phage2 <-
-  as.factor(challenging_cor_reduced_df$phage1_phage2)
-
-defending_cor_reduced_df <- subset(defending_cor_reduced_df,
-                                   select=c("phage1_phage2",
-                                            "defending_cor_reduced"))
-challenging_cor_reduced_df <- subset(challenging_cor_reduced_df,
-                                     select=c("phage1_phage2",
-                                              "challenging_cor_reduced"))
-
-
-
-
+defending_cor_df <- subset(defending_cor_df,
+                           select=c("phage1_phage2",
+                                    "defending_cor"))
+challenging_cor_df <- subset(challenging_cor_df,
+                             select=c("phage1_phage2",
+                                      "challenging_cor"))
 
 
 # Merge datasets
-immunity_correlation_data <- merge(defending_cor_reduced_df,
-                                   challenging_cor_reduced_df,
+immunity_correlation_data <- merge(defending_cor_df,
+                                   challenging_cor_df,
                                    by.x="phage1_phage2",
                                    by.y="phage1_phage2",
                                    all.x = TRUE,
@@ -3434,7 +3430,7 @@ plot_tricolor_scatter2(clusterA_intraclade2,
                        clusterA_clade2_diff,
                        clusterA_intraclade2_empty,
                        "stoperator_pwd_dist_euc",
-                       "challenging_cor_reduced",
+                       "challenging_cor",
                        c(0,5),
                        c(-1,1),
                        "stop_vs_cor_challenging.pdf")
@@ -3445,7 +3441,7 @@ plot_tricolor_scatter2(clusterA_intraclade2,
                        clusterA_clade2_diff,
                        clusterA_intraclade2_empty,
                        "stoperator_pwd_dist_euc",
-                       "defending_cor_reduced",
+                       "defending_cor",
                        c(0,5),
                        c(-1,1),
                        "stop_vs_cor_defending.pdf")
