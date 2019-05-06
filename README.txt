@@ -133,95 +133,210 @@ Output files:
 
 
 
+2. Script: process_stoperator_data.R
+
+Description: Using previously identified potential binding sites, create 
+binding site position weight matrices (PWMs), compute the pairwise distance
+between PWMs, and scan all genomes for potential binding sites for each
+PWM.
+
+
+Input files:
+
+    1. phage_metadata.csv
+    
+    Description: Information about all phages in the database.
+    
+    Data structure:
+        1. Phage Name
+        2. Genome size (TODO is this field needed?)
+        3. Coordinate indicating the center of the genome (TODO is this field needed?)
+    
+    
+    2. stoperator_data.csv
+    
+    Description:
+    
+    Data structure:
+        1. Phage Name
+        2. Unique stoperator ID 
+        3. Stoperator sequence (13bp)
+    
+    
+    
+    3. folder of fasta-formatted genome sequences
+    
+    Description: All genomes that need to be analyzed. One file per genome,
+    fasta-formatted.
 
 
 
 
 
 
+Output files:
+
+    1. biostrings_stoperators.csv
+    
+    Description: Table of stoperator binding sites for each genome, derived
+    from the input stoperator data, and containing confirmed coordinate and
+    sequence data.
+    
+    
+    Data structure:
+        1. Phage Name
+        2. Forward sequence
+        3. Reverse sequence
+        4. Start coordinate
+        5. End coordinate
+        6. Strand
+        7. Unique stoperator ID
+        8. TODO still needed?
+        9. TODO still needed?
+        10. TODO still needed?
 
 
-2. Script: analyze_immunity_data.R
 
-Description: 
+    2. stoperator_pwm_distances.csv (TODO make sure output file is correctly named)
+    
+    Description: Pairwise genetic distances between PWMs that were generated
+    using log2probratio.
+    
+    Data structure:
+        1. Phage 1
+        2. Phage 2
+        3. Pearson distance (TODO normalized?)
+        4. Normalized Euclidean distance
+
+
+    3. 
+
+
+
+
+
+3. Script: analyze_immunity_data.R
+
+Description: Compare superinfection immunity phenotypes with genomic 
+characteristics to identify how immunity changes as phages evolve.
 
 
 Input files:
 
 
-1. genomic_distance_data.csv
+    1. genomic_distance_data.csv
 
-Description: Pairwise Mash-based nucleotide distances or Pham-based gene
-content dissimilarities for all phages in the Actinobacteriophage_1321
-database, computed as previously described in Mavrich & Hatfull 2017.
-
-
-2. phage_metadata.csv
-
-Compilation of misc. data for each phage in the Actinobacteriophage_1321
-database, generated from multiple tools.
+    Description: Pairwise Mash-based nucleotide distances or Pham-based gene
+    content dissimilarities for all phages in the Actinobacteriophage_1321
+    database, computed as previously described in Mavrich & Hatfull 2017.
 
 
+    2. phage_metadata.csv
 
-3. repressor_distance_data.csv
+    Description: Compilation of misc. data for each phage in the Actinobacteriophage_1321
+    database, generated from multiple tools.
 
-4. portal_distance_data.csv
-
-5. recb_distance_data.csv
-
-6. repressor336_distance_data.csv
-
-Description: Pairwise genetic distances of 336 Immunity Repressor homologs.
-
-7. cas4311_distance_data.csv
-
-Description: Pairwise genetic distances of 311 Cas4-family homologs.
-
-
-8. endovii306_distance_data.csv
-
-Description: Pairwise genetic distances of 306 Endonuclease VII homologs.
-
-
-9. dnapol311_distance_data.csv
-
-Description: Pairwise genetic distances of 311 DNA Polymerase homologs.
-
-
-10. portal311_distance_data.csv
-
-Description: Pairwise genetic distances of 311 Portal homologs.
-
-
-11. stoperator_pwm_data.csv
-
-Description: Pairwise distances between 327 position weight matrices generated
-from predicted stoperators within each of the 327 Cluster A phage genomes.
-
-
-12. stoperator_site_predictions.csv
-
-Description: Table of predicted stoperator sites from all 327 Cluster A phage
-genomes using the position weight matrices listed above.
-
-
-13. multi_lys_ave_infection_table_reduced.csv
-
-Description: 
+    Data structure:
+        1.
+        2.
+        3.
+        4.
 
 
 
-Data analysis scripts:
+    6. repressor336_distance_data.csv
 
-1. analyze_immunity_data.R
+    Description: Pairwise genetic distances of 336 Immunity Repressor homologs.
 
-Description: RStudio script to ...
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+    7. cas4311_distance_data.csv
+
+    Description: Pairwise genetic distances of 311 Cas4-family homologs.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    8. endovii306_distance_data.csv
+
+    Description: Pairwise genetic distances of 306 Endonuclease VII homologs.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    9. dnapol311_distance_data.csv
+
+    Description: Pairwise genetic distances of 311 DNA Polymerase homologs.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    10. portal311_distance_data.csv
+
+    Description: Pairwise genetic distances of 311 Portal homologs.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    11. stoperator_pwm_data.csv
+
+    Description: Pairwise distances between 327 position weight matrices generated
+    from predicted stoperators within each of the 327 Cluster A phage genomes.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    12. stoperator_site_predictions.csv
+
+    Description: Table of predicted stoperator sites from all 327 Cluster A phage
+    genomes using the position weight matrices listed above.
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
+
+
+    13. multi_lys_ave_infection_table_reduced.csv
+
+    Description: 
+
+    Data structure:
+        1.
+        2.
+        3.
+        4.
 
 
 
 
 
-    Output files:
+Output files:
     
     1. conf_assay_strain_def_chal_average.csv
     
