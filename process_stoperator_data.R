@@ -248,7 +248,8 @@ hist(freq_table$meme_biostrings_diff,col="black")
 # SarFire (A1)
 
 
-# Plot distribution of number of stoperators.
+# QC: Plot distribution of number of stoperators. Should range approximately
+# 20-40 sites per genome.
 par(mar=c(4,8,8,4))
 hist(table(bios_sites$phage),col="black",
      xlim=c(0,50),ylim=c(0,80),

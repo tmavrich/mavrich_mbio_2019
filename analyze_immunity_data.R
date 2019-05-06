@@ -72,7 +72,7 @@ PORTAL_DISTANCE_DATA_FILENAME =
         sep="")
 STOPERATOR_PWM_DATA_FILENAME = 
   paste(DIR_INPUT,
-        "stoperator_pwm_data.csv",
+        "stoperator_pwm_distances.csv",
         sep="")
 INFECTION_TABLE_REDUCED_FILENAME = 
   paste(DIR_INPUT,
@@ -587,30 +587,29 @@ plot_hist1 <- function(table1,value1,num_breaks,x_range,y_range,filename){
 ###
 ### 3. Import datasets.
 
-
-# Expected structure of immunity data:
-# "immunity_assay_id" (unique identifier)
-# "immunity_set"
-# "date"
-# "notebook"
-# "page"
-# "strain" (systematic strain name)
-# "prophage"
-# "repressor_clone"
-# "strain_type" (lysogen or repressor_clone)
-# "defending_phage"
-# "challenging_phage"
-# "assay_type" (multiple_titer or single_titer)
-# "lawn_notes"
-# "lawn_reliability" (0 = unreliable; 3 = reliable)
-# "tested_titer"
-# "phage_reliability" (0 = unreliable; 3 = reliable)
-# "observed_infection_strength"
-# "observed_turbidity"
-# "observed_plaque_size"
-# "observed_plaques"
-# "rank6" (systematically scored infection phenotype)
-
+# Import immunity data.
+# Data structure:
+# 1. immunity_assay_id (unique identifier)
+# 2. immunity_set
+# 3. date
+# 4. notebook
+# 5. page
+# 6. strain (systematic strain name)
+# 7. prophage
+# 8. repressor_clone
+# 9. strain_type (lysogen or repressor_clone)
+# 10. defending_phage
+# 11. challenging_phage
+# 12. assay_type (multiple_titer or single_titer)
+# 13. lawn_notes
+# 14. lawn_reliability (0 = unreliable; 3 = reliable)
+# 15. tested_titer
+# 16. phage_reliability (0 = unreliable; 3 = reliable)
+# 17. observed_infection_strength
+# 18. observed_turbidity
+# 19. observed_plaque_size
+# 20. observed_plaques
+# 21. rank6 (systematically scored infection phenotype) TODO change to score
 immunity_data <- read.csv(IMMUNITY_DATA_FILENAME,sep=",",header=TRUE)
 immunity_data$immunity_assay_id <- as.factor(immunity_data$immunity_assay_id)
 immunity_data$immunity_set <- as.factor(immunity_data$immunity_set)
@@ -674,9 +673,9 @@ immunity_data$experiment_id <- as.factor(immunity_data$experiment_id)
 # Mash genomic distance data for all phages in Actino1321 database,
 # including all reciprocal data and self-comparison data.
 # Data structure:
-# "phage1_phage2"
-# "modified_mash_distance" (whole genome nucleotide distance, nuc_dist)
-# "pham_pham_dissimilarity" (gene content dissimilarity, gcd)
+# 1. phage1_phage2
+# 2. modified_mash_distance (whole genome nucleotide distance, nuc_dist)
+# 3. pham_pham_dissimilarity (gene content dissimilarity, gcd)
 genomic_distance_data <- read.csv(GENOMIC_DISTANCE_DATA_FILENAME,
                                   sep=",",
                                   header=TRUE)
@@ -688,31 +687,32 @@ names(genomic_distance_data) <- c("phage1_phage2",
                                 "gcd")
 
 
-#Use Actino1321 data, in which escape mutants have been added
-#actino1321 phage metadata
-# "phageid"
-# "host"
-# "cluster"
-# "subcluster"
-# "size"
-# "lysogen_type" (extrachromosomal, integration, none)
-# "pham_integrase"
-# "pham_para" (imported as int)
-# "source" (environment or lab)
-# "parent"
-# "repressor_functional" (yes, no, NA; For Cluster A phages, 
+# Import phage metadata.
+# Use Actino1321 data, in which escape mutants have been added.
+# Data structure:
+# 1. phageid
+# 2. host
+# 3. cluster
+# 4. subcluster
+# 5. size
+# 6. lysogen_type (extrachromosomal, integration, none)
+# 7. pham_integrase
+# 8. pham_para (imported as int)
+# 9. source (environment or lab)
+# 10. parent
+# 11. repressor_functional (yes, no, NA; For Cluster A phages, 
   #is the immunity repressor predicted to be functional?)
-# "temperate_empirical" (no, unknown, yes, NA; For Cluster A phages,
+# 12. temperate_empirical (no, unknown, yes, NA; For Cluster A phages,
   #can a lysogen be generated?)
-# "repressor_hth"
-# "repressor_length_full" (imported as factor)
-# "repressor_length_nterm" (imported as factor)
-# "repressor_length_cterm" (imported as factor)
-# "pham_parb" (imported as int)
-# "gene_content_clade" (clade2 = the "L5 clade")
-# "coordinate_pleft" (coordinate for manual alignment)
-# "coordinate_repressor" (coordinate for manual alignment)
-# "coordinate_genome_center" (coordinate for manual alignment)
+# 13. repressor_hth
+# 14. repressor_length_full (imported as factor)
+# 15. repressor_length_nterm (imported as factor)
+# 16. repressor_length_cterm (imported as factor)
+# 17. pham_parb (imported as int)
+# 18. gene_content_clade (clade2 = the "L5 clade")
+# 19. coordinate_pleft (coordinate for manual alignment)
+# 20. coordinate_repressor (coordinate for manual alignment)
+# 21. coordinate_genome_center (coordinate for manual alignment)
 
 phage_metadata <- read.csv(PHAGE_METADATA_FILENAME,sep=",",header=TRUE)
 phage_metadata$pham_para <- as.factor(phage_metadata$pham_para)
@@ -763,13 +763,13 @@ phage_metadata$coordinate_genome_center <-
 # data for escape mutant or for parent phages that are natural mutants
 # (e.g. d29, misswhite, jeffabunny) with no repressor annotated.
 # Data structure:
-# "phage1_phage2"
-# "repressor_full_mafft_phyml_dist"
-# "repressor_nterm_mafft_phyml_dist"
-# "repressor_cterm_mafft_phyml_dist"
-# "repressor_full_mafft_dist_uncorrected"
-# "repressor_nterm_mafft_dist_uncorrected"
-# "repressor_cterm_mafft_dist_uncorrected"
+# 1. phage1_phage2
+# 2. repressor_full_mafft_phyml_dist
+# 3. repressor_nterm_mafft_phyml_dist
+# 4. repressor_cterm_mafft_phyml_dist
+# 5. repressor_full_mafft_dist_uncorrected
+# 6. repressor_nterm_mafft_dist_uncorrected
+# 7. repressor_cterm_mafft_dist_uncorrected
 repressor_distance_data <-
   read.csv(REPRESSOR_DISTANCE_DATA_FILENAME,
            sep = ",",
@@ -780,8 +780,8 @@ repressor_distance_data <-
 # reciprocal data and self-comparison data for 311 homologs present 
 # in Cluster A parent phages. There is no data for escape mutants.
 # Data structure:
-# "phage1_phage2"
-# "cas4_mafft_dist_uncorrected"
+# 1. phage1_phage2
+# 2. cas4_mafft_dist_uncorrected
 cas4_distance_data <-
   read.csv(CAS4_DISTANCE_DATA_FILENAME,
            sep = ",",
@@ -792,8 +792,8 @@ cas4_distance_data <-
 # reciprocal data and self-comparison data for 306 homologs present
 # in Cluster A parent phages. There is not data escape mutants.
 # Data structure:
-# "phage1_phage2"
-# "endovii_mafft_dist_uncorrected"
+# 1. phage1_phage2
+# 2. endovii_mafft_dist_uncorrected
 endovii_distance_data <-
   read.csv(ENDOVII_DISTANCE_DATA_FILENAME,
            sep = ",",
@@ -804,8 +804,8 @@ endovii_distance_data <-
 # reciprocal data and self-comparison data for 311 homologs present
 # in Cluster A parent phages. There is no data for escape mutants.
 # Data structure:
-# "phage1_phage2"
-# "dnapol_mafft_dist_uncorrected"
+# 1. phage1_phage2
+# 2. dnapol_mafft_dist_uncorrected
 dnapol_distance_data <-
   read.csv(DNAPOL_DISTANCE_DATA_FILENAME,
            sep = ",",
@@ -816,8 +816,8 @@ dnapol_distance_data <-
 # reciprocal data and self-comparison data for 311 homologs present
 # in Cluster A parent phages. There is no data for escape mutants.
 # Data structure:
-# "phage1_phage2"
-# "portal_mafft_dist_uncorrected"
+# 1. phage1_phage2
+# 2. portal_mafft_dist_uncorrected
 portal_distance_data <-
   read.csv(PORTAL_DISTANCE_DATA_FILENAME,
            sep = ",",
@@ -828,10 +828,10 @@ portal_distance_data <-
 # and self-comparison data for all 327 Cluster A phage genomes 
 # (including escape mutants) from Actino1321 database.
 # Data structure:
-# "phage1"
-# "phage2"
-# "dist_pearson" (Pairwise distance using Pearson metric)
-# "dist_euc" (Pairwise distance using Euclidean metric)
+# 1. phage1
+# 2. phage2
+# 3. dist_pearson (Pairwise distance using Pearson metric)
+# 4. dist_euc (Pairwise distance using Euclidean metric)
 stoperator_pwm_data <- read.csv(STOPERATOR_PWM_DATA_FILENAME,
                                 sep=",",
                                 header=TRUE)
@@ -3031,6 +3031,7 @@ plot_tricolor_scatter1(escape_clone_intraclade2,
 ###
 ###
 ### 11. Compute immunity profile correlations.
+#TODO compute this automatically in R or add data structure.
 # Import table of averaged data manipulated in Excel. This is a reduced dataset
 # consisting of a complete reciprocal matrix.
 infection_table_reduced <- read.csv(INFECTION_TABLE_REDUCED_FILENAME,
@@ -3497,20 +3498,17 @@ dev.off()
 # Actino1321 database, for each of the 327 stoperator PWMs derived from all
 # Cluster A genomes. An 88% relative score cutoff was used.
 # Data structure:
-# "tfbs88_stop_site_id"
-# "tfbs88_motif_target"
-# "tfbs88_stoperator_target"
-# "tfbs88_stoperator_motif"
-# "tfbs88_site_start" (regardless of orientation)
-# "tfbs88_site_end" (regardless of orientation)
-# "tfbs88_site_strand2"
-# "tfbs88_site_seq"
-# "tfbs88_site_abs_score"
-# "tfbs88_site_rel_score"
-# "tfbs88_site_self"
-
-
-
+# 1. tfbs88_stop_site_id
+# 2. tfbs88_motif_target
+# 3. tfbs88_stoperator_target
+# 4. tfbs88_stoperator_motif
+# 5. tfbs88_site_start (regardless of orientation)
+# 6. tfbs88_site_end (regardless of orientation)
+# 7. tfbs88_site_strand2
+# 8. tfbs88_site_seq
+# 9. tfbs88_site_abs_score
+# 10. tfbs88_site_rel_score
+# 11. tfbs88_site_self
 stoperator_sites <-  read.csv(STOPERATOR_SITES_FILENAME,
                               sep = ",",
                               header = TRUE)
