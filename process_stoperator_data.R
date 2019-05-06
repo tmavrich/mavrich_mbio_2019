@@ -1,7 +1,7 @@
-# R script to perform analyze stoperator data for Mavrich & Hatfull, mBio, 2019.
-# The scripts computes position weight matrices for stoperators and
-# compares similarities between PWMs.
-# Distinct analyses and code blocks separated by "###".
+# R script to process stoperator data for Mavrich & Hatfull, mBio, 2019.
+# The script computes position weight matrices for stoperators, compares
+# similarities between PWMs, and identifies stoperators that match each PWM
+# within each genome. Distinct analyses and code blocks separated by "###".
 
 ### 1. Prepare environment.
 ### 2. Define functions.
@@ -27,7 +27,7 @@ DIR_INPUT_GENOMES = "~/scratch/process_stoperator_data/input_genomes/"
 DIR_OUTPUT = "~/scratch/process_stoperator_data/output/"
 
 #Set paths for all input files.
-STOPERATOR_DATA_FILENAME = paste(DIR_INPUT_MISC,"stoperator_data.csv",sep="")
+STOPERATOR_DATA_FILENAME = paste(DIR_INPUT_MISC,"meme_stoperators.csv",sep="")
 
 ###
 ###
@@ -138,8 +138,8 @@ names(meme_freq) <- c("phage","meme_frequency")
 ###
 ###
 ### 4. Re-process sites using Biostrings.
-# Confirm presence of sites in each genomes in case genome sequence has
-# changed since original MEME search.
+# Confirm presence of sites in each genomes in case the genome sequence has
+# changed since the original MEME search.
 
 # Create an empty dataframe to store all the search data
 bios_sites <- data.frame(phage="empty",
@@ -195,15 +195,15 @@ for (phageid in levels(meme_sites$phage)){
     }
   }
 }
-
-# Remove the row of empty data used to initiate the table.
 bios_sites <- bios_sites[bios_sites$phage != "empty",]
+
+
+# Create unique identifier for each site.
 bios_sites$phage <- factor(bios_sites$phage)
 bios_sites$strand <- factor(bios_sites$strand)
 bios_sites$forward_seq <- factor(bios_sites$forward_seq)
 bios_sites$reverse_seq <- factor(bios_sites$reverse_seq)
 
-# Create unique identifier for each site.
 bios_sites$stop_site_id <- paste(bios_sites$phage,
                                  bios_sites$strand,
                                  bios_sites$start,
@@ -248,9 +248,6 @@ hist(freq_table$meme_biostrings_diff,col="black")
 # SarFire (A1)
 
 
-
-
-
 # Plot distribution of number of stoperators.
 par(mar=c(4,8,8,4))
 hist(table(bios_sites$phage),col="black",
@@ -262,8 +259,9 @@ dev.copy(pdf,paste(DIR_OUTPUT,
 dev.off()
 
 # Output biostrings data for reference
-# This list is more robust than the input meme-derived list, because it has 
-# been generated using the most recent version of genome sequences.
+# This list is more robust than the input MEME-derived list because it has 
+# been generated using the most recent version of genome sequences and 
+# ensures no inadvertent data errors.
 write.table(bios_sites,
             paste(DIR_OUTPUT,"biostrings_stoperators.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
@@ -310,10 +308,9 @@ for (stoperator_phage in levels(bios_sites$phage)){
   pwm_log2 <- toPWM(stoperator_pfm,type="log2probratio") 
   pwm_prob <- toPWM(stoperator_pfm,type="prob") 
 
-  # Append the pwm to the list of pwms.
+  # Append the PWM to the list of PWMs.
   pwm_log2_list[[count]] <- pwm_log2
   pwm_prob_list[[count]] <- pwm_prob  
-  
   
   # Append DNA letter frequency check.
   reduced_table_seqs_dnastringset <- DNAStringSet(reduced_table_seqs)
@@ -324,21 +321,14 @@ for (stoperator_phage in levels(bios_sites$phage)){
     alphabet_check_sum + all_4_nucleotides
   
   count <- count + 1
-  
 }  
-
 
 # QC: should equal 0.
 nlevels(bios_sites$phage) - alphabet_check_sum
 
-
-### Compute PWM distances using the Prob PWMs or Log2ProbRatio PWMs.
-# The log2-based score seems to be more commonly used than a linear score.
+# Compute PWM distances using the Prob PWMs or Log2ProbRatio PWMs.
 pwm_log2_distances <- compute_pwm_distances(pwm_log2_list)
 pwm_prob_distances <- compute_pwm_distances(pwm_prob_list)
-
-
-
 
 # Compare the euclidean distance of PWM linear and the log2probratio
 # probabilities.
@@ -349,45 +339,41 @@ pwm_distances <- merge(pwm_log2_distances,
                        by.x="phage1_phage2",
                        by.y="prob_phage1_phage2")
 
-
 #QC: Should equal 0.
 nrow(pwm_log2_distances) - nrow(pwm_prob_distances)
 nrow(pwm_distances) - nrow(pwm_log2_distances)
 nrow(pwm_distances) - nrow(pwm_prob_distances)
 
 plot(pwm_distances$dist_euc,
-     pwm_distances$prob_dist_euc)
+     pwm_distances$prob_dist_euc,
+     pch=16,cex=2,cex.axis=2,las=1,
+     xlab="Log2 PWM",ylab="Linear PWM",main = "Euclidean distances",
+     col="black")
 
 plot(pwm_distances$dist_euc,
-     pwm_distances$dist_pearson)
+     pwm_distances$dist_pearson,
+     pch=16,cex=2,cex.axis=2,las=1,
+     xlab="Euclidean",ylab="Pearson",main = "Log2 PWM",
+     col="black")
 
 plot(pwm_distances$prob_dist_euc,
-     pwm_distances$prob_dist_pearson)
+     pwm_distances$prob_dist_pearson,
+     pch=16,cex=2,cex.axis=2,las=1,
+     xlab="Euclidean",ylab="Pearson",main = "Linear PWM",
+     col="black")
 
 
-#TODO
-#Summary of comparisons
+# Export data.
+# The log2-based score seems to be more commonly used than the linear score.
+pwm_log2_distances_reduced <- subset(pwm_log2_distances,
+                                     select=c("phage1",
+                                              "phage2",
+                                              "dist_pearson",
+                                              "dist_euc"))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#TODO will need to select columns
-# Export data
-write.table(pwm_log2_distances,
-            paste(DIR_OUTPUT,"stoperator_pwm_data.csv",sep=""),
+write.table(pwm_log2_distances_reduced,
+            paste(DIR_OUTPUT,"stoperator_pwm_distances.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
-
 
 ###
 ###
@@ -399,27 +385,20 @@ write.table(pwm_log2_distances,
 ###
 ###
 ### 6. Predict sites using PWMs.
-### After creating all stoperator PWMs, iterate through all genomes for each
+# After creating all stoperator PWMs, iterate through all genomes for each
 # PWM and predict sites. 
 time_start <- Sys.time()
+time_start
 
 # A PWMatrixList needs to be created first.
 stoperator_pwm_matrixlist <- do.call(PWMatrixList,pwm_log2_list)
 
 # Use default min.score of 80%, so that different cutoffs can be assessed.
 stop_site_set80_list <- searchSeq(stoperator_pwm_matrixlist,actino1321_genomes)
+
 stop_site_set80_df <- as(stop_site_set80_list,"data.frame")
-time_stop <- Sys.time()
-
-
-# QC: keep track of how long this step takes.
-time_start
-time_stop
-# Note: it takes about an hour to run the two commands above using stop.
-
-
 # Dataframe output: each row is a predicted site in a genome from one PWM
-# Column names:
+# Data structure:
 # 1. seqnames = factor, 327 levels are individual phage genomes
 # 2. source = factor, 1 level ("TFBS")
 # 3. feature = factor, 1 level ("TFBS")
@@ -435,6 +414,10 @@ time_stop
 # 11. class = factor, 1 level ("Unknown")
 # 12. siteSeqs = chr, 13bp stoperator DNA sequence
 
+# QC: keep track of how long this step takes.
+time_stop <- Sys.time()
+time_start
+time_stop
 
 # Reduce data for analysis with immunity data
 site_predictions_80 <- subset(stop_site_set80_df,
@@ -456,7 +439,6 @@ names(site_predictions_80) <- c("stoperator_target",
                                 "site_rel_score",
                                 "stoperator_motif")
 
-
 site_predictions_80$motif_target <- 
   paste(site_predictions_80$stoperator_motif,
         "_",
@@ -467,7 +449,6 @@ site_predictions_80$motif_target <-
   as.factor(site_predictions_80$motif_target)
 
 
-#TODO
 # QC: Check number of unique comparisons.
 nlevels(site_predictions_80$motif_target)
 # This list has 106,300 levels, but in the Actino1321 database there are
@@ -488,17 +469,12 @@ all_levels$motif_target <- paste(all_levels$stoperator_motif,
 
 all_levels$motif_target <- as.factor(all_levels$motif_target)
 
-
 site_predictions_80$motif_target <- 
   factor(site_predictions_80$motif_target,
          levels(all_levels$motif_target))
 
-# Should equal 0.
+# QC: Should equal 0.
 (327*327) - nlevels(site_predictions_80$motif_target)
-# Now there are 106,929 levels.
-
-
-
 
 # Create unique site ids
 site_predictions_80$site_strand2 <- 
@@ -517,14 +493,10 @@ site_predictions_80$stop_site_id <-
 site_predictions_80$stop_site_id <- 
   factor(site_predictions_80$stop_site_id)
 
-
-
-
 site_predictions_80_self <- 
   subset(site_predictions_80,
          as.character(site_predictions_80$stoperator_target) == 
            as.character(site_predictions_80$stoperator_motif))
-
 
 site_predictions_80_self$stoperator_target <- 
   factor(site_predictions_80_self$stoperator_target)
@@ -535,8 +507,7 @@ site_predictions_80_self$motif_target <-
 site_predictions_80_self$site_strand2 <- 
   factor(site_predictions_80_self$site_strand2)
 
-
-
+# Create different sets of stoperators using different cutoffs.
 site_predictions_85_self <- 
   subset(site_predictions_80_self,
          site_predictions_80_self$site_rel_score >= 0.85)
@@ -576,7 +547,6 @@ site_predictions_100_self <-
 
 
 # Table creates a two column table = the levels and the frequency (int)
-
 site_predictions_80_self_freq <- 
   as.data.frame(table(site_predictions_80_self$stoperator_target))
 names(site_predictions_80_self_freq) <- c("phage","tfbstools80_freq")
@@ -697,14 +667,10 @@ freq_table <- merge(freq_table,
                     by.y="phage")
 
 
-
-
-
 # QC: Check how well TFBSTools matches with Biostrings and determine which
 # % cutoff is best to use.
 x_coords <- c(0,100)
 y_coords <- c(0,100)
-
 
 plot_scatter(freq_table,"biostrings_freq","tfbstools80_freq",
              x_coords,y_coords,"Cutoff: 80")
@@ -735,7 +701,7 @@ plot_scatter(freq_table,"biostrings_freq","tfbstools100_freq",
 
 # QC:
 # CutofF____|__Multiple_R2__|__#_sites
-# biostrings|               | 9273
+# biostrings|  N/A          | 9273
 # 80        |  0.1943       | 13193
 # 85        |  0.8067       | 9686
 # 86        |  0.876        | 9536
@@ -754,22 +720,18 @@ plot_scatter(freq_table,"biostrings_freq","tfbstools100_freq",
 # stoperators in each genome (9202 compared to 9273), and it produces the most
 # correlated data, with an R2 of 0.9532, So using 88% is probably the best 
 # cutoff to use. 
-
-
 names(site_predictions_88_self) <- 
   paste("tfbs88_",names(site_predictions_88_self),sep="")
 
 
-
-# Compute the exact position of sites present in biostrings and 
-# tfbstools88 datasets.
+#QC: Now directly compare the exact positions of sites present in Biostrings and 
+# TFBSTools88 datasets.
 biostrings_tfbs88 <- merge(bios_sites,
                            site_predictions_88_self,
                            by.x="stop_site_id",
                            by.y="tfbs88_stop_site_id",
                            all.x=TRUE,
                            all.y=TRUE)
-
 
 # QC: evaluate which sites are present in which dataset.
 biostrings_tfbs88$source_biostrings <- 
@@ -794,23 +756,11 @@ summary(biostrings_tfbs88$source_both)
 
 
 
-
-
-
-#TODO
-# The 88% cutoff dataset now represents endogenous stoperators in each genome
-# that were identified by MEME (and re-processed and confirmed with biostrings)
-# as well as matching stoperators in all other genomes that match the PWM
-# of the endogenous stoperator set.
-
-
-
-
 # Now that the best TFBS cutoff has been determined (88%), search all genomes
-# with each PWM and determine how many sites of each motif are in each genome.
+# with each PWM and determine how many sites that match each motif are
+# present in each genome.
 
-
-# Re-factor columns in the self-site dataset.
+# Subset all sites predicted in each genome from each PWM above 88% threshold.
 site_predictions_88_self$tfbs88_stoperator_target <- 
   factor(site_predictions_88_self$tfbs88_stoperator_target)
 
@@ -823,9 +773,6 @@ site_predictions_88_self$tfbs88_motif_target <-
 site_predictions_88_self$tfbs88_site_strand2 <- 
   factor(site_predictions_88_self$tfbs88_site_strand2)
 
-
-
-# Subset all sites predicted in each genome from each PWM above 88% threshold.
 site_predictions_80$site_self <- 
   ifelse(is.element(site_predictions_80$stop_site_id,
                     site_predictions_88_self$tfbs88_stop_site_id),
@@ -833,8 +780,6 @@ site_predictions_80$site_self <-
 
 site_predictions_88 <- subset(site_predictions_80,
                               site_predictions_80$site_rel_score >= 0.88)
-
-
 
 site_predictions_88$stoperator_target <- 
   factor(site_predictions_88$stoperator_target)

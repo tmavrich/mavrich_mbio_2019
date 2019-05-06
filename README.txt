@@ -143,28 +143,16 @@ PWM.
 
 Input files:
 
-    1. phage_metadata.csv
+    1. meme_stoperators.csv
     
-    Description: Information about all phages in the database.
-    
-    Data structure:
-        1. Phage Name
-        2. Genome size (TODO is this field needed?)
-        3. Coordinate indicating the center of the genome (TODO is this field needed?)
-    
-    
-    2. stoperator_data.csv
-    
-    Description:
+    Description: Table of stoperators within each genome, predicted by MEME.
     
     Data structure:
         1. Phage Name
         2. Unique stoperator ID 
         3. Stoperator sequence (13bp)
     
-    
-    
-    3. folder of fasta-formatted genome sequences
+    2. folder of fasta-formatted genome sequences
     
     Description: All genomes that need to be analyzed. One file per genome,
     fasta-formatted.
@@ -179,39 +167,49 @@ Output files:
     1. biostrings_stoperators.csv
     
     Description: Table of stoperator binding sites for each genome, derived
-    from the input stoperator data, and containing confirmed coordinate and
-    sequence data.
+    from the input MEME stoperator data, and containing confirmed coordinate and
+    sequence data using Biostrings tools.
     
     
     Data structure:
-        1. Phage Name
+        1. Phage name
         2. Forward sequence
         3. Reverse sequence
         4. Start coordinate
         5. End coordinate
         6. Strand
         7. Unique stoperator ID
-        8. TODO still needed?
-        9. TODO still needed?
-        10. TODO still needed?
 
 
-
-    2. stoperator_pwm_distances.csv (TODO make sure output file is correctly named)
+    2. stoperator_pwm_distances.csv (TODO make sure output file is correctly named in analyze_immunity_data script)
     
     Description: Pairwise genetic distances between PWMs that were generated
     using log2probratio.
     
     Data structure:
-        1. Phage 1
-        2. Phage 2
-        3. Pearson distance (TODO normalized?)
-        4. Normalized Euclidean distance
+        1. Phage name #1
+        2. Phage name #2
+        3. Pearson distance
+        4. Euclidean distance
 
 
-    3. 
-
-
+    3. stoperator_site_predictions.csv
+    
+    Description: Table of predicted stoperator sites in every genome that match
+    every PWM, using TFBSTools and the 88% cutoff.
+    
+    Data structure:
+        1. Unique stoperator ID
+        2. Motif-Target ID
+        3. Stoperator target genome
+        4. Stoperator motif genome
+        5. Start coordinate
+        6. End coordinate
+        7. Strand
+        8. Sequence
+        9. Absolute score
+        10. Relative score
+        11. Endogenous stoperator
 
 
 
