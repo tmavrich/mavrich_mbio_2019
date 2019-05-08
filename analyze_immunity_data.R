@@ -48,7 +48,7 @@ GENOMIC_DISTANCE_DATA_FILENAME =
         "genomic_distance_data.csv",
         sep="")
 
-PHAGE_METADATA_FILENAME = 
+PHAGE_METADATA_FILENAME =
   paste(DIR_INPUT,
         "phage_metadata.csv",
         sep="")
@@ -478,6 +478,7 @@ plot_tricolor_scatter3 <- function(table1,
 }
 
 
+#TODO adding abline feature
 # Plot to compare genome metrics
 plot_bicolor_scatter1 <- function(table1,
                                   table2,
@@ -485,7 +486,8 @@ plot_bicolor_scatter1 <- function(table1,
                                   y_data,
                                   x_range,
                                   y_range,
-                                  filename){
+                                  filename,
+                                  abline_value = "no"){
   
   # For each table, remove all rows with missing values.
   table1 <- subset(table1,select = c(x_data,y_data))
@@ -513,50 +515,55 @@ plot_bicolor_scatter1 <- function(table1,
        xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,
        ann=FALSE,main=NULL,las=1,col="red")
   
+  if(abline_value == "yes"){
+    abline(0,1)
+    }
+
   dev.copy(pdf,filename)
   dev.off()
 }
 
 
-# Plot to compare genome metrics with abline
-plot_bicolor_scatter2 <- function(table1,
-                                  table2,
-                                  x_data,
-                                  y_data,
-                                  x_range,
-                                  y_range,
-                                  filename){
-  
-  # For each table, remove all rows with missing values.
-  table1 <- subset(table1,select = c(x_data,y_data))
-  table1 <- na.omit(table1)
-  
-  table2 <- subset(table2,select = c(x_data,y_data))
-  table2 <- na.omit(table2)
-  
-  total_rows <- nrow(table1) + nrow(table2)
-  
-  # For each table, report number of data points plotted.
-  print(paste("Number of data points in first table: ",nrow(table1)))
-  print(paste("Number of data points in second table: ",nrow(table2)))
-  print(paste("Number of total data points: ",total_rows))
-  
-  
-  # Plot data
-  par(mar=c(4,8,8,4))
-  plot(table1[,x_data],
-       table1[,y_data],
-       xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,
-       ann=FALSE,main=NULL,las=1,col="grey")
-  par(new=TRUE)
-  plot(table2[,x_data],
-       table2[,y_data],
-       xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,
-       ann=FALSE,main=NULL,las=1,col="red")
-  abline(0,1)
-  dev.copy(pdf,filename)
-  dev.off()
-}
+#TODO delete
+# # Plot to compare genome metrics with abline
+# plot_bicolor_scatter2 <- function(table1,
+#                                   table2,
+#                                   x_data,
+#                                   y_data,
+#                                   x_range,
+#                                   y_range,
+#                                   filename){
+#   
+#   # For each table, remove all rows with missing values.
+#   table1 <- subset(table1,select = c(x_data,y_data))
+#   table1 <- na.omit(table1)
+#   
+#   table2 <- subset(table2,select = c(x_data,y_data))
+#   table2 <- na.omit(table2)
+#   
+#   total_rows <- nrow(table1) + nrow(table2)
+#   
+#   # For each table, report number of data points plotted.
+#   print(paste("Number of data points in first table: ",nrow(table1)))
+#   print(paste("Number of data points in second table: ",nrow(table2)))
+#   print(paste("Number of total data points: ",total_rows))
+#   
+#   
+#   # Plot data
+#   par(mar=c(4,8,8,4))
+#   plot(table1[,x_data],
+#        table1[,y_data],
+#        xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,
+#        ann=FALSE,main=NULL,las=1,col="grey")
+#   par(new=TRUE)
+#   plot(table2[,x_data],
+#        table2[,y_data],
+#        xlim=x_range,ylim=y_range,pch=1,cex=1,cex.axis=2,
+#        ann=FALSE,main=NULL,las=1,col="red")
+#   abline(0,1)
+#   dev.copy(pdf,filename)
+#   dev.off()
+# }
 
 
 # Plot bargraph assessing binned frequencies
@@ -3444,14 +3451,25 @@ plot_bicolor_scatter1(clusterA_clade2_diff,
                       "rep_vs_stop.pdf")
 
 
+#TODO double check this
 # Fig. 9a
-plot_bicolor_scatter2(clusterA_clade2_diff,
+plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
                       "repressor_nterm_mafft_dist_uncorrected",
                       "repressor_cterm_mafft_dist_uncorrected",
                       c(0,70),
                       c(0,70),
-                      "rep_nterm_vs_rep_cterm.pdf")
+                      "rep_nterm_vs_rep_cterm.pdf",
+                      "yes")
+
+#TODO delete
+# plot_bicolor_scatter2(clusterA_clade2_diff,
+#                       clusterA_intraclade2,
+#                       "repressor_nterm_mafft_dist_uncorrected",
+#                       "repressor_cterm_mafft_dist_uncorrected",
+#                       c(0,70),
+#                       c(0,70),
+#                       "rep_nterm_vs_rep_cterm.pdf")
 
 
 # Fig. 5c sub-panel 1
@@ -3662,13 +3680,6 @@ names(stops_endo_freq) <- c("phage","frequency")
 
 
 
-
-
-
-
-# Distance from Pleft
-
-
 # Fig. 3b - distance from repressor
 plot_hist1(stops_endogenous,
            "site_rep_dist",
@@ -3697,7 +3708,6 @@ hist(stops_endogenous$site_pleft_dist,
 dev.copy(pdf,'stoperators_across_genome.pdf')
 dev.off()
 
-
 # Fig. S1b
 plot_hist1(stops_endo_freq,
            "frequency",
@@ -3705,12 +3715,6 @@ plot_hist1(stops_endo_freq,
            c(0,50),
            c(0,15),
            "stoperators_per_genome.pdf")
-
-
-
-
-
-
 
 
 # Compute site orientation. Tally the number of stoperators on each strand
