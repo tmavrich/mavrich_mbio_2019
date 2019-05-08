@@ -337,10 +337,13 @@ plot_tricolor_scatter1 <- function(table1,
   table3 <- subset(table3,select = c(x_data,y_data))
   table3 <- na.omit(table3)
   
+  total_rows <- nrow(table1) + nrow(table2) + nrow(table3)
+
   # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
+  print(paste("Number of total data points: ",total_rows))
 
   # Plot data
   par(mar=c(4,8,8,4))
@@ -386,12 +389,15 @@ plot_tricolor_scatter2 <- function(table1,
   
   table3 <- subset(table3,select = c(x_data,y_data))
   table3 <- na.omit(table3)
-  
+
+  total_rows <- nrow(table1) + nrow(table2) + nrow(table3)
+    
   # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
-
+  print(paste("Number of total data points: ",total_rows))
+        
   # Plot data
   par(mar=c(4,8,16,4))
   plot(table1[,x_data],
@@ -438,11 +444,14 @@ plot_tricolor_scatter3 <- function(table1,
   table3 <- subset(table3,select = c(x_data,y_data))
   table3 <- na.omit(table3)
   
+  total_rows <- nrow(table1) + nrow(table2) + nrow(table3)
+  
   #For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
   print(paste("Number of data points in third table: ",nrow(table3)))
-
+  print(paste("Number of total data points: ",total_rows))
+        
   # Plot data
   par(mar=c(4,8,16,4))
   plot(table1[,x_data],
@@ -485,10 +494,12 @@ plot_bicolor_scatter1 <- function(table1,
   table2 <- subset(table2,select = c(x_data,y_data))
   table2 <- na.omit(table2)
   
+  total_rows <- nrow(table1) + nrow(table2)
+  
   # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
-
+  print(paste("Number of total data points: ",total_rows))
   
   # Plot data
   par(mar=c(4,8,8,4))
@@ -523,11 +534,13 @@ plot_bicolor_scatter2 <- function(table1,
   table2 <- subset(table2,select = c(x_data,y_data))
   table2 <- na.omit(table2)
   
+  total_rows <- nrow(table1) + nrow(table2)
   
   # For each table, report number of data points plotted.
   print(paste("Number of data points in first table: ",nrow(table1)))
   print(paste("Number of data points in second table: ",nrow(table2)))
-
+  print(paste("Number of total data points: ",total_rows))
+  
   
   # Plot data
   par(mar=c(4,8,8,4))
@@ -767,7 +780,7 @@ phage_metadata$coordinate_genome_center <-
 
 
 
-# Aactino1321 Immunity Repressor protein distance data, including
+# Actino1321 Immunity Repressor protein distance data, including
 # reciprocal data and self-comparison data for 336 homologs. There is no
 # data for escape mutant or for parent phages that are natural mutants
 # (e.g. d29, misswhite, jeffabunny) with no repressor annotated.
@@ -785,7 +798,7 @@ repressor_distance_data <-
            header = TRUE)
 
 
-# Aactino1321 Cas4-family protein mafft distance data, including
+# Actino1321 Cas4-family protein mafft distance data, including
 # reciprocal data and self-comparison data for 311 homologs present 
 # in Cluster A parent phages. There is no data for escape mutants.
 # Data structure:
@@ -1225,6 +1238,10 @@ output_fields_renamed <- c("strain type",
 
 names(immunity_average_reduced_for_output) <- output_fields_renamed
 
+# Summary
+nrow(immunity_average_reduced_for_output)
+sum(as.numeric(as.character(immunity_average_reduced_for_output$replicates)))
+
 write.table(immunity_average_reduced_for_output,
             paste(DIR_OUTPUT,"Table_S1_averaged_immunity_data.csv",sep=""),
             sep=",",row.names = FALSE,col.names = TRUE,quote=FALSE)
@@ -1301,49 +1318,29 @@ plot_bargraph2(immunity_average,
                "immunity_assay_average_frequency.pdf_adjusted.pdf")
 
 
-
-# QC: Number of unique assays with >1 replicate. Note:this includes all
-# single-titer assays.
-1 - 
-  nrow(subset(immunity_average, immunity_average$frequency == "1")) / 
-  nrow(immunity_average)
-#48% of unique comparisons has > 1 replicate 
-
-# QC: Assess variability in scoring between replicates for each unique assay.
-plot_bargraph2(immunity_average,
-               "range_score",
-               c(0,1200),
-               "immunity_assay_replicate_range.pdf")
-# 92% of unique comparisons with > 1 replicate have a score range of < 2.
-
-
-
-
-# Only look at multiple_titer assays.
+# Summary - number of unique multi-titer assays = 1,050.
 immunity_ave_multi <- subset(immunity_average,
                              immunity_average$assay_type == "multiple_titer")
 
-
-
-# Summary - number of unique multi-titer assays.
 nrow(immunity_ave_multi)
 
-# Summary - number of unique multi-titer assays with >1 replicate.
+# Summary - number of unique multi-titer assays with > 1 replicate = 67%.
 immunity_ave_multi_reps <- subset(immunity_ave_multi,
                                   immunity_ave_multi$frequency != "1")
 nrow(immunity_ave_multi_reps)/nrow(immunity_ave_multi)
 
 
-
 # Summary - number of unique multi-titer assays with > 1 replicate and
-# score range < 2.
-nrow(
-  subset(
-    immunity_ave_multi_reps,
-    immunity_ave_multi_reps$range_score == "0" |
-      immunity_ave_multi_reps$range_score == "1"
-  )
-) / nrow(immunity_ave_multi_reps)
+# score range < 2 = 82%.
+nrow(subset(immunity_ave_multi_reps,
+            immunity_ave_multi_reps$range_score == "0" |
+              immunity_ave_multi_reps$range_score == "1")) / 
+  nrow(immunity_ave_multi_reps)
+
+plot_bargraph2(immunity_ave_multi_reps,
+               "range_score",
+               c(0,400),
+               "immunity_assay_replicate_range.pdf")
 
 
 ###
@@ -2013,7 +2010,8 @@ reciprocal_data_alpha_ordered <-
   subset(reciprocal_data,
          reciprocal_data$vector1_alpha_ordered == TRUE)
 
-
+# Summary
+nrow(reciprocal_data_alpha_ordered)
 
 # Output the reciprocal dataset.
 # This table was not used for the publication.
@@ -2277,6 +2275,23 @@ plot_tricolor_scatter2(reciprocal_intraclade2_diff,
 ###
 ### 8. Compare lysogen and cloned-repressor strains.
 
+# Summary - total lysogen-CRS reciprocal assays performed
+lys_to_match <- 
+  subset(immunity_average,
+         immunity_average$assay_type == 'multiple_titer' &
+           immunity_average$strain_type == 'lysogen')
+
+clone_to_match <- 
+  subset(immunity_average,
+         immunity_average$assay_type == 'multiple_titer' &
+           immunity_average$strain_type == 'repressor_clone')
+
+lys_clone_matched <- match_lys_clone_data(lys_to_match,
+                                          clone_to_match)
+
+nrow(lys_clone_matched)
+
+
 # Environment, functional repressor, and empirically temperate data from
 # averaged multiple-titer lysogen and clone data.
 env_lys_to_match <- 
@@ -2338,6 +2353,9 @@ escape_lys_clone_matched <- match_lys_clone_data(escape_lys_to_match,
                                                  escape_clone_to_match)
 
 
+# Summary
+nrow(escape_lys_clone_matched) + nrow(env_lys_clone_matched)
+
 escape_lys_clone_interclade <- 
   subset_interclade(escape_lys_clone_matched,
                     "lys_gene_content_clade_compare")
@@ -2393,6 +2411,10 @@ plot_tricolor_scatter1(env_lys_clone_intraclade2_same,
                        "lys_vs_crs_env_infection_score.pdf")
 
 
+lm_score <- lm(lys_averaged_score ~ clone_averaged_score,
+             data = env_lys_clone_matched)
+summary(lm_score)
+
 # Fig. 7d
 plot_tricolor_scatter1(escape_lys_clone_intraclade2_diff,
                        escape_lys_clone_interclade,
@@ -2401,6 +2423,10 @@ plot_tricolor_scatter1(escape_lys_clone_intraclade2_diff,
                        c(0,6),
                        c(0,6),
                        "lys_vs_crs_escape_infection_score.pdf")
+
+lm_score <- lm(lys_averaged_score ~ clone_averaged_score,
+               data = escape_lys_clone_matched)
+summary(lm_score)
 
 
 # Fig. 6d
@@ -3378,8 +3404,6 @@ clusterA_intraclade2_empty <-
 nrow(clusterA_intraclade2_empty)
 
 
-
-
 # Fig. 2c
 plot_bicolor_scatter1(clusterA_clade2_diff,
                       clusterA_intraclade2,
@@ -3454,26 +3478,47 @@ plot_tricolor_scatter2(clusterA_intraclade2,
 
 
 
+# Summary subsets and stats
+cluster_a <- 
+  subset(phage_metadata,
+         phage_metadata$cluster == "A")
 
+cluster_a$subcluster <- factor(cluster_a$subcluster)
 
-# Compare repressor sizes
-clusterA_subset <- subset(
-  phage_metadata,
-  phage_metadata$cluster == 'A' &
-    phage_metadata$source == 'environment' &
-    phage_metadata$host == 'Mycobacterium' &
-    phage_metadata$repressor_functional == 'yes' &
-    phage_metadata$gene_content_clade == 'clade2'
-)
+cluster_a_env <- 
+  subset(cluster_a,
+         cluster_a$source == "environment")
+
+cluster_a_env_clade2 <- 
+  subset(cluster_a_env,
+         cluster_a_env$gene_content_clade == "clade2")
+
+cluster_a_env_clade2$subcluster <- factor(cluster_a_env_clade2$subcluster)
+
+cluster_a_env_clade2_myco <- 
+  subset(cluster_a_env_clade2,
+         cluster_a_env_clade2$host == "Mycobacterium")
+
+cluster_a_env_clade2_myco_rep <- 
+  subset(cluster_a_env_clade2_myco,
+         cluster_a_env_clade2_myco$repressor_functional == "yes")
+
+nrow(cluster_a)
+nrow(cluster_a_env)
+nrow(cluster_a_env_clade2)
+nrow(cluster_a_env_clade2_myco)
+nrow(cluster_a_env_clade2_myco_rep)
+nlevels(cluster_a$subcluster)
+nlevels(cluster_a_env_clade2$subcluster)
 
 
 # Fig. S1a
 par(mar=c(4,8,16,20))
-boxplot(clusterA_subset$repressor_length_full,
+boxplot(cluster_a_env_clade2_myco_rep$repressor_length_full,
         las=1,cex.axis=2,ann=FALSE,main=NULL,outline=FALSE,ylim=c(150,250),
         col="light grey")
 par(new=TRUE)
-stripchart(clusterA_subset$repressor_length_full,
+stripchart(cluster_a_env_clade2_myco_rep$repressor_length_full,
            vertical=TRUE,las=1,cex.axis=2,pch=16,method="jitter",cex=1,
            ann=FALSE,main=NULL,ylim=c(150,250))
 dev.copy(pdf,"rep_sizes.pdf")
