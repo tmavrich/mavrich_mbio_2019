@@ -21,7 +21,7 @@ Input files:
 
     1. phage_metadata.csv
     
-    Description: Information about all phages in the database. Derived from 
+    Description: information about all phages in the database. Derived from 
     the same metadata file used for the analyze_immunity_data.R script.
     
     Data structure:
@@ -42,7 +42,7 @@ Input files:
         3. Mash distance
         4. Mash p-value
         5. Mash kmer count
-        6. Reference_Query identifier
+        6. Reference-Query identifier
     
     
     3. pairwise_pham_proportions.csv
@@ -75,7 +75,7 @@ Output files:
 
     1. genomic_distance_data.csv
 
-    Description: Pairwise comparisons that are used in the 
+    Description: pairwise comparisons that are used in the 
     analyze_immunity_data.R script. Dataset contains self comparisons
     (i.e. L5 compared to L5) as well as reciprocal comparisons (i.e.
     L5 compared to Trixie and Trixie compared to L5).
@@ -88,7 +88,7 @@ Output files:
 
     2. data_for_mode_prediction.csv
 
-    Description: Pairwise comparisons within intra-cluster boundaries
+    Description: pairwise comparisons within intra-cluster boundaries
     (as defined by Mavrich & Hatfull 2017) so that evolutionary mode can be
     identified, as published in Mavrich & Hatfull 2017 
     (but not used in this publication).
@@ -102,7 +102,7 @@ Output files:
 
     3. data_for_maxgcdgap_all.csv
 
-    Description: All pairwise comparisons, which can be used to compute 
+    Description: all pairwise comparisons, which can be used to compute 
     MaxGCDGap as published in Pope et al. 2017
     (but not used in this publication).
 
@@ -115,7 +115,7 @@ Output files:
 
     4. data_for_mash_network_nuc005.csv
     
-    Description: All pairwise comparisons below Mash distance of 0.05. 
+    Description: all pairwise comparisons below Mash distance of 0.05. 
     This can be used to create phage networks
     (but not used in this publication).
     
@@ -134,8 +134,8 @@ Output files:
 
 2. Script: process_stoperator_data.R
 
-Description: Using previously identified potential binding sites, create 
-binding site position weight matrices (PWMs), compute the pairwise distance
+Description: using previously identified potential binding sites, create 
+binding site position weight matrices (PWMs), compute pairwise distances
 between PWMs, and scan all genomes for potential binding sites for each
 PWM.
 
@@ -146,7 +146,7 @@ Input files:
 
     1. meme_stoperators.csv
     
-    Description: Table of stoperators within each genome, predicted by MEME.
+    Description: table of stoperators within each genome, predicted by MEME.
     
     Data structure:
         1. Phage Name
@@ -156,7 +156,7 @@ Input files:
 
     2. folder of fasta-formatted genome sequences
     
-    Description: All genomes that need to be analyzed. One file per genome,
+    Description: all genomes that need to be analyzed. One file per genome,
     fasta-formatted.
 
 
@@ -166,7 +166,7 @@ Output files:
 
     1. biostrings_stoperators.csv
     
-    Description: Table of stoperator binding sites for each genome, derived
+    Description: table of stoperator binding sites for each genome, derived
     from the input MEME stoperator data, and containing confirmed coordinate and
     sequence data using Biostrings tools.
     (This serves as a reference dataset and is not used in downstream analyses).
@@ -184,7 +184,7 @@ Output files:
 
     2. stoperator_pwm_distances.csv
     
-    Description: Pairwise genetic distances between PWMs that were generated
+    Description: pairwise genetic distances between PWMs that were generated
     using TFBSTools log2probratio.
     
     Data structure:
@@ -196,8 +196,8 @@ Output files:
 
     3. stoperator_site_predictions.csv
     
-    Description: Table of predicted stoperator sites in every genome that match
-    every PWM, using TFBSTools and the 88% cutoff.
+    Description: table of predicted stoperator sites in every genome that match
+    every PWM, using TFBSTools and an 88% similarity score cutoff.
     
     Data structure:
         1. Unique stoperator ID
@@ -219,7 +219,7 @@ Output files:
 
 3. Script: analyze_immunity_data.R
 
-Description: Compare superinfection immunity phenotypes with genomic 
+Description: compare superinfection immunity phenotypes with genomic 
 characteristics to identify how immunity changes as phages evolve.
 
 
@@ -229,7 +229,7 @@ Input files:
 
     1. immunity_data.csv
     
-    Description: Table containing all immunity assay data used for this
+    Description: table containing all immunity assay data used for this
     analysis.
     
     Data structure:
@@ -258,16 +258,16 @@ Input files:
 
     2. genomic_distance_data.csv
 
-    Description: Pairwise Mash-based nucleotide distances or Pham-based gene
-    content dissimilarities for all phages in the Actinobacteriophage_1321
-    database, computed as previously described in Mavrich & Hatfull 2017.
+    Description: pairwise Mash-based nucleotide distances and Pham-based gene
+    content dissimilarities for all phages in the Actino1321 database,
+    computed as previously described in Mavrich & Hatfull 2017.
     This file is generated by the process_genome_distances.R script.
 
 
     3. phage_metadata.csv
 
-    Description: Manual compilation of misc. data for each phage in the Actino1321
-    database, generated from multiple tools.
+    Description: manual compilation of misc. data for each phage in the 
+    Actino1321 database, generated from multiple tools.
 
     Data structure:
         1. Phage name
@@ -295,7 +295,7 @@ Input files:
 
     4. repressor_336_distance_data.csv
 
-    Description: Pairwise genetic distances of 336 Immunity Repressor homologs.
+    Description: pairwise genetic distances of 336 Immunity Repressor homologs.
 
     Data structure:
         1. Phage1-Phage2 ID
@@ -309,7 +309,7 @@ Input files:
 
     5. cas4_311_distance_data.csv
 
-    Description: Pairwise genetic distances of 311 Cas4-family homologs.
+    Description: pairwise genetic distances of 311 Cas4-family homologs.
 
     Data structure:
         1. Phage1-Phage2 ID
@@ -318,7 +318,7 @@ Input files:
 
     6. endovii_306_distance_data.csv
 
-    Description: Pairwise genetic distances of 306 Endonuclease VII homologs.
+    Description: pairwise genetic distances of 306 Endonuclease VII homologs.
 
     Data structure:
         1. Phage1-Phage2 ID
@@ -327,7 +327,7 @@ Input files:
 
     7. dnapol_311_distance_data.csv
 
-    Description: Pairwise genetic distances of 311 DNA Polymerase homologs.
+    Description: pairwise genetic distances of 311 DNA Polymerase homologs.
 
     Data structure:
         1. Phage1-Phage2 ID
@@ -336,7 +336,7 @@ Input files:
 
     8. portal_311_distance_data.csv
 
-    Description: Pairwise genetic distances of 311 Portal homologs.
+    Description: pairwise genetic distances of 311 Portal homologs.
 
     Data structure:
         1. Phage1-Phage2 ID
@@ -345,7 +345,7 @@ Input files:
 
     9. stoperator_pwm_distances.csv
 
-    Description: Pairwise distances between 327 position weight matrices 
+    Description: pairwise distances between 327 position weight matrices 
     generated from predicted stoperators within each of the 327 Cluster A 
     phage genomes. This file is generated by the process_stoperator_data.R
     script.
@@ -353,15 +353,15 @@ Input files:
 
     10. stoperator_site_predictions.csv
 
-    Description: Table of predicted stoperator sites from all 327 Cluster A 
+    Description: table of predicted stoperator sites from all 327 Cluster A 
     phage genomes using all 327 position weight matrices. This file is 
     generated by the process_stoperator_data.R script.
 
 
     11. reciprocal_infection_matrix.csv
 
-    Description: Table of averaged reciprocal infection scores used to 
-    generate the heatmap in Figure 5a.
+    Description: table of averaged reciprocal infection scores used to 
+    generate the heatmap in Figure 5a. 
 
     Data structure:
         1. Rows = infecting phage
@@ -376,7 +376,8 @@ Output files:
     
     Description: Processed infection data, with low-confidence data removed
     and all replicate assay results averaged. Data from this table was used
-    to generate heatmaps in several figure panels.
+    to generate heatmaps in several figure panels. This file is also used to
+    generate the reciprocal_infection_matrix.csv file.
 
     Data structure:
         1. Strain type
@@ -390,6 +391,8 @@ Output files:
         9. Minimum infection score
         10. Maximum infection score
         11. Average infection score
+        
+    2. Misc. data analysis plots used to create figures for the publication.
 
 
 
