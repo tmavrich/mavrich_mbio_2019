@@ -1570,7 +1570,7 @@ nrow(extra_extra_diff_intraclade2_same)
 nrow(extra_extra_diff_intraclade2_diff)
 
 
-# Fig. S5b sub-panel 1 - IntInt_IntPhamSame
+# Fig. S5b sub-panel 1
 plot_tricolor_scatter2(int_int_same_intraclade2_diff,
                        int_int_same_interclade,
                        int_int_same_intraclade2_same,
@@ -1581,7 +1581,7 @@ plot_tricolor_scatter2(int_int_same_intraclade2_diff,
                        "lysogen_env_int_same_stop_vs_infection_score.pdf")
 
 
-# Fig. S5b sub-panel 2 - IntInt_IntPhamDiff
+# Fig. S5b sub-panel 2
 plot_tricolor_scatter2(int_int_diff_intraclade2_diff,
                        int_int_diff_interclade,
                        int_int_diff_intraclade2_same,
@@ -1592,7 +1592,7 @@ plot_tricolor_scatter2(int_int_diff_intraclade2_diff,
                        "lysogen_env_int_diff_stop_vs_infection_score.pdf")
 
 
-# Fig. S5b sub-panel 3 - IntExtra
+# Fig. S5b sub-panel 3
 plot_tricolor_scatter2(int_extra_intraclade2_diff,
                        int_extra_interclade,
                        int_extra_intraclade2_same,
@@ -1603,7 +1603,7 @@ plot_tricolor_scatter2(int_extra_intraclade2_diff,
                        "lysogen_env_int_parb_stop_vs_infection_score.pdf")
 
 
-# Fig. S5c sub-panel 1 - ExtraExtra_ParBPhamSame
+# Fig. S5c sub-panel 1
 plot_tricolor_scatter2(extra_extra_same_intraclade2_diff,
                        extra_extra_same_interclade,
                        extra_extra_same_intraclade2_same,
@@ -1614,7 +1614,7 @@ plot_tricolor_scatter2(extra_extra_same_intraclade2_diff,
                        "lysogen_env_parb_same_stop_vs_infection_score.pdf")
 
 
-# Fig. S5c sub-panel 2 - ExtraExtra_ParBPhamDiff
+# Fig. S5c sub-panel 2
 plot_tricolor_scatter2(extra_extra_diff_intraclade2_diff,
                        extra_extra_diff_interclade,
                        extra_extra_diff_intraclade2_same,
@@ -1625,7 +1625,7 @@ plot_tricolor_scatter2(extra_extra_diff_intraclade2_diff,
                        "lysogen_env_parb_diff_stop_vs_infection_score.pdf")
 
 
-# Fig. S5c sub-panel 3 - ExtraInt
+# Fig. S5c sub-panel 3
 plot_tricolor_scatter2(extra_int_intraclade2_diff,
                        extra_int_interclade,
                        extra_int_intraclade2_same,
@@ -1717,7 +1717,7 @@ clade2_binned_frequency$bin <- factor(clade2_binned_frequency$bin,
                                         "bin0"))
 
 
-#Fig. S4a sub-panel 1
+# Fig. S4a sub-panel 1
 plot_bargraph1(clade2_binned_frequency,
                "defending_percent",
                "bin",
@@ -1725,7 +1725,7 @@ plot_bargraph1(clade2_binned_frequency,
                "infection_score_percent_defending.pdf")
 
 
-#Fig. S4a sub-panel 2
+# Fig. S4a sub-panel 2
 plot_bargraph1(clade2_binned_frequency,
                "challenging_percent",
                "bin",
@@ -1733,7 +1733,7 @@ plot_bargraph1(clade2_binned_frequency,
                "infection_score_percent_challenging.pdf")
 
 
-#Fig. S4a sub-panel 3
+# Fig. S4a sub-panel 3
 plot_bargraph1(clade2_binned_frequency,
                "total_assays_percent",
                "bin",
@@ -1741,7 +1741,7 @@ plot_bargraph1(clade2_binned_frequency,
                "infection_score_percent_total.pdf")
 
 
-#Fig. S4b sub-panel 1
+# Fig. S4b sub-panel 1
 plot_bargraph1(clade2_binned_frequency,
                "inter_subcluster_percent",
                "bin",
@@ -1749,7 +1749,7 @@ plot_bargraph1(clade2_binned_frequency,
                "infection_score_percent_intersubcluster.pdf")
 
 
-#Fig. S4b sub-panel 2
+# Fig. S4b sub-panel 2
 plot_bargraph1(clade2_binned_frequency,
                "intra_subcluster_percent",
                "bin",
@@ -2794,7 +2794,7 @@ escape_clone_intraclade2_empty <-
 nrow(escape_clone_intraclade2_empty)
 
 
-#Fig. 7c sub-panel 2
+# Fig. 7c sub-panel 2
 plot_tricolor_scatter1(escape_clone_intraclade2,
                        escape_clone_interclade,
                        escape_clone_intraclade2_empty,
